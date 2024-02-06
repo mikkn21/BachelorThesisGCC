@@ -8,7 +8,6 @@ A very cool compiler for a very cool programming language.
 2. `cd` into the directory
 3. Run CMake: `cmake .`
 4. Run make: `make`
-5. The program is now at `prog.out`
 
 ## Usage
 
