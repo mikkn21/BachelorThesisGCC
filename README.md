@@ -1,0 +1,15 @@
+# Bachelor
+
+A very cool compiler for a very cool programming language.
+
+## Installation
+
+1. Download the repository
+2. `cd` into the directory
+3. Run CMake: `cmake .`
+4. Run make: `make`
+5. The program is now at `prog.out`
+
+## Usage
+
+Run `prog.out`. If you are already in the directory, you can run `./prog.out` to do this.
