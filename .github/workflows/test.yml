@@ -22,8 +22,8 @@ jobs:
 
     - name: Build
       run: |
-        cmake tests
-        make
+        cmake .
+        make tests
 
     - name: Run Tests
       run: ctest
