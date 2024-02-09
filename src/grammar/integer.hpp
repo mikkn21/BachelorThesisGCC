@@ -17,7 +17,6 @@ namespace grammar
         BOOST_SPIRIT_DECLARE(integer_type); 
     }   
 
-    parser::integer_type integer();  
 } 
 
 #endif

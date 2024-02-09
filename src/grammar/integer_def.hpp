@@ -26,11 +26,6 @@ namespace grammar
 
     } // namespace parser 
 
-
-    parser::integer_type inline integer() 
-    {
-        return parser::integer;
-    }
 } // namespace grammar
 
 #endif
