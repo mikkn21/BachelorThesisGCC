@@ -1,4 +1,4 @@
-name: C/C++ CI
+name: Test
 
 on:
   push:
@@ -14,16 +14,16 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    
+
     - name: Setup Boost
       run: |
         sudo apt-get update
         sudo apt-get install libboost-all-dev
-        
+
     - name: Build
       run: |
-        cmake .
+        cmake tests
         make
-        
+
     - name: Run Tests
       run: ctest

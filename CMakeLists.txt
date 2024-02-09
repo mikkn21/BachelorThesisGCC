@@ -3,7 +3,7 @@ project(MyProject)
 
 # Set different sanitizer flags based on the OS
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    set(SAN_FLAGS "-fsanitize=address -fsanitize=undefined")
+    set(SAN_FLAGS "-fsanitize=address -fsanitize=undefined -fsanitize=leak")
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set(SAN_FLAGS "-fsanitize=address -fsanitize=undefined")
 endif()
@@ -48,4 +48,7 @@ foreach(TEST_SRC ${TEST_SRCS})
 
     # Add the executable as a test
     add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
+
+    # Add the test executable to a custom target
+    add_custom_target(tests DEPENDS ${TEST_NAME})
 endforeach()
