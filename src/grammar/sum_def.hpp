@@ -6,9 +6,7 @@
 #include "ast/sum_ast.hpp"
 #include "ast/sum_ast_adapt.hpp"
 #include "sum.hpp"
-
-#include "integer.hpp"
-#include "ast/integer_ast.hpp"
+#include "integer_def.hpp"
 
 namespace grammar 
 {
@@ -24,10 +22,11 @@ namespace grammar
         x3::rule<class sum, sum_ast::sum> const sum = "sum"; 
 
         auto const sum_def = 
-            integer_ast::integer
+            grammar::integer()
             >> '+'
-            >> integer_ast::integer
+            >> grammar::integer()
             ;
+            
 
         BOOST_SPIRIT_DEFINE(sum); 
 
