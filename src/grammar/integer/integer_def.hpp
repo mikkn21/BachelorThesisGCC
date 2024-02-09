@@ -3,8 +3,8 @@
 
 #include <boost/spirit/home/x3.hpp>
 
-#include "ast/integer_ast.hpp"
-#include "ast/integer_ast_adapt.hpp"
+#include "integer_ast.hpp"
+#include "integer_ast_adapt.hpp"
 #include "integer.hpp"
 
 namespace grammar 

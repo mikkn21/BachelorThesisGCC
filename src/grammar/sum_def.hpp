@@ -6,7 +6,7 @@
 #include "ast/sum_ast.hpp"
 #include "ast/sum_ast_adapt.hpp"
 #include "sum.hpp"
-#include "integer_def.hpp"
+#include "integer/integer_def.hpp"
 
 namespace grammar 
 {

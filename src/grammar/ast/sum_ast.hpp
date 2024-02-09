@@ -3,7 +3,7 @@
 
 #include <boost/fusion/include/io.hpp>
 
-#include "integer_ast.hpp"
+#include "../integer/integer_ast.hpp"
 
 #include <iostream>
 #include <string> 

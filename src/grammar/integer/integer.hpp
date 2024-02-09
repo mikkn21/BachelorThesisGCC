@@ -4,7 +4,7 @@
 
 #include <boost/spirit/home/x3.hpp>
 
-#include "ast/integer_ast.hpp"
+#include "integer_ast.hpp"
 
 namespace grammar 
 {
