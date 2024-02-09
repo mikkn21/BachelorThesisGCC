@@ -22,9 +22,9 @@ namespace grammar
         x3::rule<class sum, sum_ast::sum> const sum = "sum"; 
 
         auto const sum_def = 
-            grammar::integer()
+            parser::integer
             >> '+'
-            >> grammar::integer()
+            >> parser::integer
             ;
             
 

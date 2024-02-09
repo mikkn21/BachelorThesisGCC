@@ -27,7 +27,7 @@ namespace grammar
     } // namespace parser 
 
 
-    parser::integer_type integer() 
+    parser::integer_type inline integer() 
     {
         return parser::integer;
     }
