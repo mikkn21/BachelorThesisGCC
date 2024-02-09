@@ -19,7 +19,7 @@ find_package(Boost REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 
 # Define source files and object files
-file(GLOB SRCS "*.cpp")
+file(GLOB_RECURSE SRCS "src/*.cpp")
 
 # Name of the output executable
 set(TARGET prog.out)
