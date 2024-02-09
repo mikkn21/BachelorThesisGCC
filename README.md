@@ -12,3 +12,10 @@ A very cool compiler for a very cool programming language.
 ## Usage
 
 Run `prog.out`. If you are already in the directory, you can run `./prog.out` to do this.
+
+## Testing
+
+1. `cmake .`
+2. `make`
+3. `ctest`
+
