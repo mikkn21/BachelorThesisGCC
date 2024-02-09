@@ -31,8 +31,21 @@ target_link_libraries(${TARGET} ${Boost_LIBRARIES})
 enable_testing()
 
 file(GLOB_RECURSE TEST_SRCS "tests/*.cpp")
-set(TEST_TARGET test.out)
-add_executable(${TEST_TARGET} ${TEST_SRCS})
-target_link_libraries(${TEST_TARGET} ${Boost_LIBRARIES} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+# Add a new target and test for each test file
+foreach(TEST_SRC ${TEST_SRCS})
+    # Get the name of the test file without the extension
+    get_filename_component(TEST_NAME ${TEST_SRC} NAME_WE)
+    set(TEST_NAME ${TEST_NAME}.out)
 
-add_test(NAME AllTests COMMAND test.out)
+    # Add an executable target for the test file
+    add_executable(${TEST_NAME} ${TEST_SRC})
+    target_link_libraries(${TEST_NAME} ${Boost_LIBRARIES} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+
+    # Set the output directory for the test executable
+    set_target_properties(${TEST_NAME} PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/tests
+    )
+
+    # Add the executable as a test
+    add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
+endforeach()
