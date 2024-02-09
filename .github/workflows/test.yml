@@ -14,9 +14,16 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    - name: cmake
-      run: cmake .
-    - name: make
-      run: make
-    - name: ctest
+    
+    - name: Setup Boost
+      run: |
+        sudo apt-get update
+        sudo apt-get install libboost-all-dev
+        
+    - name: Build
+      run: |
+        cmake .
+        make
+        
+    - name: Run Tests
       run: ctest
