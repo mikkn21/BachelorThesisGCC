@@ -16,6 +16,7 @@ Run `prog.out`. If you are already in the directory, you can run `./prog.out` to
 ## Testing
 
 1. `cmake .`
-2. `make`
+2. `make tests`
+    - Alternatively, you can run `make` instead to make all files which would include the test files
 3. `ctest`
 
