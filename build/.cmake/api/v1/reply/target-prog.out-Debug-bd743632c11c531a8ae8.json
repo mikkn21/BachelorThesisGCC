@@ -101,7 +101,7 @@
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "src/grammar/integer.cpp",
+			"path" : "src/grammar/integer/integer.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{

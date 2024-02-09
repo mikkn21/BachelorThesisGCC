@@ -1,7 +1,9 @@
 #include <iostream>
 
+// #include "grammar/ast/sum_ast.hpp"
+// #include "grammar/ast/sum_ast_adapt.hpp"
 #include "grammar/ast.hpp"
-#include "grammar/sum.hpp"
+#include "grammar/binop_exp/binop_exp.hpp"
 
 using namespace std;
 
@@ -16,7 +18,7 @@ int main()
 
     using boost::spirit::x3::ascii::space;
     using iterator_type = std::string::const_iterator;
-    using grammar::sum;
+    using grammar::binop_exp;
 
     string str;
     while (getline(cin, str))
@@ -24,10 +26,10 @@ int main()
         if (str.empty() || str[0] == 'q' || str[0] == 'Q')
             break;
 
-        grammar::sum_ast::sum mSum;
+        grammar::binop_exp_ast::binop_exp obj;
         iterator_type iter = str.begin();
         iterator_type const end = str.end();
-        bool r = phrase_parse(iter, end, sum(), space, mSum);
+        bool r = phrase_parse(iter, end, binop_exp(), space, obj);
         
         if (r && iter == end)
         {
@@ -37,7 +39,7 @@ int main()
 
             cout << "-------------------------\n";
             cout << "Parsing succeeded\n";
-            cout << "got: " << mSum << endl;
+            cout << "got: " << obj << endl;
             cout << "\n-------------------------\n";
         }
         else

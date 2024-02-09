@@ -1,5 +1,5 @@
 #include "integer_def.hpp"
-#include "../config.hpp"
+#include "../../config.hpp"
 
 namespace grammar 
 {
