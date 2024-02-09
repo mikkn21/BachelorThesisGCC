@@ -19,33 +19,20 @@ namespace grammar
         namespace ascii = x3::ascii; 
 
         using x3::int_;
-        using x3::char_;
-
         using namespace grammar::binop_exp_ast;
 
         x3::rule<class binop_exp, binop_exp_ast::binop_exp> const binop_exp = "binop_exp"; 
 
         // Define a parser for operators
         auto const operator_parser = 
-            x3::string("==") [([](auto& ctx) { _val(ctx).op = grammar::binop_exp_ast::op_eq; })] |
-
-            x3::string("!=") [([](auto& ctx) { _val(ctx).op = grammar::binop_exp_ast::op_neq; })]   |
-            x3::string("<=") [([](auto& ctx) { _val(ctx).op = grammar::binop_exp_ast::op_leq; })]   ;
-            // x3::string(">=") [([](auto& ctx) { _val(ctx) = op_geq; })]   |
-            // x3::char_('+')   [([](auto& ctx) { _val(ctx) = op_add; })]   |
-            // x3::char_('-')   [([](auto& ctx) { _val(ctx) = op_minus; })] |
-            // x3::char_('*')   [([](auto& ctx) { _val(ctx) = op_times; })] |
-            // x3::char_('/')   [([](auto& ctx) { _val(ctx) = op_div; })]   |
-            // x3::char_('%')   [([](auto& ctx) { _val(ctx) = op_mod; })]   |
-            // x3::char_('<')   [([](auto& ctx) { _val(ctx) = op_lt; })]    |
-            // x3::char_('>')   [([](auto& ctx) { _val(ctx) = op_gt; })]    |
-            // x3::char_('&')   [([](auto& ctx) { _val(ctx) = op_and; })]   |
-            // x3::char_('|')   [([](auto& ctx) { _val(ctx) = op_or; })];
+            x3::string("==") | x3::string("!=") | x3::string("<=") | x3::string(">=") |
+            x3::string("+") | x3::string("-") | x3::string("*") | x3::string("/") |
+            x3::string("%") | x3::string("<") | x3::string(">") | x3::string("&") | x3::string("|");
 
         auto const binop_exp_def = 
-            parser::integer
+            integer
             >> operator_parser 
-            >> parser::integer
+            >> integer
             ;   
 
         BOOST_SPIRIT_DEFINE(binop_exp); 
