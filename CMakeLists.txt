@@ -31,6 +31,8 @@ target_link_libraries(${TARGET} ${Boost_LIBRARIES})
 enable_testing()
 
 file(GLOB_RECURSE TEST_SRCS "tests/*.cpp")
+# Add the test executable to a custom target
+add_custom_target(tests DEPENDS ${TEST_NAME})
 # Add a new target and test for each test file
 foreach(TEST_SRC ${TEST_SRCS})
     # Get the name of the test file without the extension
@@ -49,6 +51,7 @@ foreach(TEST_SRC ${TEST_SRCS})
     # Add the executable as a test
     add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
 
-    # Add the test executable to a custom target
-    add_custom_target(tests DEPENDS ${TEST_NAME})
+    # Add the dependency to tests target
+    add_dependencies(tests ${TEST_NAME})
+
 endforeach()
