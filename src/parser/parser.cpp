@@ -47,14 +47,14 @@ namespace grammar {
         {
             namespace x3 = boost::spirit::x3;
             using x3::ascii::space;
-            using grammar::ast::BinopExp;
+            using grammar::ast::Prog;
             using iterator_type = std::string::const_iterator;
            
 
-            BinopExp obj;
+            Prog obj;
             iterator_type iter = src.begin();
             iterator_type const end = src.end();
-            bool r = phrase_parse(iter, end, binop_exp, space, obj);
+            bool r = phrase_parse(iter, end, prog, space, obj);
 
             return r;
         }
