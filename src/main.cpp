@@ -26,7 +26,7 @@ int main()
         if (str.empty() || str[0] == 'q' || str[0] == 'Q')
             break;
 
-        grammar::binop_exp_ast::binop_exp obj;
+        grammar::binop_exp_ast::BinopExp obj;
         iterator_type iter = str.begin();
         iterator_type const end = str.end();
         bool r = phrase_parse(iter, end, binop_exp(), space, obj);

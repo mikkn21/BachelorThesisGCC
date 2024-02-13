@@ -13,7 +13,7 @@ namespace grammar
     namespace parser 
     {
         namespace x3 = boost::spirit::x3;       
-        using integer_type = x3::rule<class integer, integer_ast::integer>; 
+        using integer_type = x3::rule<class integer, integer_ast::Integer>; 
         BOOST_SPIRIT_DECLARE(integer_type); 
     }   
 

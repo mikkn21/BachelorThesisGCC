@@ -18,7 +18,7 @@ namespace grammar
 
         using x3::int_;
 
-        x3::rule<class integer, integer_ast::integer> const integer = "integer"; 
+        x3::rule<class integer, integer_ast::Integer> const integer = "integer"; 
 
         auto const integer_def = int_;
 

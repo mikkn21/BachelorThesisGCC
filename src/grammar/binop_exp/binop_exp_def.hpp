@@ -21,7 +21,7 @@ namespace grammar
         using x3::int_;
         using namespace grammar::binop_exp_ast;
 
-        x3::rule<class binop_exp, binop_exp_ast::binop_exp> const binop_exp = "binop_exp"; 
+        x3::rule<class binop_exp, binop_exp_ast::BinopExp> const binop_exp = "binop_exp"; 
 
         // Define a parser for operators
         auto const operator_parser = 

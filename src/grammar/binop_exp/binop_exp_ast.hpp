@@ -13,11 +13,11 @@ namespace grammar
     {
         // Our integer struct 
 
-        struct binop_exp
+        struct BinopExp
         { 
-            integer_ast::integer lhs;
+            integer_ast::Integer lhs;
             std::string op;
-            integer_ast::integer rhs;
+            integer_ast::Integer rhs;
         };
 
         using boost::fusion::operator<<;

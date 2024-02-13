@@ -13,9 +13,11 @@ namespace grammar
     {
         // Our integer struct 
 
-        struct integer 
+        struct Integer 
         { 
             int num; 
+
+
         };
 
         using boost::fusion::operator<<;

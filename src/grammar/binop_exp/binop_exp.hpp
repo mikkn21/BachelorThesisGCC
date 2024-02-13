@@ -13,7 +13,7 @@ namespace grammar
     namespace parser 
     {
         namespace x3 = boost::spirit::x3;       
-        using binop_exp_type = x3::rule<class binop_exp, binop_exp_ast::binop_exp>; 
+        using binop_exp_type = x3::rule<class binop_exp, binop_exp_ast::BinopExp>; 
         BOOST_SPIRIT_DECLARE(binop_exp_type); 
     }   
 
