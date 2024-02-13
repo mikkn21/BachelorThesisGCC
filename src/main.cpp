@@ -1,55 +1,37 @@
 #include <iostream>
+#include <fstream>
+#include <sstream>
+#include <string>
 
-// #include "grammar/ast/sum_ast.hpp"
-// #include "grammar/ast/sum_ast_adapt.hpp"
-#include "grammar/ast.hpp"
-#include "grammar/binop_exp/binop_exp.hpp"
+#include "parser/parser.hpp"
 
 using namespace std;
 
-int main()
-{
-    cout << "/////////////////////////////////////////////////////////\n\n";
-    cout << "\t\t A summ parser for Spirit...\n\n";
-    cout << "/////////////////////////////////////////////////////////\n\n";
+int main(int argc, char* argv[]) {
 
-    cout << "Give me a sum: \n";
-    cout << "Type [q or Q] to quit\n\n";
 
-    using boost::spirit::x3::ascii::space;
-    using iterator_type = std::string::const_iterator;
-    using grammar::binop_exp;
-
-    string str;
-    while (getline(cin, str))
-    {
-        if (str.empty() || str[0] == 'q' || str[0] == 'Q')
-            break;
-
-        grammar::binop_exp_ast::BinopExp obj;
-        iterator_type iter = str.begin();
-        iterator_type const end = str.end();
-        bool r = phrase_parse(iter, end, binop_exp(), space, obj);
-        
-        if (r && iter == end)
-        {
-            cout << boost::fusion::tuple_open('[');
-            cout << boost::fusion::tuple_close(']');
-            cout << boost::fusion::tuple_delimiter(", ");
-
-            cout << "-------------------------\n";
-            cout << "Parsing succeeded\n";
-            cout << "got: " << obj << endl;
-            cout << "\n-------------------------\n";
-        }
-        else
-        {
-            cout << "-------------------------\n";
-            cout << "Parsing failed\n";
-            cout << "-------------------------\n";
-        }
+    if (argc != 2) {
+        std::cerr << "Usage: " << argv[0] << " <filename>\n";
+        return 1; // Exit with error code if no filename is provided
     }
 
-    cout << "Bye... :-) \n\n";
+    // Open the file
+    std::ifstream file(argv[1]);
+    if (!file.is_open()) {
+        std::cerr << "Error opening file: " << argv[1] << "\n";
+        return 1; // Exit with error code if the file cannot be opened
+    }
+
+    // Read the contents of the file into a string
+    std::stringstream buffer;
+    buffer << file.rdbuf();
+    std::string fileContent = buffer.str();
+
+    // Close the file (optional here since it will be closed automatically when file goes out of scope)
+    file.close();
+    
+    grammar::parser::parse(fileContent);
+
+
     return 0;
 }
