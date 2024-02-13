@@ -1,4 +1,3 @@
-
 #include <boost/spirit/home/x3.hpp>
 #include "ast.hpp"
 
@@ -30,7 +29,6 @@ namespace grammar {
         const auto binop_exp_def = int_ >> operator_parser >> int_;   
 
         BOOST_SPIRIT_DEFINE(binop_exp); 
-
 
         bool parse(std::string src)
         {

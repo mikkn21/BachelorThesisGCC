@@ -38,8 +38,5 @@ int main(int argc, char* argv[]) {
         cout << "FAILURE" << endl; 
     }
 
-    
-
-
     return 0;
 }
