@@ -30,8 +30,13 @@ int main(int argc, char* argv[]) {
     // Close the file (optional here since it will be closed automatically when file goes out of scope)
     file.close();
     
-    grammar::parser::parse(fileContent);
+    bool res = grammar::parser::parse(fileContent);
 
+    if(res) {
+        cout << "SUCESS" << endl; 
+    } else {
+        cout << "FAILURE" << endl; 
+    }
 
     return 0;
 }
