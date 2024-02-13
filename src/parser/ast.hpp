@@ -57,7 +57,7 @@ namespace grammar
 
 using namespace grammar::ast;
 
-BOOST_FUSION_ADAPT_STRUCT(grammar::ast::BinopExp,
+BOOST_FUSION_ADAPT_STRUCT(BinopExp,
                          (int, lhs),
                          (std::string, op),
                          (int, rhs)
@@ -73,7 +73,7 @@ BOOST_FUSION_ADAPT_STRUCT(VarDecl,
 
 BOOST_FUSION_ADAPT_STRUCT(Type, (PrimitiveType, primitive_type) );
 BOOST_FUSION_ADAPT_STRUCT(Id, (std::string, id) );
-BOOST_FUSION_ADAPT_STRUCT(PrimitiveType, (std::string, id) );
+BOOST_FUSION_ADAPT_STRUCT(PrimitiveType, (std::string, type) );
 
 
 

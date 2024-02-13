@@ -1,1 +1,1 @@
-int i = 32 ;
+int test = 32 ;

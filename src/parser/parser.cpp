@@ -38,10 +38,10 @@ namespace grammar {
         const auto var_decl_def = type >> id >> "=" >> int_ >> ";";
         const auto type_def = primitive_type;
         const auto primitive_type_def = x3::string("int") | x3::string("bool");
-        const auto id_def = (x3::char_("a-zA-Z_") >> *x3::char_("a-zA-Z_0-9"));
+        const auto id_def = x3::raw[(x3::char_("a-zA-Z_") >> *x3::char_("a-zA-Z_0-9"))];
         const auto binop_exp_def = int_ >> operator_parser >> int_;   
 
-        BOOST_SPIRIT_DEFINE(binop_exp); 
+        BOOST_SPIRIT_DEFINE(prog, decl, var_decl, type, primitive_type, id, binop_exp); 
 
         bool parse(std::string src)
         {
