@@ -33,7 +33,7 @@ int main(int argc, char* argv[]) {
     bool res = grammar::parser::parse(fileContent);
 
     if(res) {
-        cout << "SUCESS" << endl; 
+        cout << "SUCCESS" << endl; 
     } else {
         cout << "FAILURE" << endl; 
     }
