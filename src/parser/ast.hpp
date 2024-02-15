@@ -22,10 +22,6 @@ namespace grammar
         struct Type {
           PrimitiveType primitive_type;  
         };
-
-        /* struct Type : boost::variant<PrimitiveType, ArrayType> { */
-        /*     using base_type::base_type;  */
-        /* };  */
         
         struct VarDecl {
           Type type;
@@ -34,14 +30,13 @@ namespace grammar
         //Expression exp;
         };
 
-        struct Decl {
+        /* struct Type : boost::variant<PrimitiveType, ArrayType> { */
+        /*     using base_type::base_type;  */
+        /* };  */
+
+       struct Decl {
             VarDecl var_decl; 
         };
-        
-        /* struct Decl : boost::variant<VarDecl, FuncDecl, ClassDecl> { */
-        /*     using base_type::base_type;  */
-        /**/
-        /* }; */
 
         struct BlockLine {
             Decl decl; 
@@ -51,6 +46,27 @@ namespace grammar
             BlockLine block_line;
 
         };
+
+
+        struct VarAssign {
+            Id id; 
+            //Expression exp;
+
+        };
+
+        struct WhileStatement {
+            //Expression exp; 
+            Block block;
+        };
+
+
+ 
+        
+        /* struct Decl : boost::variant<VarDecl, FuncDecl, ClassDecl> { */
+        /*     using base_type::base_type;  */
+        /**/
+        /* }; */
+
 
         struct Parameter {
             Type type;
@@ -130,6 +146,9 @@ BOOST_FUSION_ADAPT_STRUCT(Parameter, (Type, type), (Id, id) );
 
 BOOST_FUSION_ADAPT_STRUCT(Block, (BlockLine, block_line));
 BOOST_FUSION_ADAPT_STRUCT(BlockLine, (Decl, decl));
+
+BOOST_FUSION_ADAPT_STRUCT(VarAssign, (Id, id));
+BOOST_FUSION_ADAPT_STRUCT(WhileStatement, (Block, block));
 
 
 
