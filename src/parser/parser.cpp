@@ -15,6 +15,7 @@ namespace grammar {
         namespace x3 = boost::spirit::x3; 
 
         using x3::int_;
+        using x3::bool_;
         using namespace grammar::ast;
 
         // Rules up here:
@@ -34,7 +35,8 @@ namespace grammar {
         const x3::rule<class decl, ast::Decl> decl = "decl"; 
         const x3::rule<class prog, ast::Prog> prog = "prog";
         const x3::rule<class expression,  ast::Expression> expression = "expression";
-
+        const x3::rule<class function_call, ast::FunctionCall> function_call = "function_call";
+        const x3::rule<class argument_list, ast::ArgumentList> argument_list = "argument_list";
 
         // Define a parser for operators
         const auto operator_parser = 
@@ -57,8 +59,9 @@ namespace grammar {
         const auto while_statement_def = x3::string("while") >> expression >> block;
         const auto decl_def = var_decl | func_decl;
         const auto prog_def = decl;
-        const auto expression_def = '(' >> expression >> ')' | binop_exp | int_; 
-        
+        const auto expression_def = '(' >> expression >> ')' | binop_exp | int_ | bool_; 
+        const auto function_call_def = id >> '('>> argument_list >> ')'; 
+        const auto argument_list_def = -(expression % ',');
 
         BOOST_SPIRIT_DEFINE(
             binop_exp,
@@ -76,7 +79,9 @@ namespace grammar {
             while_statement,
             decl,
             prog,
-            expression
+            expression,
+            function_call,
+            argument_list
         )
 
         bool parse(std::string src)

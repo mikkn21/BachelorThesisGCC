@@ -23,6 +23,7 @@ namespace grammar
             int rhs;
         };
 
+
         struct Id {
             std::string id;
         };
@@ -31,7 +32,7 @@ namespace grammar
             std::string type; // "int" or "bool" 
         };
 
-        struct Expression : x3::variant<int, BinopExp> {
+        struct Expression : x3::variant<int, BinopExp, bool> {
             using base_type::base_type;   
             using base_type::operator=;
         };
@@ -63,9 +64,16 @@ namespace grammar
          struct ParameterList { 
              std::vector<Parameter> parameter; 
          }; 
-        //insert ClassDecl
 
+         struct ArgumentList {
+            std::vector<Expression> arguments;
+         };
+        
 
+        struct FunctionCall {
+            Id id; 
+            ArgumentList argument_list;
+        };
 
         struct FuncDecl { 
              Type type;  
@@ -73,27 +81,10 @@ namespace grammar
              ParameterList parameter_list;  
              Block block; 
          }; 
-
-
-
-
-        // struct Type : x3::variant<PrimitiveType, ArrayType> { 
-        //      using base_type::base_type;  
-        // };  
-
-
-
-
+        
         struct ArrayType {
             Type type;
         };
-    
-   
-
-
-
-
-        // statement 
 
         struct VarAssign {
             Id id; 
@@ -104,33 +95,6 @@ namespace grammar
             Expression exp; 
             Block block;
         };
-
-        // if statement 
-
-        // break statement 
-
-        // continue statement 
-
-        // return statement 
-
-        // print statement 
-
-        // expression 
-
-        // integer 
-
-        // boolean 
-
-        // function_call 
-
-
-        // array expression 
-
-        // array index 
-
-        // object instantiation 
-
-        // dot op
 
         struct Decl : x3::variant<VarDecl, FuncDecl/*, ClassDecl*/> { 
              using base_type::base_type;  
@@ -165,10 +129,21 @@ BOOST_FUSION_ADAPT_STRUCT(
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
+    ArgumentList, 
+    (std::vector<Expression>, arguments)
+)
+ 
+
+BOOST_FUSION_ADAPT_STRUCT(
     PrimitiveType,
     (std::string, type)
 )
 
+BOOST_FUSION_ADAPT_STRUCT(
+    FunctionCall, 
+    (Id, id), 
+    (ArgumentList, argument_list)
+)
 
 BOOST_FUSION_ADAPT_STRUCT(
     Block,

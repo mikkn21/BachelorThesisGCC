@@ -1,1 +1,5 @@
-int test = 32 ;
+int f(int i, int j) {
+
+}
+
+int x = f(1, 2);
