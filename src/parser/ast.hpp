@@ -31,7 +31,7 @@ namespace grammar
             std::string type; // "int" or "bool" 
         };
 
-        struct Expression : x3::variant<int> {
+        struct Expression : x3::variant<int, BinopExp> {
             using base_type::base_type;   
             using base_type::operator=;
         };
@@ -151,44 +151,6 @@ namespace grammar
 
 using namespace grammar::ast;
 
-// BOOST_FUSION_ADAPT_STRUCT(grammar::ast::BinopExp,
-//                          (int, lhs),
-//                          (std::string, op),
-//                          (int, rhs),
-//                           );
-
-
-
-// BOOST_FUSION_ADAPT_STRUCT(BinopExp,
-//                          (int, lhs),
-//                          (std::string, op),
-//                          (int, rhs)
-//                           );
-
-// BOOST_FUSION_ADAPT_STRUCT(Prog, (Decl, decl) );
-// BOOST_FUSION_ADAPT_STRUCT(Decl, (VarDecl, var_decl) );
-
-// /* BOOST_FUSION_ADAPT_STRUCT(FuncDecl, (Type, type), (Id, id), (ParameterList, parameter_list), (Block, block) ); */
-// BOOST_FUSION_ADAPT_STRUCT(VarDecl, 
-//                          (Type, type),
-//                          (Id, id),
-//                          (int, exp),
-//                          );
-// BOOST_FUSION_ADAPT_STRUCT(Id, (std::string, id) );
-// BOOST_FUSION_ADAPT_STRUCT(Type, (PrimitiveType, primitive_type) );
-// BOOST_FUSION_ADAPT_STRUCT(PrimitiveType, (std::string, type) );
-
-// BOOST_FUSION_ADAPT_STRUCT(ArrayType, (Type, type), (Id, id) );
-
-// BOOST_FUSION_ADAPT_STRUCT(ParameterList, (std::vector<Parameter>, parameter) ); 
-
-// BOOST_FUSION_ADAPT_STRUCT(Parameter, (Type, type), (Id, id) );
-
-// BOOST_FUSION_ADAPT_STRUCT(Block, (BlockLine, block_line));
-// BOOST_FUSION_ADAPT_STRUCT(BlockLine, (Decl, decl));
-
-// BOOST_FUSION_ADAPT_STRUCT(VarAssign, (Id, id));
-// BOOST_FUSION_ADAPT_STRUCT(WhileStatement, (Block, block));
 
 BOOST_FUSION_ADAPT_STRUCT(
     BinopExp,
@@ -207,10 +169,6 @@ BOOST_FUSION_ADAPT_STRUCT(
     (std::string, type)
 )
 
-// BOOST_FUSION_ADAPT_STRUCT(
-//     BlockLine,
-//     (Decl, decl) 
-// )
 
 BOOST_FUSION_ADAPT_STRUCT(
     Block,
@@ -257,7 +215,6 @@ BOOST_FUSION_ADAPT_STRUCT(
     VarAssign,
     (Id, id),
     (Expression, exp)
-    // (int, exp) // Assuming exp is an int for simplicity
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
@@ -271,11 +228,5 @@ BOOST_FUSION_ADAPT_STRUCT(
     (Decl, decl)
 )
 
-
-
-
-
-
- 
 
 #endif
