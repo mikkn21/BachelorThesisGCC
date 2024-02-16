@@ -46,7 +46,7 @@ namespace grammar {
         const auto primitive_type_def = x3::string("int") | x3::string("bool");
         const auto block_line_def = decl;
         const auto block_def = '{' >> *block_line >> '}';
-        const auto type_def = primitive_type;
+        const auto type_def = primitive_type;  // | array_type;
         const auto var_decl_def = type >> id >> '=' >> int_ >> ';';
         const auto parameter_def = type >> id;
         const auto parameter_list_def = -(parameter % ','); // -(*(parameter >> ',') >> parameter);
