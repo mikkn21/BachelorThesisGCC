@@ -49,14 +49,17 @@ void test(std::string input, TestingOutcome testing_outcome) {
                     << "did parse1 parse the entire line?: " << ((input_begin == input.end()) ? "true" : "false") << "\n"
                     << "did parse2 parse the entire line?: " << ((result1_str_begin == result1_str.end()) ? "true" : "false") << "\n"
                     << "Was parse1 consistent?: " << (input == result1_str ? "true" : "false") << "\n"
-                    << "Was parse2 consistent?: " << (success1 ? "true" : "false") << "\n"
+                    << "Was parse2 consistent?: " << (success1 ? "true" : "false") << "\n\n"
                     << "parse1 was run on \"" << input << "\"\n"
                     << "parse1 outputted \"" << result1_str << "\"\n"
                     << "parse2 outputted \"" << result2_str << "\"\n";
             BOOST_CHECK_MESSAGE(parse1_success && parse2_success, message.str());
             break;      
         case TestingOutcome::PARSE1_FAILED:
-            BOOST_CHECK_MESSAGE(!success1, "First parse succeeded when failure was expected.");
+            message << "First parse succeeded when failure was expected."
+                    << "parse1 was run on \"" << input << "\"\n"
+                    << "parse1 outputted \"" << result1_str << "\"\n";
+            BOOST_CHECK_MESSAGE(!success1, message.str());
             break;
         case TestingOutcome::PARSE2_FAILED:
             BOOST_CHECK_MESSAGE(!success2, "Second parse succeeded when failure was expected.");
@@ -78,8 +81,6 @@ void test(std::string input, TestingOutcome testing_outcome) {
     };
 }
 
-
-
 BOOST_AUTO_TEST_CASE(BinopOperationPlus) {test("10 + 10", TestingOutcome::SUCCESS);}
 BOOST_AUTO_TEST_CASE(BinopOperationMinus) {test("10 - 10", TestingOutcome::SUCCESS);}
 BOOST_AUTO_TEST_CASE(BinopOperationMultiplication) {test("10 * 10", TestingOutcome::SUCCESS);}
@@ -96,5 +97,3 @@ BOOST_AUTO_TEST_CASE(BinopOperationLesserEqual) {test("10 <= 10", TestingOutcome
 BOOST_AUTO_TEST_CASE(BinopOperationInvalidOperator) {test("10 ? 10", TestingOutcome::PARSE1_FAILED);}
 BOOST_AUTO_TEST_CASE(BinopOperationMultipleBinaryOperators) {test("10 + 10 * 10 / 10", TestingOutcome::SUCCESS);}
 BOOST_AUTO_TEST_CASE(BinopOperationInvalidNoBinaryOperator) {test("10  10", TestingOutcome::PARSE1_FAILED);}
-
-
