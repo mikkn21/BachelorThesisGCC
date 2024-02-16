@@ -16,6 +16,11 @@ std::ostream& operator<<(std::ostream& os, const grammar::ast::PrimitiveType exp
     return os;
 }
 
+std::ostream& operator<<(std::ostream& os, const grammar::ast::Expression exp) {
+    os << exp; 
+    return os;
+}
+
 std::ostream& operator<<(std::ostream& os, const grammar::ast::BlockLine exp) {
     os << exp; 
     return os;

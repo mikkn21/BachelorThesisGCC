@@ -21,17 +21,17 @@ enum class TestingOutcome {
 };
 
 void test(std::string input, TestingOutcome testing_outcome) {
-    grammar::ast::BinopExp result1; // TODO remove. Should not be of type BinopExp, should be type Prog
+    grammar::ast::Prog result1; // TODO remove. Should not be of type BinopExp, should be type Prog
     auto input_begin = input.begin();
-    bool success1 = phrase_parse(input_begin, input.end(), grammar::parser::binop_exp, space, result1);
+    bool success1 = phrase_parse(input_begin, input.end(), grammar::parser::prog, space, result1);
     
     std::ostringstream oss1;
     oss1 << result1; 
     std::string result1_str = oss1.str();
     auto result1_str_begin = result1_str.begin();
 
-    grammar::ast::BinopExp result2; // TODO remove. Should not be of type BinopExp, should be type Prog
-    bool success2 = phrase_parse(result1_str_begin, result1_str.end(), grammar::parser::binop_exp, space, result2);
+    grammar::ast::Prog result2; // TODO remove. Should not be of type BinopExp, should be type Prog
+    bool success2 = phrase_parse(result1_str_begin, result1_str.end(), grammar::parser::prog, space, result2);
 
     std::ostringstream oss2;
     oss2 << result2; 
@@ -81,19 +81,19 @@ void test(std::string input, TestingOutcome testing_outcome) {
     };
 }
 
-BOOST_AUTO_TEST_CASE(BinopOperationPlus) {test("10 + 10", TestingOutcome::SUCCESS);}
-BOOST_AUTO_TEST_CASE(BinopOperationMinus) {test("10 - 10", TestingOutcome::SUCCESS);}
-BOOST_AUTO_TEST_CASE(BinopOperationMultiplication) {test("10 * 10", TestingOutcome::SUCCESS);}
-BOOST_AUTO_TEST_CASE(BinopOperationDivision) {test("10 / 10", TestingOutcome::SUCCESS);}
-BOOST_AUTO_TEST_CASE(BinopOperationModulos) {test("10 % 10", TestingOutcome::SUCCESS);}
-BOOST_AUTO_TEST_CASE(BinopOperationAnd) {test("10 & 10", TestingOutcome::SUCCESS);}
-BOOST_AUTO_TEST_CASE(BinopOperationOr) {test("10 | 10", TestingOutcome::SUCCESS);}
-BOOST_AUTO_TEST_CASE(BinopOperationNotEqual) {test("10 != 10", TestingOutcome::SUCCESS);}
-BOOST_AUTO_TEST_CASE(BinopOperationEqual) {test("10 == 10", TestingOutcome::SUCCESS);}
-BOOST_AUTO_TEST_CASE(BinopOperationGreater) {test("10 > 10", TestingOutcome::SUCCESS);}
-BOOST_AUTO_TEST_CASE(BinopOperationGreaterEqual) {test("10 >= 10", TestingOutcome::SUCCESS);}
-BOOST_AUTO_TEST_CASE(BinopOperationLesser) {test("10 < 10", TestingOutcome::SUCCESS);}
-BOOST_AUTO_TEST_CASE(BinopOperationLesserEqual) {test("10 <= 10", TestingOutcome::SUCCESS);}
-BOOST_AUTO_TEST_CASE(BinopOperationInvalidOperator) {test("10 ? 10", TestingOutcome::PARSE1_FAILED);}
-BOOST_AUTO_TEST_CASE(BinopOperationMultipleBinaryOperators) {test("10 + 10 * 10 / 10", TestingOutcome::SUCCESS);}
-BOOST_AUTO_TEST_CASE(BinopOperationInvalidNoBinaryOperator) {test("10  10", TestingOutcome::PARSE1_FAILED);}
+BOOST_AUTO_TEST_CASE(BinopOperationPlus) {test("int x = 10 + 10;", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(BinopOperationMinus) {test("int x = 10 - 10;", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(BinopOperationMultiplication) {test("int x = 10 * 10;", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(BinopOperationDivision) {test("int x = 10 / 10;", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(BinopOperationModulos) {test("int x = 10 % 10;", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(BinopOperationAnd) {test("int x = 10 & 10;", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(BinopOperationOr) {test("int x = 10 | 10;", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(BinopOperationNotEqual) {test("int x = 10 != 10;", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(BinopOperationEqual) {test("int x = 10 == 10;", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(BinopOperationGreater) {test("int x = 10 > 10;", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(BinopOperationGreaterEqual) {test("int x = 10 >= 10;", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(BinopOperationLesser) {test("int x = 10 < 10;", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(BinopOperationLesserEqual) {test("int x = 10 <= 10;", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(BinopOperationInvalidOperator) {test("int x = 10 ? 10;", TestingOutcome::PARSE1_FAILED);}
+BOOST_AUTO_TEST_CASE(BinopOperationMultipleBinaryOperators) {test("int x = 10 + 10 * 10 / 10;", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(BinopOperationInvalidNoBinaryOperator) {test("int x = 10  10;", TestingOutcome::PARSE1_FAILED);}
