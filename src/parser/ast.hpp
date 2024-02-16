@@ -73,9 +73,9 @@ namespace grammar
             Id id; 
         };
 
-        struct ParameterList {
-            std::vector<Parameter> parameter;
-        };
+        /* struct ParameterList { */
+        /*     std::vector<Parameter> parameter; */
+        /* }; */
 
         struct ArrayType {
             Type type;
@@ -83,14 +83,14 @@ namespace grammar
 
 
 
-        struct FuncDecl {
-            Type type; 
-            Id id; 
-            ParameterList parameter_list; 
-            Block block;
-
-        };
-          
+        /* struct FuncDecl { */
+        /*     Type type;  */
+        /*     Id id;  */
+        /*     ParameterList parameter_list;  */
+        /*     Block block; */
+        /**/
+        /* }; */
+        /**/
 
 
         struct Prog {
@@ -128,7 +128,7 @@ BOOST_FUSION_ADAPT_STRUCT(BinopExp,
 BOOST_FUSION_ADAPT_STRUCT(Prog, (Decl, decl) );
 BOOST_FUSION_ADAPT_STRUCT(Decl, (VarDecl, var_decl) );
 
-BOOST_FUSION_ADAPT_STRUCT(FuncDecl, (Type, type), (Id, id), (ParameterList, parameter_list), (Block, block) );
+/* BOOST_FUSION_ADAPT_STRUCT(FuncDecl, (Type, type), (Id, id), (ParameterList, parameter_list), (Block, block) ); */
 BOOST_FUSION_ADAPT_STRUCT(VarDecl, 
                          (Type, type),
                          (Id, id),
@@ -140,7 +140,7 @@ BOOST_FUSION_ADAPT_STRUCT(PrimitiveType, (std::string, type) );
 
 BOOST_FUSION_ADAPT_STRUCT(ArrayType, (Type, type), (Id, id) );
 
-BOOST_FUSION_ADAPT_STRUCT(ParameterList, (std::vector<Parameter> paramete) );
+/* BOOST_FUSION_ADAPT_STRUCT(ParameterList, (std::vector<Parameter> paramete) ); */
 
 BOOST_FUSION_ADAPT_STRUCT(Parameter, (Type, type), (Id, id) );
 
