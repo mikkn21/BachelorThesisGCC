@@ -33,6 +33,7 @@ namespace grammar {
         const x3::rule<class while_statement, ast::WhileStatement> while_statement = "while_statement"; 
         const x3::rule<class decl, ast::Decl> decl = "decl"; 
         const x3::rule<class prog, ast::Prog> prog = "prog";
+        const x3::rule<class expression,  ast::Expression> expression = "expression";
 
 
         // Define a parser for operators
@@ -47,15 +48,17 @@ namespace grammar {
         const auto block_line_def = decl;
         const auto block_def = '{' >> *block_line >> '}';
         const auto type_def = primitive_type;  // | array_type;
-        const auto var_decl_def = type >> id >> '=' >> int_ >> ';';
+        const auto var_decl_def = type >> id >> '=' >> expression >> ';';
         const auto parameter_def = type >> id;
         const auto parameter_list_def = -(parameter % ','); // -(*(parameter >> ',') >> parameter);
         const auto func_decl_def = type >> id >> '(' >> parameter_list >> ')' >> block;
         const auto array_type_def = type >> x3::string("[]");
-        const auto var_assign_def = id >> '=' >> int_ >> ';';
-        const auto while_statement_def = x3::string("while") >> int_ >> block;
+        const auto var_assign_def = id >> '=' >> expression >> ';';
+        const auto while_statement_def = x3::string("while") >> expression >> block;
         const auto decl_def = var_decl | func_decl;
         const auto prog_def = decl;
+        const auto expression_def = int_; 
+        
 
         BOOST_SPIRIT_DEFINE(
             binop_exp,
@@ -72,7 +75,8 @@ namespace grammar {
             var_assign,
             while_statement,
             decl,
-            prog
+            prog,
+            expression
         )
 
         bool parse(std::string src)
