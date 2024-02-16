@@ -21,17 +21,17 @@ enum class TestingOutcome {
 };
 
 void test(std::string input, TestingOutcome testing_outcome) {
-    grammar::ast::Prog result1; // TODO remove. Should not be of type BinopExp, should be type Prog
+    grammar::ast::BinopExp result1; // TODO remove. Should not be of type BinopExp, should be type Prog
     auto input_begin = input.begin();
-    bool success1 = phrase_parse(input_begin, input.end(), grammar::parser::prog, space, result1);
+    bool success1 = phrase_parse(input_begin, input.end(), grammar::parser::binop_exp, space, result1);
     
     std::ostringstream oss1;
     oss1 << result1; 
     std::string result1_str = oss1.str();
     auto result1_str_begin = result1_str.begin();
 
-    grammar::ast::Prog result2; // TODO remove. Should not be of type BinopExp, should be type Prog
-    bool success2 = phrase_parse(result1_str_begin, result1_str.end(), grammar::parser::prog, space, result2);
+    grammar::ast::BinopExp result2; // TODO remove. Should not be of type BinopExp, should be type Prog
+    bool success2 = phrase_parse(result1_str_begin, result1_str.end(), grammar::parser::binop_exp, space, result2);
 
     std::ostringstream oss2;
     oss2 << result2; 
@@ -49,7 +49,10 @@ void test(std::string input, TestingOutcome testing_outcome) {
                     << "did parse1 parse the entire line?: " << ((input_begin == input.end()) ? "true" : "false") << "\n"
                     << "did parse2 parse the entire line?: " << ((result1_str_begin == result1_str.end()) ? "true" : "false") << "\n"
                     << "Was parse1 consistent?: " << (input == result1_str ? "true" : "false") << "\n"
-                    << "Was parse2 consistent?: " << (success1 ? "true" : "false");
+                    << "Was parse2 consistent?: " << (success1 ? "true" : "false") << "\n"
+                    << "parse1 was run on \"" << input << "\"\n"
+                    << "parse1 outputted \"" << result1_str << "\"\n"
+                    << "parse2 outputted \"" << result2_str << "\"\n";
             BOOST_CHECK_MESSAGE(parse1_success && parse2_success, message.str());
             break;      
         case TestingOutcome::PARSE1_FAILED:
