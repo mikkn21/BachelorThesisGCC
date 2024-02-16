@@ -1,5 +1,6 @@
 # Some random cache
 .ccls-cache
+.cache/clangd
 
 # vscode
 .vscode
