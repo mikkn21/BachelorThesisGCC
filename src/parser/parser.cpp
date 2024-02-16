@@ -19,12 +19,20 @@ namespace grammar {
 
         // Rules up here:
         const x3::rule<class binop_exp, ast::BinopExp> binop_exp = "binop_exp"; 
-        const x3::rule<class prog, ast::Prog> prog = "prog";
-        const x3::rule<class decl, ast::Decl> decl = "decl"; 
-        const x3::rule<class var_decl, ast::VarDecl> var_decl = "var_decl"; 
-        const x3::rule<class type, ast::Type> type = "type"; 
         const x3::rule<class id, ast::Id> id = "id"; 
         const x3::rule<class primitive_type, ast::PrimitiveType> primitive_type = "primitive_type"; 
+        const x3::rule<class block_line, ast::BlockLine> block_line = "block_line"; 
+        const x3::rule<class block, ast::Block> block = "block"; 
+        const x3::rule<class type, ast::Type> type = "type"; 
+        const x3::rule<class var_decl, ast::VarDecl> var_decl = "var_decl"; 
+        const x3::rule<class parameter, ast::Parameter> parameter = "parameter"; 
+        const x3::rule<class parameter_list, ast::ParameterList> parameter_list = "parameter_list"; 
+        const x3::rule<class func_decl, ast::FuncDecl> func_decl = "func_decl"; 
+        const x3::rule<class array_type, ast::ArrayType> array_type = "array_type"; 
+        const x3::rule<class var_assign, ast::VarAssign> var_assign = "var_assign"; 
+        const x3::rule<class while_statement, ast::WhileStatement> while_statement = "while_statement"; 
+        const x3::rule<class decl, ast::Decl> decl = "decl"; 
+        const x3::rule<class prog, ast::Prog> prog = "prog";
 
 
         // Define a parser for operators
@@ -33,15 +41,39 @@ namespace grammar {
             x3::string("+") | x3::string("-") | x3::string("*") | x3::string("/") |
             x3::string("%") | x3::string("<") | x3::string(">") | x3::string("&") | x3::string("|");
 
-        const auto prog_def = decl;
-        const auto decl_def = var_decl;
-        const auto var_decl_def = type >> id >> "=" >> int_ >> ";";
-        const auto type_def = primitive_type;
-        const auto primitive_type_def = x3::string("int") | x3::string("bool");
-        const auto id_def = x3::raw[(x3::char_("a-zA-Z_") >> *x3::char_("a-zA-Z_0-9"))];
         const auto binop_exp_def = int_ >> operator_parser >> int_;   
+        const auto id_def = x3::raw[(x3::char_("a-zA-Z_") >> *x3::char_("a-zA-Z_0-9"))];
+        const auto primitive_type_def = x3::string("int") | x3::string("bool");
+        const auto block_line_def = decl;
+        const auto block_def = '{' >> *block_line >> '}';
+        const auto type_def = primitive_type;
+        const auto var_decl_def = type >> id >> '=' >> int_ >> ';';
+        const auto parameter_def = type >> id;
+        const auto parameter_list_def = -(parameter % ','); // -(*(parameter >> ',') >> parameter);
+        const auto func_decl_def = type >> id >> '(' >> parameter_list >> ')' >> block;
+        const auto array_type_def = type >> x3::string("[]");
+        const auto var_assign_def = id >> '=' >> int_ >> ';';
+        const auto while_statement_def = x3::string("while") >> int_ >> block;
+        const auto decl_def = var_decl | func_decl;
+        const auto prog_def = decl;
 
-        BOOST_SPIRIT_DEFINE(prog, decl, var_decl, type, primitive_type, id, binop_exp); 
+        BOOST_SPIRIT_DEFINE(
+            binop_exp,
+            id,
+            primitive_type,
+            block_line,
+            block,
+            type,
+            var_decl,
+            parameter,
+            parameter_list,
+            func_decl,
+            array_type,
+            var_assign,
+            while_statement,
+            decl,
+            prog
+        )
 
         bool parse(std::string src)
         {
