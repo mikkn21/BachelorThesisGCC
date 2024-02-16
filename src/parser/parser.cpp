@@ -57,7 +57,7 @@ namespace grammar {
         const auto while_statement_def = x3::string("while") >> expression >> block;
         const auto decl_def = var_decl | func_decl;
         const auto prog_def = decl;
-        const auto expression_def = int_; 
+        const auto expression_def = '(' >> expression >> ')' | binop_exp | int_; 
         
 
         BOOST_SPIRIT_DEFINE(
