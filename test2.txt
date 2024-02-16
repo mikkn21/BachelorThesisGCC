@@ -1,2 +1,4 @@
     
-int f(int x, int y)
+int f(int x, int y) {
+    int[] z = 2;
+}

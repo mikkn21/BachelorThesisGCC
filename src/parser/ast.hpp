@@ -14,6 +14,7 @@ namespace grammar
     {   
 
         struct Decl;
+        struct ArrayType;
 
  
         struct BinopExp
@@ -40,8 +41,9 @@ namespace grammar
             std::vector<BlockLine> block_line;
         };
 
-        struct Type {
-          PrimitiveType primitive_type;  
+        struct Type : x3::variant<PrimitiveType, x3::forward_ast<ArrayType>> {
+           using base_type::base_type;   
+           using base_type::operator=;
         };
 
         struct VarDecl {
@@ -131,8 +133,8 @@ namespace grammar
         // dot op
 
         struct Decl : x3::variant<VarDecl, FuncDecl/*, ClassDecl*/> { 
-             using base_type::base_type;  
-             using base_type::operator=;
+            using base_type::base_type;  
+            using base_type::operator=;
         }; 
 
 
@@ -215,10 +217,10 @@ BOOST_FUSION_ADAPT_STRUCT(
     (std::vector<BlockLine>, block_line)
 )
 
-BOOST_FUSION_ADAPT_STRUCT(
-    Type,
-    (PrimitiveType, primitive_type)
-)
+// BOOST_FUSION_ADAPT_STRUCT(
+//     Type,
+//     (PrimitiveType, primitive_type)
+// )
 
 BOOST_FUSION_ADAPT_STRUCT(
     VarDecl,
