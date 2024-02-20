@@ -15,7 +15,7 @@ namespace grammar
 
         struct Decl;
 
- 
+
         struct BinopExp
         { 
             int lhs;
