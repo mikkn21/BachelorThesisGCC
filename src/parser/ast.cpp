@@ -1,6 +1,17 @@
 #include <iostream>
 #include "ast.hpp"
 
+struct print_visitor : boost::static_visitor<> {
+    std::ostream& os;
+    print_visitor(std::ostream& os) : os(os) {}
+
+    template<typename T>
+    void operator()(const T& t) const {
+        os << t; // This will call the appropriate operator<< based on T
+    }
+};
+
+
 //Idea for handling variants: simply make checks for each type of variants
 
 std::ostream& operator<<(std::ostream& os, const grammar::ast::BinopExp exp) {
@@ -19,7 +30,7 @@ std::ostream& operator<<(std::ostream& os, const grammar::ast::PrimitiveType exp
 }
 
 std::ostream& operator<<(std::ostream& os, const grammar::ast::Expression exp) {
-    os << exp; 
+    boost::apply_visitor(print_visitor(os), exp);
     return os;
 }
 
@@ -74,7 +85,7 @@ std::ostream& operator<<(std::ostream& os, const grammar::ast::WhileStatement ex
 }
 
 std::ostream& operator<<(std::ostream& os, const grammar::ast::Decl exp) {
-    os << exp;
+    boost::apply_visitor(print_visitor(os), exp);
     return os;
 }
 
