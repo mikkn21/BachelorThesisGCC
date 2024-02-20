@@ -1,6 +1,23 @@
 #include <boost/spirit/home/x3.hpp>
+#include <boost/spirit/include/support_line_pos_iterator.hpp>
 #include <sys/resource.h>
 #include "ast.hpp"
+#include "parser.hpp"
+
+// #include <boost/spirit/home/x3/auxiliary/attr.hpp>
+// #include <boost/spirit/home/x3/auxiliary/eol.hpp>
+// #include <boost/spirit/home/x3/auxiliary/eps.hpp>
+// #include <boost/spirit/home/x3/char.hpp>
+// #include <boost/spirit/home/x3/core/parse.hpp>
+// #include <boost/spirit/home/x3/directive/lexeme.hpp>
+// #include <boost/spirit/home/x3/nonterminal.hpp>
+// #include <boost/spirit/home/x3/numeric/int.hpp>
+// #include <boost/spirit/home/x3/numeric/real.hpp>
+// #include <boost/spirit/home/x3/operator/alternative.hpp>
+// #include <boost/spirit/home/x3/operator/difference.hpp>
+// #include <boost/spirit/home/x3/operator/kleene.hpp>
+// #include <boost/spirit/home/x3/operator/sequence.hpp>
+// #include <boost/spirit/include/support_line_pos_iterator.hpp>
 
 using namespace std;
 
@@ -84,20 +101,46 @@ namespace grammar {
             argument_list
         )
 
-        bool parse(std::string src)
+        grammar::ast::Prog parse(std::string_view src)
         {
             namespace x3 = boost::spirit::x3;
             using x3::ascii::space;
             using grammar::ast::Prog;
-            using iterator_type = std::string::const_iterator;
-           
+         
+            Prog ast;
+            using PosIter = boost::spirit::line_pos_iterator<std::string_view::const_iterator>;
+            PosIter iter(src.begin());
 
-            Prog obj;
-            iterator_type iter = src.begin();
-            iterator_type const end = src.end();
-            bool r = phrase_parse(iter, end, prog, space, obj);
+            const auto makeError = [&]() {
+                // const auto lineNumber = iter.position();
+                // const auto lineRange = get_current_line(PosIter(src.begin()), iter, PosIter(src.end()));
+                // const auto column = get_column(lineRange.begin(), iter, SpacesPerTabs);
+                // std::string msg = "Parsing failed at " + std::to_string(lineNumber) + ":" + std::to_string(column) + ":\n";
+                // for(const char c : lineRange) {
+                    // if(c == '\t') msg += std::string(SpacesPerTabs, ' ');
+                    // else msg += c;
+                // }
+                std::string msg = "Parsing failed";
+                msg += "\n";
+                // msg += std::string(column - 1, '-');
+                // msg += "^";
+                return msg;
+	        };
 
-            return r;
+            try {
+                bool r = phrase_parse(iter,  PosIter(src.end()), prog, space, ast);
+                
+                if(!r || iter !=  PosIter(src.end())) {
+                    throw SyntaxError(makeError() + "\nEnd of x3 error.");
+                }
+		        return ast;
+
+            }catch(const x3::expectation_failure<PosIter> &e) {
+	            iter = e.where();
+		        throw SyntaxError(makeError()
+		            + "\nExpected " + e.which() + ".\n"
+		            + "End of x3 error.");
+            }
         }
     } // namespace parser
 
