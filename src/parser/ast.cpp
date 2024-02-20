@@ -17,84 +17,79 @@ namespace grammar
     namespace ast
     {   
         //Idea for handling variants: simply make checks for each type of variants
-        std::ostream& operator<<(std::ostream& os, const grammar::ast::BinopExp &exp) {
-            os << exp.lhs << " " << exp.op << " " << exp.rhs;
-            return os;
+        std::ostream& operator<<(std::ostream& os, const grammar::ast::BinopExp &input) {
+            return os << input.lhs << " " << input.op << " " << input.rhs;
         }
 
 
-        std::ostream& operator<<(std::ostream& os, const grammar::ast::Id &exp) {
-            os << exp.id;
+        std::ostream& operator<<(std::ostream& os, const grammar::ast::Id &input) {
+            return os << input.id;
+        }
+
+        std::ostream& operator<<(std::ostream& os, const grammar::ast::PrimitiveType &input) {
+            return os << input.type;
+        }
+
+        std::ostream& operator<<(std::ostream& os, const grammar::ast::Expression &input) {
+            boost::apply_visitor(print_visitor(os), input);
             return os;
         }
 
-        std::ostream& operator<<(std::ostream& os, const grammar::ast::PrimitiveType &exp) {
-            os << exp.type;
+        std::ostream& operator<<(std::ostream& os, const grammar::ast::BlockLine &input) {
+            boost::apply_visitor(print_visitor(os), input);
             return os;
         }
 
-        std::ostream& operator<<(std::ostream& os, const grammar::ast::Expression &exp) {
-            boost::apply_visitor(print_visitor(os), exp);
+        std::ostream& operator<<(std::ostream& os, const grammar::ast::Block &input) {
+            for (const auto &i : input.block_line) os << i << " "; 
             return os;
         }
 
-        std::ostream& operator<<(std::ostream& os, const grammar::ast::BlockLine &exp) {
-            boost::apply_visitor(print_visitor(os), exp);
-            return os;
+        std::ostream& operator<<(std::ostream& os, const grammar::ast::Type &input) {
+            return os << input.primitive_type;
         }
 
-        std::ostream& operator<<(std::ostream& os, const grammar::ast::Block &exp) {
-            for (const auto &i : exp.block_line) os << i << " "; 
-            return os;
+        std::ostream& operator<<(std::ostream& os, const grammar::ast::VarDecl &input) {
+            return os << input.type << " " << input.id << " " << input.exp;
         }
 
-        std::ostream& operator<<(std::ostream& os, const grammar::ast::Type &exp) {
-            os << exp.primitive_type;
-            return os;
-        }
-
-        std::ostream& operator<<(std::ostream& os, const grammar::ast::VarDecl &exp) {
-            //os << exp.type << " " << exp.id << " " << exp.exp;
-            return os;
-        }
-
-        std::ostream& operator<<(std::ostream& os, const grammar::ast::Parameter &exp) {
+        std::ostream& operator<<(std::ostream& os, const grammar::ast::Parameter &input) {
             os << ""; 
             return os;
         }
 
-        std::ostream& operator<<(std::ostream& os, const grammar::ast::ParameterList &exp) {
+        std::ostream& operator<<(std::ostream& os, const grammar::ast::ParameterList &input) {
             os << ""; 
             return os;
         }
 
-        std::ostream& operator<<(std::ostream& os, const grammar::ast::FuncDecl &exp) {
+        std::ostream& operator<<(std::ostream& os, const grammar::ast::FuncDecl &input) {
             //os << exp.type << " " << exp.id << " " << exp.parameter_list << " " << exp.block;
             return os;
         }
 
-        std::ostream& operator<<(std::ostream& os, const grammar::ast::ArrayType &exp) {
+        std::ostream& operator<<(std::ostream& os, const grammar::ast::ArrayType &input) {
             os << ""; 
             return os;
         }
 
-        std::ostream& operator<<(std::ostream& os, const grammar::ast::VarAssign &exp) {
+        std::ostream& operator<<(std::ostream& os, const grammar::ast::VarAssign &input) {
             os << ""; 
             return os;
         }
 
-        std::ostream& operator<<(std::ostream& os, const grammar::ast::WhileStatement &exp) {
+        std::ostream& operator<<(std::ostream& os, const grammar::ast::WhileStatement &input) {
             os << ""; 
             return os;
         }
 
-        std::ostream& operator<<(std::ostream& os, const grammar::ast::Decl &exp) {
-            boost::apply_visitor(print_visitor(os), exp);
+        std::ostream& operator<<(std::ostream& os, const grammar::ast::Decl &input) {
+            boost::apply_visitor(print_visitor(os), input);
             return os;
         }
 
-        std::ostream& operator<<(std::ostream& os, const grammar::ast::Prog &exp) {
-            os << exp.decl;
+        std::ostream& operator<<(std::ostream& os, const grammar::ast::Prog &input) {
+            os << input.decl;
             return os;
         }
     } // ast
