@@ -5,6 +5,6 @@
 void compile(CompilerOptions options) {
 
 
-    bool res = grammar::parser::parse(options.input);
+    grammar::ast::Prog res = grammar::parser::parse(options.input);
 
 }

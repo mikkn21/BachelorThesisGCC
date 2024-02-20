@@ -5,7 +5,7 @@
 
 using namespace std;
  
-int main(int argc, char* argv[]) {4
+int main(int argc, char* argv[]) {
 
     if (argc < 2) {
         std::cerr << "You dumb fuck\n";
