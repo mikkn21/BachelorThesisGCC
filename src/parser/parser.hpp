@@ -4,13 +4,16 @@
 #include <string>
 #include <exception>
 #include "ast.hpp"
+#include <boost/spirit/home/x3.hpp>
+
 
 namespace grammar {
+
     namespace parser {
 
     
     grammar::ast::Prog parse(std::string_view src);
-
+    extern const x3::rule<class prog, ast::Prog> prog;
 
     class SyntaxError : public std::exception {
     private:
