@@ -2,6 +2,8 @@
 .ccls-cache
 .cache/clangd
 
+.build
+
 # vscode
 .vscode
 

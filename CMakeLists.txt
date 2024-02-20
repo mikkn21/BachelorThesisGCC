@@ -32,7 +32,7 @@ enable_testing()
 
 file(GLOB_RECURSE TEST_SRCS "tests/*.cpp")
 # Add the test executable to a custom target
-add_custom_target(tests DEPENDS ${TEST_NAME})
+add_custom_target(tests)
 # Add a new target and test for each test file
 foreach(TEST_SRC ${TEST_SRCS})
     # Get the name of the test file without the extension
@@ -45,7 +45,7 @@ foreach(TEST_SRC ${TEST_SRCS})
 
     # Set the output directory for the test executable
     set_target_properties(${TEST_NAME} PROPERTIES
-        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/tests
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/tests
     )
 
     # Add the executable as a test
