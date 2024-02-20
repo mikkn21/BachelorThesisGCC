@@ -4,8 +4,8 @@
 #include <string>
 
 using namespace std;
-
-int main(int argc, char* argv[]) {
+ 
+int main(int argc, char* argv[]) {4
 
     if (argc < 2) {
         std::cerr << "You dumb fuck\n";
