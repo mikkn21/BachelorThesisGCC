@@ -27,10 +27,14 @@ set(TARGET prog.out)
 add_executable(${TARGET} ${SRCS})
 target_link_libraries(${TARGET} ${Boost_LIBRARIES})
 
+add_library(my_library STATIC ${SRCS})
+
 # Add a new target for tests
 enable_testing()
 
 file(GLOB_RECURSE TEST_SRCS "tests/*.cpp")
+file(GLOB_RECURSE SRCS_NOT_MAIN "tests/parser/*.cpp")
+list(APPEND TEST_SRCS ${SRCS_NOT_MAIN})
 # Add the test executable to a custom target
 add_custom_target(tests)
 # Add a new target and test for each test file
@@ -40,8 +44,8 @@ foreach(TEST_SRC ${TEST_SRCS})
     set(TEST_NAME ${TEST_NAME}.out)
 
     # Add an executable target for the test file
-    add_executable(${TEST_NAME} ${TEST_SRC})
-    target_link_libraries(${TEST_NAME} ${Boost_LIBRARIES} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+    add_executable(${TEST_NAME} ${TEST_SRCS})
+    target_link_libraries(${TEST_NAME} ${Boost_LIBRARIES} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} my_library)
 
     # Set the output directory for the test executable
     set_target_properties(${TEST_NAME} PROPERTIES
