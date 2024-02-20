@@ -8,7 +8,7 @@ namespace grammar {
     namespace parser {
 
     
-    bool parse(std::string src);
+    bool parse(std::string_view src);
 
 
     class SyntaxError : public std::exception {

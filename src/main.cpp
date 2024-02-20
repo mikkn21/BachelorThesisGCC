@@ -3,40 +3,35 @@
 #include <sstream>
 #include <string>
 
-#include "parser/parser.hpp"
-
 using namespace std;
 
 int main(int argc, char* argv[]) {
 
+    if (argc < 2) {
+        std::cerr << "You dumb fuck\n";
+        return 1; 
+    }
 
-    if (argc != 2) {
-        std::cerr << "Usage: " << argv[0] << " <filename>\n";
-        return 1; // Exit with error code if no filename is provided
+    // The file name has to be the last arg
+    std::string_view fileName = argv[argc - 1];
+
+    // loop after your own filename (i.e., prog.out) up until fileName 
+    for(int i = 1; i < argc - 2; i++) {
+        printf("%s", argv[i]);
     }
 
     // Open the file
-    std::ifstream file(argv[1]);
-    if (!file.is_open()) {
-        std::cerr << "Error opening file: " << argv[1] << "\n";
-        return 1; // Exit with error code if the file cannot be opened
-    }
+    // std::ifstream file(argv[1]);
+    // if (!file.is_open()) {
+    //     std::cerr << "Error opening file: " << argv[1] << "\n";
+    //     return 1; 
+    // }
 
-    // Read the contents of the file into a string
-    std::stringstream buffer;
-    buffer << file.rdbuf();
-    std::string fileContent = buffer.str();
+    // std::stringstream buffer;
+    // buffer << file.rdbuf();
+    // std::string fileContent = buffer.str();
 
-    // Close the file (optional here since it will be closed automatically when file goes out of scope)
-    file.close();
+    // file.close();
     
-    bool res = grammar::parser::parse(fileContent);
-
-    if(res) {
-        cout << "SUCCESS" << endl; 
-    } else {
-        cout << "FAILURE" << endl; 
-    }
-
     return 0;
 }
