@@ -16,59 +16,77 @@ namespace grammar
         struct Decl;
 
 
-        struct BinopExp
-        { 
+        struct BinopExp { 
             int lhs;
             std::string op;
             int rhs;
+        public: 
+            friend std::ostream& operator<<(std::ostream& os, const grammar::ast::BinopExp &exp);
         };
-
 
         struct Id {
             std::string id;
+        public:
+            friend std::ostream& operator<<(std::ostream& os, const grammar::ast::Id &exp);
         };
 
         struct PrimitiveType {
-            std::string type; // "int" or "bool" 
+            std::string type; // "int" or "bool"
+        public:
+            friend std::ostream& operator<<(std::ostream& os, const grammar::ast::PrimitiveType &exp); 
         };
 
         struct Expression : x3::variant<int, BinopExp, bool> {
             using base_type::base_type;   
             using base_type::operator=;
+        public:
+            friend std::ostream& operator<<(std::ostream& os, const grammar::ast::Expression &exp);
         };
 
         struct BlockLine : x3::variant<x3::forward_ast<Decl> /*, statement*/>  {
             using base_type::base_type;   
             using base_type::operator=;
+        public:
+            friend std::ostream& operator<<(std::ostream& os, const grammar::ast::BlockLine &exp);
         };
 
         struct Block {
             std::vector<BlockLine> block_line;
+        public:
+            friend std::ostream& operator<<(std::ostream& os, const grammar::ast::Block &exp);
         };
 
         struct Type {
-          PrimitiveType primitive_type;  
+            PrimitiveType primitive_type;
+        public:
+            friend std::ostream& operator<<(std::ostream& os, const grammar::ast::Type &exp);
         };
 
         struct VarDecl {
-          Type type;
-          Id id;
-          Expression exp;
+            Type type;
+            Id id;
+            Expression exp;
+        public:
+            friend std::ostream& operator<<(std::ostream& os, const grammar::ast::VarDecl &exp);
         };
 
         struct Parameter {
             Type type;
             Id id; 
+        public:
+            friend std::ostream& operator<<(std::ostream& os, const grammar::ast::Parameter &exp);
+        };        
+
+        struct ParameterList { 
+            std::vector<Parameter> parameter; 
+        public:
+            friend std::ostream& operator<<(std::ostream& os, const grammar::ast::ParameterList &exp);
         };
+         
 
-         struct ParameterList { 
-             std::vector<Parameter> parameter; 
-         }; 
-
-         struct ArgumentList {
+        struct ArgumentList {
             std::vector<Expression> arguments;
-         };
-        
+        };
 
         struct FunctionCall {
             Id id; 
@@ -76,36 +94,46 @@ namespace grammar
         };
 
         struct FuncDecl { 
-             Type type;  
-             Id id;  
-             ParameterList parameter_list;  
-             Block block; 
-         }; 
+            Type type;  
+            Id id;  
+            ParameterList parameter_list;  
+            Block block; 
+        public:
+            friend std::ostream& operator<<(std::ostream& os, const grammar::ast::FuncDecl &exp);
+        };
         
         struct ArrayType {
             Type type;
+        public:
+            friend std::ostream& operator<<(std::ostream& os, const grammar::ast::ArrayType &exp);
         };
 
         struct VarAssign {
             Id id; 
             Expression exp;
+        public:
+            friend std::ostream& operator<<(std::ostream& os, const grammar::ast::VarAssign &exp);
         };
 
         struct WhileStatement {
             Expression exp; 
             Block block;
+        public:
+            friend std::ostream& operator<<(std::ostream& os, const grammar::ast::WhileStatement &exp);
         };
 
         struct Decl : x3::variant<VarDecl, FuncDecl/*, ClassDecl*/> { 
-             using base_type::base_type;  
-             using base_type::operator=;
-        }; 
-
+            using base_type::base_type;  
+            using base_type::operator=;
+        public:
+            friend std::ostream& operator<<(std::ostream& os, const grammar::ast::Decl &exp);
+        };        
 
         struct Prog {
             Decl decl; 
+        public:
+            friend std::ostream& operator<<(std::ostream& os, const grammar::ast::Prog& exp);
         };
-
 
         //using boost::fusion::operator<<;
 
