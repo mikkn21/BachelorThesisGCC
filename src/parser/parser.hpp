@@ -4,11 +4,17 @@
 #include <string>
 #include <exception>
 
+#include <boost/spirit/home/x3.hpp>
+#include <boost/spirit/include/support_line_pos_iterator.hpp>
+#include <sys/resource.h>
+#include "ast.hpp"
+#include "parser.hpp"
+
 namespace grammar {
     namespace parser {
 
     
-    bool parse(std::string_view src);
+    grammar::ast::Prog parse(std::string_view src);
 
 
     class SyntaxError : public std::exception {
