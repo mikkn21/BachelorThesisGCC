@@ -1,10 +1,13 @@
+#include <cstdio>
 #include <iostream>
-#include <fstream>
-#include <sstream>
-#include <string>
+#include <ostream>
+
+
+#include "compiler.hpp";
 
 using namespace std;
- 
+using namespace grammar::compiler;
+
 int main(int argc, char* argv[]) {
 
     if (argc < 2) {
@@ -12,26 +15,26 @@ int main(int argc, char* argv[]) {
         return 1; 
     }
 
-    // The file name has to be the last arg
+    // The file name has to be the last arg!! 
     std::string_view fileName = argv[argc - 1];
+    CompilerOptions *options = new CompilerOptions();
 
-    // loop after your own filename (i.e., prog.out) up until fileName 
-    for(int i = 1; i < argc - 2; i++) {
-        printf("%s", argv[i]);
+    // Look for flags and options:
+    for(int i = 1; i < argc - 1; i++) {  // loop after your own filename (i.e., prog.out) up until fileName 
+        if (strcmp(argv[i], "-P") == 0) { // Stop after parsing
+            options->stopAfter = StopAfterParser; 
+            printf("saw -P\n");
+        } else if (strcmp(argv[i], "-p") == 0) { // print AST
+            options->printAst = true; 
+            printf("saw -p\n");
+        } else { // default
+            std::cerr << "Error on loading option: " << argv[i] << endl;
+            return -1;
+        }   
     }
+    
+    grammar::compiler::compile(fileName, *options);
 
-    // Open the file
-    // std::ifstream file(argv[1]);
-    // if (!file.is_open()) {
-    //     std::cerr << "Error opening file: " << argv[1] << "\n";
-    //     return 1; 
-    // }
-
-    // std::stringstream buffer;
-    // buffer << file.rdbuf();
-    // std::string fileContent = buffer.str();
-
-    // file.close();
     
     return 0;
 }

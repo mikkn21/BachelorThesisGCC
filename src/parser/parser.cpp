@@ -4,21 +4,6 @@
 #include "ast.hpp"
 #include "parser.hpp"
 
-// #include <boost/spirit/home/x3/auxiliary/attr.hpp>
-// #include <boost/spirit/home/x3/auxiliary/eol.hpp>
-// #include <boost/spirit/home/x3/auxiliary/eps.hpp>
-// #include <boost/spirit/home/x3/char.hpp>
-// #include <boost/spirit/home/x3/core/parse.hpp>
-// #include <boost/spirit/home/x3/directive/lexeme.hpp>
-// #include <boost/spirit/home/x3/nonterminal.hpp>
-// #include <boost/spirit/home/x3/numeric/int.hpp>
-// #include <boost/spirit/home/x3/numeric/real.hpp>
-// #include <boost/spirit/home/x3/operator/alternative.hpp>
-// #include <boost/spirit/home/x3/operator/difference.hpp>
-// #include <boost/spirit/home/x3/operator/kleene.hpp>
-// #include <boost/spirit/home/x3/operator/sequence.hpp>
-// #include <boost/spirit/include/support_line_pos_iterator.hpp>
-
 using namespace std;
 
 

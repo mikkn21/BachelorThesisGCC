@@ -1,9 +1,26 @@
+#ifndef MGRAMMAR_COMPILER_HPP
+#define MGRAMMAR_COMPILER_HPP 
+
+#include <optional>
 #include <string_view>
 
+namespace grammar::compiler {
 
-struct CompilerOptions {
-    std::string_view input; 
-
+enum StopAfter {
+    StopAfterParser
 };
 
-void compile(CompilerOptions options);
+class CompilerOptions {
+public:
+    std::optional<StopAfter> stopAfter;
+    bool printAst;
+
+    CompilerOptions();
+};
+
+void compile(std::string_view input, const CompilerOptions &options);
+void compileFromString(std::string_view input, const CompilerOptions &options);
+
+}
+
+#endif
