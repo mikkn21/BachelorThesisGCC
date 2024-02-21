@@ -16,7 +16,6 @@ namespace grammar
 { 
     namespace ast
     {   
-        //Idea for handling variants: simply make checks for each type of variants
         std::ostream& operator<<(std::ostream& os, const grammar::ast::BinopExp &exp) {
             return os << exp.lhs << " " << exp.op << " " << exp.rhs;
         }
