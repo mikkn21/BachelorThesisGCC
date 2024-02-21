@@ -25,7 +25,7 @@ set(LIB giga_lib)
 add_library(${LIB} STATIC ${SRCS})
 target_compile_options(${LIB} PRIVATE -Wno-unused-parameter)
 
-set(TARGET giga.out)
+set(TARGET giga)
 
 add_executable(${TARGET} ${SRCS})
 target_link_libraries(${TARGET} ${Boost_LIBRARIES})

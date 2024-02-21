@@ -1,3 +1,6 @@
+# Ignore the binary
+giga
+
 # Some random cache
 .ccls-cache
 .cache/clangd
