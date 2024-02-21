@@ -21,6 +21,7 @@ enum class TestingOutcome {
 
 template<typename Compiler>
 void test_parse(std::string input, TestingOutcome testing_outcome, Compiler compiler) {
+    std::cout << std::endl;
     grammar::compiler::CompilerOptions options;
     options.stopAfter = grammar::compiler::StopAfterParser;
     options.printAst = true;
@@ -33,12 +34,12 @@ void test_parse(std::string input, TestingOutcome testing_outcome, Compiler comp
         std::ostringstream temp;
         temp << ast1;
         std::string ast1_string = temp.str();
-        BOOST_CHECK_MESSAGE(testing_outcome == TestingOutcome::PARSE1_FAILED, "\nAST:\n" << ast1_string << "\n" <<  e.what());
+        BOOST_CHECK_MESSAGE(testing_outcome == TestingOutcome::PARSE1_FAILED, "\nAST:\n" << ast1_string << "\n" <<  e.what() << "\n");
         return;
     }
-    std::ostringstream temp;
-    temp << ast1;
-    std::string ast1_string = temp.str();
+    std::ostringstream temp1;
+    temp1 << ast1;
+    std::string ast1_string = temp1.str();
 
     grammar::ast::Prog ast2;
     try {
@@ -47,29 +48,29 @@ void test_parse(std::string input, TestingOutcome testing_outcome, Compiler comp
         std::ostringstream temp;
         temp << ast2;
         std::string ast2_string = temp.str();
-        BOOST_CHECK_MESSAGE(testing_outcome == TestingOutcome::PARSE2_FAILED, "\nAST:\n" << ast1_string << "\n" << "AST:\n" << ast2_string << "\n" << e.what());
+        BOOST_CHECK_MESSAGE(testing_outcome == TestingOutcome::PARSE2_FAILED, "\nAST:\n" << ast1_string << "\n" << "AST:\n" << ast2_string << "\n" << e.what() << "\n");
         return;
     }
-    temp.clear();
-    temp << ast2;
-    std::string ast2_string = temp.str();
+    std::ostringstream temp2;
+    temp2 << ast2;
+    std::string ast2_string = temp2.str();
 
     switch (testing_outcome) {
         case TestingOutcome::SUCCESS:
-            BOOST_CHECK_MESSAGE(input == ast1_string, "Parse1 output was not consistent with input, when it was expected");
-            BOOST_CHECK_MESSAGE(ast1_string == ast2_string, "Parse2 output was not consistent with Parse1 output, when it was expected");
+            BOOST_CHECK_MESSAGE(input == ast1_string, "\nParse1 output was not consistent with input, when it was expected\n");
+            BOOST_CHECK_MESSAGE(ast1_string == ast2_string, "\nParse2 output was not consistent with Parse1 output, when it was expected\n");
             break;
         case TestingOutcome::PARSE1_INCONSISTENT:
-            BOOST_CHECK_MESSAGE(input != ast1_string, "AST 1 output was consistent with the input, when it was expected not to");
+            BOOST_CHECK_MESSAGE(input != ast1_string, "\nAST 1 output was consistent with the input, when it was expected not to\n");
             break;
         case TestingOutcome::PARSE2_INCONSISTENT:
-            BOOST_CHECK_MESSAGE(ast1_string != ast2_string, "AST 2 output was consistent with the AST 1 output, when it was expected not to");   
+            BOOST_CHECK_MESSAGE(ast1_string != ast2_string, "\nAST 2 output was consistent with the AST 1 output, when it was expected not to\n");   
             break;  
         case TestingOutcome::PARSE1_FAILED:
-            BOOST_CHECK_MESSAGE(false, "Parse1 did not fail, when it was expected to");
+            BOOST_CHECK_MESSAGE(false, "\nParse1 did not fail, when it was expected to\n");
             break;
         case TestingOutcome::PARSE2_FAILED:
-            BOOST_CHECK_MESSAGE(false, "Parse2 did not fail, when it was expected to");
+            BOOST_CHECK_MESSAGE(false, "\nParse2 did not fail, when it was expected to\n");
             break;
     }
 }
