@@ -1,3 +1,14 @@
 int TEST_ME_DADDY69 = (((2 | 3) & true )); 
 int I_AM_TESTING____ = (1) - (2);
 int CRAZY_mate123 = ( ((((((((((true)))))))))) | false ); 
+
+
+bool func(int a,
+     bool b,
+     int c,
+     bool d,
+     int e,
+     int f)
+    {
+        bool chicken0123 = true & 2 | false == 123;
+    }
