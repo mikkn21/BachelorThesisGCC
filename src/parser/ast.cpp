@@ -63,7 +63,7 @@ namespace grammar
 
             const auto parameters = input.parameter;
             os << parameters[0];
-            for (ulong i = 0; i < parameters.size(); i++) {
+            for (unsigned long i = 0; i < parameters.size(); i++) {
                 os << ", ";
                 os << parameters[i];
             }
