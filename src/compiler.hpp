@@ -23,11 +23,12 @@ class CompilerOptions {
 public:
     std::optional<StopAfter> stopAfter;
     bool printAst;
+    bool printInput;
 
     CompilerOptions();
 };
 
-CompilerReturnObj compile(std::string_view input, const CompilerOptions &options);
+CompilerReturnObj compileFromFile(std::string_view input, const CompilerOptions &options);
 CompilerReturnObj compileFromString(std::string_view input, const CompilerOptions &options);
 
 }

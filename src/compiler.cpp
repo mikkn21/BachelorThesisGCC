@@ -15,7 +15,7 @@ namespace grammar::compiler {
     }
 
     // This is compiling from a filename
-    CompilerReturnObj compile(std::string_view input, const CompilerOptions &options) {
+    CompilerReturnObj compileFromFile(std::string_view input, const CompilerOptions &options) {
         if(input.empty()) {
             std::cerr << "Error: filename is empty!" << std::endl;
             throw std::invalid_argument("Filename is empty"); 
@@ -32,21 +32,39 @@ namespace grammar::compiler {
         std::string content = buffer.str();
         file.close();
 
-        return compileFromString(std::string_view(content), options);
 
+        CompilerReturnObj obj = compileFromString(std::string_view(content), options);
+
+        if(options.stopAfter == StopAfterParser ) {
+            return obj;
+        } // NOTE: add the other stopAfter options at some point
+
+        return obj;
     }
 
     // compile from a string
     CompilerReturnObj compileFromString(std::string_view input, const CompilerOptions &options) {
-        if(input.empty()) {
-        std::cerr << "Error: input string is empty!" << std::endl;
-        throw std::invalid_argument("String is empty"); 
-        
+        if (input.empty()) {
+            std::cerr << "Error: input string is empty!" << std::endl;
+            throw std::invalid_argument("String is empty");
         }
-        CompilerReturnObj compilerObj; 
-        compilerObj.ast = parser::parse(input);
 
-        return compilerObj;
+        if (options.printInput) {
+            std::cout << "Input to be parsed: \n" << input << std::endl;
+        }   
+
+        CompilerReturnObj obj; 
+        obj.ast = parser::parse(input);
+        // print ast tree if option is enabled
+        if (options.printAst) {
+            std::cout << "AST:\n" << obj.ast << std::endl;
+        }
+
+        if (options.stopAfter == StopAfterParser ) {
+            return obj;
+        } // NOTE: add the other stopAfter options at some point
+
+        return obj;
     }
 
 } // namespace grammar::compiler
