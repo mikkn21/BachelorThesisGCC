@@ -45,23 +45,27 @@ namespace grammar {
             x3::string("==") | x3::string("!=") | x3::string("<=") | x3::string(">=") |
             x3::string("+") | x3::string("-") | x3::string("*") | x3::string("/") |
             x3::string("%") | x3::string("<") | x3::string(">") | x3::string("&") | x3::string("|");
-
-        const auto binop_exp_def = int_ >> operator_parser >> int_;   
-        const auto id_def = x3::raw[(x3::char_("a-zA-Z_") >> *x3::char_("a-zA-Z_0-9"))];
+        
+        // NOTE: don't use string on while !
+        // Useable
+        const auto binop_exp_def = int_ >> operator_parser >> int_;
         const auto primitive_type_def = x3::string("int") | x3::string("bool");
-        const auto block_line_def = decl;
-        const auto block_def = '{' >> *block_line >> '}';
         const auto type_def = primitive_type;  // | array_type;
-        const auto var_decl_def = type >> id >> '=' >> expression >> ';';
+        const auto id_def = x3::raw[(x3::char_("a-zA-Z_") >> *x3::char_("a-zA-Z_0-9"))];
         const auto parameter_def = type >> id;
         const auto parameter_list_def = -(parameter % ','); // -(*(parameter >> ',') >> parameter);
+        const auto expression_def = '(' >> expression >> ')' | binop_exp | int_ | bool_; 
+        const auto block_line_def = decl;
+        const auto block_def = '{' >> *block_line >> '}';
         const auto func_decl_def = type >> id >> '(' >> parameter_list >> ')' >> block;
-        const auto array_type_def = type >> x3::string("[]");
-        const auto var_assign_def = id >> '=' >> expression >> ';';
-        const auto while_statement_def = x3::string("while") >> expression >> block;
+        const auto var_decl_def = type >> id >> '=' >> expression >> ';';
         const auto decl_def = var_decl | func_decl;
         const auto prog_def = decl;
-        const auto expression_def = '(' >> expression >> ')' | binop_exp | int_ | bool_; 
+
+        // Not useable
+        const auto array_type_def = type >> x3::string("[]");
+        const auto var_assign_def = id >> '=' >> expression >> ';';
+        const auto while_statement_def = x3::string("while") >> expression >> block;   
         const auto function_call_def = id >> '('>> argument_list >> ')'; 
         const auto argument_list_def = -(expression % ',');
 
