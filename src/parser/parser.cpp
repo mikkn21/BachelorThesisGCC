@@ -63,9 +63,9 @@ namespace grammar {
         const auto prog_def = decl;
 
         // Not useable
-        const auto array_type_def = type >> x3::string("[]");
+        const auto array_type_def = type >> x3::lit("[]");
         const auto var_assign_def = id >> '=' >> expression >> ';';
-        const auto while_statement_def = x3::string("while") >> expression >> block;   
+        const auto while_statement_def = x3::lit("while") >> expression >> block;   
         const auto function_call_def = id >> '('>> argument_list >> ')'; 
         const auto argument_list_def = -(expression % ',');
 

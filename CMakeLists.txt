@@ -18,22 +18,23 @@ set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lm")
 find_package(Boost REQUIRED COMPONENTS unit_test_framework)
 include_directories(${Boost_INCLUDE_DIRS})
 
-# Define source files and object files
 file(GLOB_RECURSE SRCS "src/*.cpp")
 
-# Name of the output executable
+set(LIB giga_lib)
+
+add_library(${LIB} STATIC ${SRCS})
+target_compile_options(${LIB} PRIVATE -Wno-unused-parameter)
+
 set(TARGET giga.out)
 
 add_executable(${TARGET} ${SRCS})
 target_link_libraries(${TARGET} ${Boost_LIBRARIES})
-
-add_library(my_library STATIC ${SRCS})
+target_compile_options(${TARGET} PRIVATE -Wno-unused-parameter)
 
 # Add a new target for tests
 enable_testing()
 
 file(GLOB_RECURSE TEST_SRCS "tests/*.cpp")
-# Add the test executable to a custom target
 add_custom_target(tests)
 # Add a new target and test for each test file
 foreach(TEST_SRC ${TEST_SRCS})
@@ -43,7 +44,8 @@ foreach(TEST_SRC ${TEST_SRCS})
 
     # Add an executable target for the test file
     add_executable(${TEST_NAME} ${TEST_SRCS})
-    target_link_libraries(${TEST_NAME} ${Boost_LIBRARIES} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} my_library)
+    target_link_libraries(${TEST_NAME} ${Boost_LIBRARIES} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${LIB})
+    # target_compile_options(${TEST_NAME} PRIVATE -Wno-unused-parameter)
 
     # Set the output directory for the test executable
     set_target_properties(${TEST_NAME} PROPERTIES
