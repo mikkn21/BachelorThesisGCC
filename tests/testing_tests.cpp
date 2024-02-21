@@ -5,6 +5,7 @@
 #include "../src/parser/ast.hpp"
 #include <sstream>
 #include "../src/parser/parser.hpp"
+#include "../src/compiler.hpp"
 #include <string>
 
 
@@ -17,16 +18,16 @@ enum class TestingOutcome {
 };
 
 template <typename T>
-void test_compile_string(std::string input, TestingOutcome testing_outcome, T exception) {
+void test_compile_string(std::string input, grammar::compiler::CompilerOptions compiler_options, TestingOutcome testing_outcome) {
     try {
-        grammar::ast::Prog ast1 = grammar::parser::parse(input); // should call compile
-    } catch (T exception) {
-        std::cout << exception.what() << endl;
+        grammar::ast::Prog ast1 = grammar::compiler::compileFromString(input, compiler_options); // should call compile
+    } catch (SyntaxError e) {
+        std::cout << e.what() << endl;
     }
     std::ostringstream temp;
     temp << ast1;
     std::string ast1_string = temp.str();
-    grammar::ast::Prog ast2 = grammar::parser::parse(ast1_string); // should call compile not parse
+    grammar::ast::Prog ast2 = grammar::compiler::compileFromString(ast1_string, compiler_options); // should call compile not parse
     
 
     // grammar::ast::Prog result1; // TODO remove. Should not be of type BinopExp, should be type Prog
