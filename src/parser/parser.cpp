@@ -56,9 +56,9 @@ namespace grammar {
         const auto parameter_def = type >> id;
         const auto parameter_list_def = -(parameter % ','); // -(*(parameter >> ',') >> parameter);
         const auto func_decl_def = type >> id >> '(' >> parameter_list >> ')' >> block;
-        const auto array_type_def = type >> x3::string("[]");
+        const auto array_type_def = type >> x3::lit("[]");
         const auto var_assign_def = id >> '=' >> expression >> ';';
-        const auto while_statement_def = x3::string("while") >> expression >> block;
+        const auto while_statement_def = x3::lit("while") >> expression >> block;
         const auto decl_def = var_decl | func_decl;
         const auto prog_def = decl;
         const auto expression_def = '(' >> expression >> ')' | binop_exp | int_ | bool_; 
