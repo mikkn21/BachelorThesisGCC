@@ -14,15 +14,8 @@ namespace grammar
     {   
 
         struct Decl;
+        struct BinopExp;
 
-
-        struct BinopExp { 
-            int lhs;
-            std::string op;
-            int rhs;
-        public: 
-            friend std::ostream& operator<<(std::ostream& os, const grammar::ast::BinopExp &exp);
-        };
 
         struct Id {
             std::string id;
@@ -36,12 +29,21 @@ namespace grammar
             friend std::ostream& operator<<(std::ostream& os, const grammar::ast::PrimitiveType &exp); 
         };
 
-        struct Expression : x3::variant<int, BinopExp, bool> {
+        struct Expression : x3::variant<int, x3::forward_ast<BinopExp>, bool> {
             using base_type::base_type;   
             using base_type::operator=;
         public:
             friend std::ostream& operator<<(std::ostream& os, const grammar::ast::Expression &exp);
         };
+
+        struct BinopExp { 
+            Expression lhs;
+            std::string op;
+            Expression rhs;
+        public: 
+            friend std::ostream& operator<<(std::ostream& os, const grammar::ast::BinopExp &exp);
+        };
+
 
         struct BlockLine : x3::variant<x3::forward_ast<Decl> /*, statement*/>  {
             using base_type::base_type;   
@@ -146,9 +148,9 @@ using namespace grammar::ast;
 
 BOOST_FUSION_ADAPT_STRUCT(
     BinopExp,
-    (int, lhs)
+    (Expression, lhs)
     (std::string, op)
-    (int, rhs)
+    (Expression, rhs)
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
