@@ -5,6 +5,7 @@
 #include "../src/parser/ast.hpp"
 #include <sstream>
 #include "../src/parser/parser.hpp"
+#include <string>
 
 
 enum class TestingOutcome {
@@ -20,9 +21,9 @@ enum class TestingOutcome {
 void test_parse(std::string input, TestingOutcome testing_outcome) {
     // grammar::ast::Prog ast1 = parse(input); 
     // grammar::ast::Prog ast2 = parse(input); 
-
-    // grammar::ast::Prog ast1 = grammar::parser::parse("");
-    // grammar::ast::Prog ast2 = grammar::parser::parse("");
+    std::string_view h = "hdf";
+    grammar::ast::Prog ast1 = grammar::parser::parse(h);
+    //grammar::ast::Prog ast2 = grammar::parser::parse("");
 
 
     // grammar::ast::Prog result1; // TODO remove. Should not be of type BinopExp, should be type Prog
