@@ -22,7 +22,7 @@ include_directories(${Boost_INCLUDE_DIRS})
 file(GLOB_RECURSE SRCS "src/*.cpp")
 
 # Name of the output executable
-set(TARGET prog.out)
+set(TARGET giga.out)
 
 add_executable(${TARGET} ${SRCS})
 target_link_libraries(${TARGET} ${Boost_LIBRARIES})
