@@ -30,7 +30,10 @@ void test_parse(std::string input, TestingOutcome testing_outcome, Compiler comp
     try {
         ast1 = compiler(input, options).ast; // should call compile
     } catch (const grammar::parser::SyntaxError &e) {   
-        BOOST_CHECK_MESSAGE(testing_outcome == TestingOutcome::PARSE1_FAILED, e.what());
+        std::ostringstream temp;
+        temp << ast1;
+        std::string ast1_string = temp.str();
+        BOOST_CHECK_MESSAGE(testing_outcome == TestingOutcome::PARSE1_FAILED, "\nAST:\n" << ast1_string << "\n" <<  e.what());
         return;
     }
     std::ostringstream temp;
@@ -41,7 +44,10 @@ void test_parse(std::string input, TestingOutcome testing_outcome, Compiler comp
     try {
         ast2 = compiler(ast1_string, options).ast; // should call compile
     } catch (const grammar::parser::SyntaxError &e) {   
-        BOOST_CHECK_MESSAGE(testing_outcome == TestingOutcome::PARSE2_FAILED, e.what());
+        std::ostringstream temp;
+        temp << ast2;
+        std::string ast2_string = temp.str();
+        BOOST_CHECK_MESSAGE(testing_outcome == TestingOutcome::PARSE2_FAILED, "\nAST:\n" << ast1_string << "\n" << "AST:\n" << ast2_string << "\n" << e.what());
         return;
     }
     temp.clear();

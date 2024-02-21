@@ -50,7 +50,7 @@ namespace grammar
         }
 
         std::ostream& operator<<(std::ostream& os, const grammar::ast::VarDecl &decl) {
-            return os << decl.type << " " << decl.id << " " << decl.exp;
+            return os << decl.type << " " << decl.id << " = " << decl.exp << ";";
         }
 
         std::ostream& operator<<(std::ostream& os, const grammar::ast::Parameter &parameter) {
@@ -64,7 +64,7 @@ namespace grammar
 
             const auto parameters = input.parameter;
             os << parameters[0];
-            for(ulong i = 0; i < parameters.size(); i++) {
+            for (ulong i = 0; i < parameters.size(); i++) {
                 os << ", ";
                 os << parameters[i];
             }

@@ -53,7 +53,7 @@ namespace grammar {
         const auto id_def = x3::raw[(x3::char_("a-zA-Z_") >> *x3::char_("a-zA-Z_0-9"))];
         const auto parameter_def = type >> id;
         const auto parameter_list_def = -(parameter % ','); // -(*(parameter >> ',') >> parameter);
-        const auto expression_def = '(' >> expression >> ')' | binop_exp | int_ | bool_; 
+        const auto expression_def = '(' >> expression >> ')' | int_ | bool_ | binop_exp; 
         const auto block_line_def = decl;
         const auto block_def = '{' >> *block_line >> '}';
         const auto func_decl_def = type >> id >> '(' >> parameter_list >> ')' >> block;

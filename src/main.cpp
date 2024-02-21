@@ -18,17 +18,17 @@ int main(int argc, char* argv[]) {
 
     // The file name has to be the last arg!! 
     std::string_view fileName = argv[argc - 1];
-    CompilerOptions options;
+    CompilerOptions options = CompilerOptions();
 
     // Look for flags and options:
-    for(int i = 1; i < argc - 1; i++) {  // loop after your own filename (i.e., prog.out) up until fileName 
+    for (int i = 1; i < argc - 1; i++) {  // loop after your own filename (i.e., prog.out) up until fileName 
         if (strcmp(argv[i], "-P") == 0) { // Stop after parsing
             options.stopAfter = StopAfterParser; 
             printf("saw -P\n");
         } else if (strcmp(argv[i], "-p") == 0) { // print AST
             options.printAst = true; 
             printf("saw -p\n");
-        } else if (strcmp(argv[i], "-i") == 0){
+        } else if (strcmp(argv[i], "-i") == 0) {
             options.printInput = true;
             printf("saw -i");
         }
