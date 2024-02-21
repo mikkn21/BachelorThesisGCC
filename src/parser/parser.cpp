@@ -46,9 +46,8 @@ namespace grammar {
             x3::string("+") | x3::string("-") | x3::string("*") | x3::string("/") |
             x3::string("%") | x3::string("<") | x3::string(">") | x3::string("&") | x3::string("|");
         
-        // NOTE: don't use string on while !
         // Useable
-        const auto binop_exp_def = int_ >> operator_parser >> int_;
+        const auto binop_exp_def = expression >> operator_parser >> expression;
         const auto primitive_type_def = x3::string("int") | x3::string("bool");
         const auto type_def = primitive_type;  // | array_type;
         const auto id_def = x3::raw[(x3::char_("a-zA-Z_") >> *x3::char_("a-zA-Z_0-9"))];
