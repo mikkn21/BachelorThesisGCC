@@ -49,7 +49,8 @@ namespace grammar {
         // Useable
         const auto primitive_type_def = x3::string("int") | x3::string("bool");
         const auto type_def = primitive_type;  // | array_type;
-        const auto id_def = x3::raw[(x3::char_("a-zA-Z_") >> *x3::char_("a-zA-Z_0-9"))];
+        //const auto id_def = x3::lexeme[(x3::char_("a-zA-Z_") >> *x3::char_("a-zA-Z_0-9"))];
+        auto const id_def = x3::raw[ x3::lexeme[(x3::char_("a-zA-Z_") >> *x3::char_("a-zA-Z_0-9"))]];
         const auto parameter_def = type >> id;
         const auto parameter_list_def = -(parameter % ','); // -(*(parameter >> ',') >> parameter);
         const auto expression_base = '(' >> expression >> ')' | int_ | bool_;
