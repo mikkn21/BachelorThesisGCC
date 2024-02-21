@@ -34,7 +34,9 @@ int main(int argc, char* argv[]) {
         }   
     }
     
-    grammar::compiler::compile(fileName, *options);
+    
+    grammar::compiler::CompilerReturnObj obj = grammar::compiler::compile(fileName, *options);
+    std::cout << "PARSED" << endl;
 
     
     return 0;

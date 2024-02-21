@@ -27,8 +27,8 @@ public:
     CompilerOptions();
 };
 
-void compile(std::string_view input, const CompilerOptions &options);
-void compileFromString(std::string_view input, const CompilerOptions &options);
+CompilerReturnObj compile(std::string_view input, const CompilerOptions &options);
+CompilerReturnObj compileFromString(std::string_view input, const CompilerOptions &options);
 
 }
 
