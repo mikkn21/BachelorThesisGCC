@@ -23,13 +23,13 @@ file(GLOB_RECURSE SRCS "src/*.cpp")
 set(LIB giga_lib)
 
 add_library(${LIB} STATIC ${SRCS})
-target_compile_options(${LIB} PRIVATE -Wno-unused-parameter)
+target_compile_options(${LIB} PRIVATE -Wno-unused-parameter -Wno-unneeded-internal-declaration)
 
 set(TARGET giga)
 
 add_executable(${TARGET} ${SRCS})
 target_link_libraries(${TARGET} ${Boost_LIBRARIES})
-target_compile_options(${TARGET} PRIVATE -Wno-unused-parameter)
+target_compile_options(${TARGET} PRIVATE -Wno-unused-parameter -Wno-unneeded-internal-declaration)
 
 # Add a new target for tests
 enable_testing()
