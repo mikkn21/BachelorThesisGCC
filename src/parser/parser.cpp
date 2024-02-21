@@ -93,7 +93,7 @@ namespace grammar {
         grammar::ast::Prog parse(std::string_view src)
         {
             namespace x3 = boost::spirit::x3;
-            using x3::ascii::space;
+            using x3::space;
             using grammar::ast::Prog;
          
             Prog ast;
