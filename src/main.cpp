@@ -1,9 +1,10 @@
 #include <cstdio>
 #include <iostream>
 #include <ostream>
+#include <cstring>
 
 
-#include "compiler.hpp";
+#include "compiler.hpp"
 
 using namespace std;
 using namespace grammar::compiler;

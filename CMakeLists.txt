@@ -33,8 +33,6 @@ add_library(my_library STATIC ${SRCS})
 enable_testing()
 
 file(GLOB_RECURSE TEST_SRCS "tests/*.cpp")
-file(GLOB_RECURSE SRCS_NOT_MAIN "tests/parser/*.cpp")
-list(APPEND TEST_SRCS ${SRCS_NOT_MAIN})
 # Add the test executable to a custom target
 add_custom_target(tests)
 # Add a new target and test for each test file
