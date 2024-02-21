@@ -1,9 +1,11 @@
 #include <iostream>
+#include <stdexcept>
 #include <string_view>
 #include <fstream>
 #include <sstream>
 
 #include "compiler.hpp"
+#include "parser/ast.hpp"
 #include "parser/parser.hpp"
 
 namespace grammar::compiler {
@@ -13,16 +15,16 @@ CompilerOptions::CompilerOptions() {
 }
 
 // This is compiling from a filename
-void compile(std::string_view input, const CompilerOptions &options) {
+CompilerReturnObj compile(std::string_view input, const CompilerOptions &options) {
     if(input.empty()) {
         std::cerr << "Error: filename is empty!" << std::endl;
-        return;
+        throw std::invalid_argument("Filename is empty"); 
     }
 
     std::ifstream file(input.data());
     if (!file.is_open()) {
         std::cerr << "Error opening file: " << input << std::endl;
-        return;
+        throw std::invalid_argument("Could not open file correctly, ABORT! "); 
     }
 
     std::stringstream buffer;
@@ -30,17 +32,21 @@ void compile(std::string_view input, const CompilerOptions &options) {
     std::string content = buffer.str();
     file.close();
 
-    ast::Prog res = parser::parse(std::string_view(content));
+    return compileFromString(std::string_view(content), options);
+
  }
 
 // compile from a string
-void compileFromString(std::string_view input, const CompilerOptions &options) {
+CompilerReturnObj compileFromString(std::string_view input, const CompilerOptions &options) {
     if(input.empty()) {
     std::cerr << "Error: input string is empty!" << std::endl;
-    return;
+    throw std::invalid_argument("String is empty"); 
+    
     }
+    CompilerReturnObj compilerObj; 
+    compilerObj.ast = parser::parse(input);
 
-    ast::Prog res = parser::parse(input);
+    return compilerObj;
  }
 
 } // namespace grammar::compiler
