@@ -5,7 +5,7 @@
 #include <sstream>
 
 #include "compiler.hpp"
-#include "parser/ast.hpp"
+#include "ast.hpp"
 #include "parser/parser.hpp"
 
 namespace grammar::compiler {

@@ -1,7 +1,7 @@
 #include <boost/spirit/home/x3.hpp>
 #include <boost/spirit/include/support_line_pos_iterator.hpp>
 #include <sys/resource.h>
-#include "ast.hpp"
+#include "../ast.hpp"
 #include "parser.hpp"
 
 using namespace std;

@@ -3,7 +3,7 @@
 
 #include <string>
 #include <exception>
-#include "ast.hpp"
+#include "../ast.hpp"
 #include <boost/spirit/home/x3.hpp>
 
 

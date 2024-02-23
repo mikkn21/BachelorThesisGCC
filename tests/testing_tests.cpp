@@ -2,7 +2,7 @@
 #define BOOST_TEST_MODULE Integer
 #include <boost/test/unit_test.hpp>
 #include <boost/spirit/home/x3.hpp>
-#include "../src/parser/ast.hpp"
+#include "../src/ast.hpp"
 #include <sstream>
 #include "../src/parser/parser.hpp"
 #include "../src/compiler.hpp"

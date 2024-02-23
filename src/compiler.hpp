@@ -1,7 +1,7 @@
 #ifndef MGRAMMAR_COMPILER_HPP
 #define MGRAMMAR_COMPILER_HPP 
 
-#include "parser/ast.hpp"
+#include "ast.hpp"
 #include <optional>
 #include <string_view>
 
