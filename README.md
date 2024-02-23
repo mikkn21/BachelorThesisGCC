@@ -1,5 +1,7 @@
 # Bachelor - Giga Chad Compiler
-Or as we call it the only **GCC** you will ever need.
+<p align="center" style="font-size:24px; font-weight:bold; padding:10px; background-color:#333; color:#fff;">
+ The only GCC you will ever need.
+</p>
 
 <p align="center">
   <img src="assets/1.jpg" alt="Image 1" width="30%" />
