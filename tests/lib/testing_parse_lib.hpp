@@ -1,8 +1,10 @@
 #ifndef PARSER_TEST_LIB_HPP
-#define PARSER_TEST_LIB_HPP 
+#define PARSER_TEST_LIB_HPP
+
 
 #include <string>
-
+#include <boost/test/unit_test.hpp>
+#include <boost/spirit/home/x3.hpp>
 
 enum class TestingOutcome {
     SUCCESS,
@@ -12,10 +14,7 @@ enum class TestingOutcome {
     PARSE2_INCONSISTENT,
 };
 
-
 void test_parse_file(std::string input, TestingOutcome testing_outcome);
 void test_parse_string(std::string input, TestingOutcome testing_outcome);
 
-
-
-#endif
+#endif // PARSER_TEST_LIB_HPP

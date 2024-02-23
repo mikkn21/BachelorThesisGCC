@@ -1,8 +1,4 @@
-#define BOOST_TEST_DYN_LINK
-#define BOOST_TEST_MODULE Integer
-#include <boost/test/unit_test.hpp>
-#include <boost/spirit/home/x3.hpp>
-#include "../src/ast.hpp"
+#include "../../src/ast.hpp"
 #include <sstream>
 #include "../../src/parser/parser.hpp"
 #include "../../src/compiler.hpp"
@@ -10,12 +6,9 @@
 #include "testing_parse_lib.hpp"
 
 
-
-
-
 template<typename Compiler>
 void test_parse(std::string input, TestingOutcome testing_outcome, Compiler compiler) {
-    std::cout << std::endl;
+    std::cout << "\n----------------------" << std::endl;
     grammar::compiler::CompilerOptions options = grammar::compiler::CompilerOptions();
     options.stopAfter = grammar::compiler::StopAfterParser;
     options.printAst = true;

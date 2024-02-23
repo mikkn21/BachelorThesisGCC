@@ -50,14 +50,14 @@ namespace grammar::compiler {
         }
 
         if (options.printInput) {
-            std::cout << "Input to be parsed: \n" << input << std::endl;
+            std::cout << "Input to be parsed: \n" << input;
         }   
 
         CompilerReturnObj obj; 
         obj.ast = parser::parse(input);
         // print ast tree if option is enabled
         if (options.printAst) {
-            std::cout << "AST:\n" << obj.ast << std::endl;
+            std::cout << "AST:\n" << obj.ast;
         }
 
         if (options.stopAfter == StopAfterParser ) {

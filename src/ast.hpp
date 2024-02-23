@@ -36,6 +36,12 @@ namespace grammar
             friend std::ostream& operator<<(std::ostream& os, const grammar::ast::Expression &exp);
         };
 
+        struct ExpressionPar {
+            Expression exp;
+        public:
+            friend std::ostream& operator<<(std::ostream& os, const grammar::ast::ExpressionPar &exp);
+        };
+
         struct BinopExp { 
             Expression lhs;
             std::string op;
@@ -132,7 +138,7 @@ namespace grammar
         };        
 
         struct Prog {
-            Decl decl; 
+            std::vector<Decl> decls; 
         public:
             friend std::ostream& operator<<(std::ostream& os, const grammar::ast::Prog& exp);
         };
@@ -156,6 +162,11 @@ BOOST_FUSION_ADAPT_STRUCT(
 BOOST_FUSION_ADAPT_STRUCT(
     Id,
     (std::string, id)
+)
+
+BOOST_FUSION_ADAPT_STRUCT(
+    ExpressionPar,
+    (Expression, exp)
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
@@ -230,7 +241,7 @@ BOOST_FUSION_ADAPT_STRUCT(
 
 BOOST_FUSION_ADAPT_STRUCT(
     Prog,
-    (Decl, decl)
+    (std::vector<Decl>, decls)
 )
 
 

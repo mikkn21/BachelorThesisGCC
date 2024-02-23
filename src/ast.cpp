@@ -34,13 +34,22 @@ namespace grammar
             return os;
         }
 
+        std::ostream& operator<<(std::ostream& os, const grammar::ast::ExpressionPar &exp) {
+            return os << "(" << exp.exp << ")";
+        }
+
+
         std::ostream& operator<<(std::ostream& os, const grammar::ast::BlockLine &block_line) {
             boost::apply_visitor(print_visitor(os), block_line);
             return os;
         }
 
         std::ostream& operator<<(std::ostream& os, const grammar::ast::Block &block) {
-            for (const auto &i : block.block_line) os << i << std::endl; 
+            os << "{\n";
+            for (const auto &i : block.block_line) {
+                os << i; 
+            }
+            os << "}\n";
             return os;
         }
 
@@ -49,7 +58,7 @@ namespace grammar
         }
 
         std::ostream& operator<<(std::ostream& os, const grammar::ast::VarDecl &decl) {
-            return os << decl.type << " " << decl.id << " = " << decl.exp << ";";
+            return os << decl.type << " " << decl.id << " = " << decl.exp << ";\n";
         }
 
         std::ostream& operator<<(std::ostream& os, const grammar::ast::Parameter &parameter) {
@@ -63,7 +72,7 @@ namespace grammar
 
             const auto parameters = input.parameter;
             os << parameters[0];
-            for (unsigned long i = 0; i < parameters.size(); i++) {
+            for (unsigned long i = 1; i < parameters.size(); i++) {
                 os << ", ";
                 os << parameters[i];
             }
@@ -92,7 +101,10 @@ namespace grammar
         }
 
         std::ostream& operator<<(std::ostream& os, const grammar::ast::Prog &prog) {
-            return os << prog.decl;
+            for (const auto &decl : prog.decls) {
+                os << decl;
+            }
+            return os;
         }
     } // ast
 }; // grammar
