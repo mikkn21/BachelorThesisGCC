@@ -1,5 +1,6 @@
 #include <iostream>
 #include "ast.hpp"
+
 namespace {
     struct print_visitor : boost::static_visitor<> {
         std::ostream& os;
@@ -9,6 +10,9 @@ namespace {
         void operator()(const T& t) const {
             os << t;
         }
+        void operator()(bool t) const {
+            os << (t ? "true" : "false");;
+        }
     };
 } //namespace
 
@@ -16,6 +20,8 @@ namespace grammar
 { 
     namespace ast
     {   
+
+        
         std::ostream& operator<<(std::ostream& os, const grammar::ast::BinopExp &exp) {
             return os << exp.lhs << " " << exp.op << " " << exp.rhs;
         }
@@ -37,7 +43,6 @@ namespace grammar
         std::ostream& operator<<(std::ostream& os, const grammar::ast::ExpressionPar &exp) {
             return os << "(" << exp.exp << ")";
         }
-
 
         std::ostream& operator<<(std::ostream& os, const grammar::ast::BlockLine &block_line) {
             boost::apply_visitor(print_visitor(os), block_line);

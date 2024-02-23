@@ -15,6 +15,7 @@ namespace grammar
 
         struct Decl;
         struct BinopExp;
+        struct ExpressionPar;
 
 
         struct Id {
@@ -29,7 +30,7 @@ namespace grammar
             friend std::ostream& operator<<(std::ostream& os, const grammar::ast::PrimitiveType &exp); 
         };
 
-        struct Expression : x3::variant<int, x3::forward_ast<BinopExp>, bool> {
+        struct Expression : x3::variant<int, x3::forward_ast<BinopExp>, bool, x3::forward_ast<ExpressionPar>> {
             using base_type::base_type;   
             using base_type::operator=;
         public:

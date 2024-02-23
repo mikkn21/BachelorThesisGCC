@@ -54,7 +54,7 @@ namespace grammar {
         const auto parameter_def = type >> id;
         const auto parameter_list_def = -(parameter % ','); // -(*(parameter >> ',') >> parameter);
         const auto expression_par_def = '(' >> expression >> ')';
-        const auto expression_base = expression_par_def  | int_ | bool_;
+        const auto expression_base = expression_par | int_ | bool_;
         const auto expression_def = binop_exp | expression_base; 
         const auto binop_exp_def = expression_base >> operator_parser >> expression;
         const auto block_line_def = decl;
