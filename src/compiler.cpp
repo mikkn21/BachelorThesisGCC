@@ -7,6 +7,7 @@
 #include "compiler.hpp"
 #include "ast.hpp"
 #include "parser/parser.hpp"
+#include "semantics/symbol_collection.hpp"
 
 namespace grammar::compiler {
     CompilerOptions::CompilerOptions() {
@@ -55,6 +56,7 @@ namespace grammar::compiler {
 
         CompilerReturnObj obj; 
         obj.ast = parser::parse(input);
+        symbol_collection(obj.ast);
         // print ast tree if option is enabled
         if (options.printAst) {
             std::cout << "AST:\n" << obj.ast << std::endl;

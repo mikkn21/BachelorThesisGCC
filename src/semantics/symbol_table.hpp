@@ -13,8 +13,6 @@ class Entry {
 public:
     string name;
     EntryType type;
-
-    void Accept(string *visitor) const;
 };
 
 class IntEntry : Entry {
