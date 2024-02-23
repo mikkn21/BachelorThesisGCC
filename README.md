@@ -12,6 +12,11 @@
 
 ```
 
+<div style="background-color:#4CAF50; color:white; padding:20px; text-align:center; font-size:24px; border-radius: 8px;">
+    The only GCC you will ever need
+</div>
+
+
 <p align="center">
   <img src="assets/1.jpg" alt="Image 1" width="30%" />
   <img src="assets/2.jpg" alt="Image 2" width="30%" />
