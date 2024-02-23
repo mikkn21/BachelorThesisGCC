@@ -1,6 +1,18 @@
-# Bachelor
+# Bachelor - Giga chad compiler
 
-A very cool compiler for a very cool programming language.
+<p align="center">
+  <img src="assets/image1.png" alt="Image 1" width="30%" />
+  <img src="assets/image2.png" alt="Image 2" width="30%" />
+  <img src="assets/image3.png" alt="Image 3" width="30%" />
+</p>
+
+🧠 Design Philosophy:
+- **Effortless Superiority**: Why struggle with other languages when you can dominate with Giga Chad? It's not just a language; it's a power move. Designed for those who write code not just to solve problems, but to flex on runtime inefficiencies and syntax complexities.
+
+- **Brute Simplicity**: Giga Chad doesn't do 'complex' or 'verbose'. If a task needs more than 10 lines of .chad code, you're clearly not using Giga Chad to its full potential. Our motto: "Why be complicated when you can be Giga Chad?"
+
+- **Unapologetic Speed**: Slow compilation? Never heard of her. Giga Chad compiles at the speed of your ambition, leaving other languages in the dust. Perfect for coding at 3 AM and still getting eight hours of sleep because, let's face it, even Giga Chads need their beauty rest.
+
 
 ## Installation
 
