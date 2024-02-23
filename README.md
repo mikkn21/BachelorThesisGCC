@@ -6,8 +6,8 @@
 
 
 <p align="center">
-  <img src="assets/2.jpg" alt="Image 2" width="30%" />
-  <img src="assets/3.jpg" alt="Image 3" width="30%" />
+  <img src="assets/2.jpg" alt="Image 2" width="50%" />
+  <img src="assets/3.jpg" alt="Image 3" width="50%" />
 </p>
 
 #### Design Philosophy: 
