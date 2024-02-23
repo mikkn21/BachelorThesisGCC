@@ -4,18 +4,12 @@
 #include <boost/spirit/home/x3.hpp>
 #include "../src/ast.hpp"
 #include <sstream>
-#include "../src/parser/parser.hpp"
-#include "../src/compiler.hpp"
+#include "../../src/parser/parser.hpp"
+#include "../../src/compiler.hpp"
 #include <string>
+#include "testing_parse_lib.hpp"
 
 
-enum class TestingOutcome {
-    SUCCESS,
-    PARSE1_FAILED,
-    PARSE2_FAILED,
-    PARSE1_INCONSISTENT,
-    PARSE2_INCONSISTENT,
-};
 
 
 
@@ -34,7 +28,7 @@ void test_parse(std::string input, TestingOutcome testing_outcome, Compiler comp
         std::ostringstream temp;
         temp << ast1;
         std::string ast1_string = temp.str();
-        BOOST_CHECK_MESSAGE(testing_outcome == TestingOutcome::PARSE1_FAILED, "\nAST:\n" << ast1_string << "\n" <<  e.what() << "\n");
+        BOOST_CHECK_MESSAGE(testing_outcome == TestingOutcome::PARSE_FAILED, "\nAST:\n" << ast1_string << "\n" <<  e.what() << "\n");
         return;
     }
     std::ostringstream temp1;
@@ -66,7 +60,7 @@ void test_parse(std::string input, TestingOutcome testing_outcome, Compiler comp
         case TestingOutcome::PARSE2_INCONSISTENT:
             BOOST_CHECK_MESSAGE(ast1_string != ast2_string, "\nAST 2 output was consistent with the AST 1 output, when it was expected not to\n");   
             break;  
-        case TestingOutcome::PARSE1_FAILED:
+        case TestingOutcome::PARSE_FAILED:
             BOOST_CHECK_MESSAGE(false, "\nParse1 did not fail, when it was expected to\n");
             break;
         case TestingOutcome::PARSE2_FAILED:
@@ -83,21 +77,6 @@ void test_parse_string(std::string input, TestingOutcome testing_outcome) {
     test_parse(input, testing_outcome, grammar::compiler::compileFromString);
 }
 
-BOOST_AUTO_TEST_CASE(BinopOperationPlus) {test_parse_string("int x = 10 + 10;", TestingOutcome::SUCCESS);}
-BOOST_AUTO_TEST_CASE(BinopOperationMinus) {test_parse_string("int x = 10 - 10;", TestingOutcome::SUCCESS);}
-BOOST_AUTO_TEST_CASE(BinopOperationMultiplication) {test_parse_string("int x = 10 * 10;", TestingOutcome::SUCCESS);}
-BOOST_AUTO_TEST_CASE(BinopOperationDivision) {test_parse_string("int x = 10 / 10;", TestingOutcome::SUCCESS);}
-BOOST_AUTO_TEST_CASE(BinopOperationModulos) {test_parse_string("int x = 10 % 10;", TestingOutcome::SUCCESS);}
-BOOST_AUTO_TEST_CASE(BinopOperationAnd) {test_parse_string("int x = 10 & 10;", TestingOutcome::SUCCESS);}
-BOOST_AUTO_TEST_CASE(BinopOperationOr) {test_parse_string("int x = 10 | 10;", TestingOutcome::SUCCESS);}
-BOOST_AUTO_TEST_CASE(BinopOperationNotEqual) {test_parse_string("int x = 10 != 10;", TestingOutcome::SUCCESS);}
-BOOST_AUTO_TEST_CASE(BinopOperationEqual) {test_parse_string("int x = 10 == 10;", TestingOutcome::SUCCESS);}
-BOOST_AUTO_TEST_CASE(BinopOperationGreater) {test_parse_string("int x = 10 > 10;", TestingOutcome::SUCCESS);}
-BOOST_AUTO_TEST_CASE(BinopOperationGreaterEqual) {test_parse_string("int x = 10 >= 10;", TestingOutcome::SUCCESS);}
-BOOST_AUTO_TEST_CASE(BinopOperationLesser) {test_parse_string("int x = 10 < 10;", TestingOutcome::SUCCESS);}
-BOOST_AUTO_TEST_CASE(BinopOperationLesserEqual) {test_parse_string("int x = 10 <= 10;", TestingOutcome::SUCCESS);}
-BOOST_AUTO_TEST_CASE(BinopOperationInvalidOperator) {test_parse_string("int x = 10 ? 10;", TestingOutcome::PARSE1_FAILED);}
-BOOST_AUTO_TEST_CASE(BinopOperationMultipleBinaryOperators) {test_parse_string("int x = 10 + 10 * 10 / 10;", TestingOutcome::SUCCESS);}
-BOOST_AUTO_TEST_CASE(BinopOperationInvalidNoBinaryOperator) {test_parse_string("int x = 10  10;", TestingOutcome::PARSE1_FAILED);}
-// BOOST_AUTO_TEST_CASE(prog1) {test_parse_file("../tests/parserTests/prog1.chad", TestingOutcome::SUCCESS);}
-// BOOST_AUTO_TEST_CASE(prog2) {test_parse_file("../tests/parserTests/prog2.chad", TestingOutcome::SUCCESS);}
+
+
+

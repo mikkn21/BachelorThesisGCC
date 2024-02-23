@@ -9,7 +9,6 @@ using namespace std;
 
 namespace grammar {
     namespace parser {
-        
         // using iterator_type = std::string::const_iterator;
         // using context_type = x3::phrase_parse_context<x3::ascii::space_type>::type;
         // BOOST_SPIRIT_INSTANTIATE(BinopExp_type, iterator_type, context_type);
