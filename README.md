@@ -12,9 +12,9 @@
 
 ```
 
-<div style="background-color:#4CAF50; color:white; padding:20px; text-align:center; font-size:24px; border-radius: 8px;">
-    The only GCC you will ever need
-</div>
+<p align="center">
+  <img src="assets/Header.png" alt="header" width="100%" />
+</p>
 
 
 <p align="center">
