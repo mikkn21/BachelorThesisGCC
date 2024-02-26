@@ -25,5 +25,5 @@ jobs:
         cmake .
         make
 
-      - name: Run Tests with CTest
-        run: ctest
+    - name: Run Tests with CTest
+      run: ctest --output-on-failure
