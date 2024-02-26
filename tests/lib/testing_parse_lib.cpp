@@ -5,6 +5,17 @@
 #include <string>
 #include "testing_parse_lib.hpp"
 
+std::string remove_whitespace(const std::string& str) {
+    std::string result;
+    std::remove_copy_if(str.begin(), str.end(), 
+                        std::back_inserter(result),
+                        ::isspace); 
+    return result;
+}
+
+bool equal_ignore_whitespaces(const std::string& str1, const std::string& str2) {
+    return (remove_whitespace(str1) == remove_whitespace(str2));
+}
 
 template<typename Compiler>
 void test_parse(std::string input, TestingOutcome testing_outcome, Compiler compiler) {
@@ -16,7 +27,10 @@ void test_parse(std::string input, TestingOutcome testing_outcome, Compiler comp
 
     grammar::ast::Prog ast1;
     try {
-        ast1 = compiler(input, options).ast; // should call compile
+        ast1 = compiler(input, options).ast; 
+        if (compiler == grammar::compiler::compileFromFile) {
+            input = grammar::compiler::getFileContent(input);
+        }
     } catch (const grammar::parser::SyntaxError &e) {   
         std::ostringstream temp;
         temp << ast1;
@@ -30,7 +44,7 @@ void test_parse(std::string input, TestingOutcome testing_outcome, Compiler comp
 
     grammar::ast::Prog ast2;
     try {
-        ast2 = compiler(ast1_string, options).ast; // should call compile
+        ast2 = grammar::compiler::compileFromString(ast1_string, options).ast; 
     } catch (const grammar::parser::SyntaxError &e) {   
         std::ostringstream temp;
         temp << ast2;
@@ -44,15 +58,15 @@ void test_parse(std::string input, TestingOutcome testing_outcome, Compiler comp
 
     switch (testing_outcome) {
         case TestingOutcome::SUCCESS:
-            BOOST_CHECK_MESSAGE(input == ast1_string, "\nParse1 output was not consistent with input, when it was expected\n");
-            BOOST_CHECK_MESSAGE(ast1_string == ast2_string, "\nParse2 output was not consistent with Parse1 output, when it was expected\n");
+            BOOST_CHECK_MESSAGE(equal_ignore_whitespaces(input, ast1_string), "\nParse1 output was not consistent with input, when it was expected\n");
+            BOOST_CHECK_MESSAGE(equal_ignore_whitespaces(ast1_string, ast2_string), "\nParse2 output was not consistent with Parse1 output, when it was expected\n");
             break;
         case TestingOutcome::PARSE1_INCONSISTENT:
-            BOOST_CHECK_MESSAGE(input != ast1_string, "\nAST 1 output was consistent with the input, when it was expected not to\n");
+            BOOST_CHECK_MESSAGE(!equal_ignore_whitespaces(input, ast1_string), "\nAST 1 output was consistent with the input, when it was expected not to\n");
             break;
         case TestingOutcome::PARSE2_INCONSISTENT:
-            BOOST_CHECK_MESSAGE(ast1_string != ast2_string, "\nAST 2 output was consistent with the AST 1 output, when it was expected not to\n");   
-            break;  
+            BOOST_CHECK_MESSAGE(!equal_ignore_whitespaces(ast1_string, ast2_string), "\nAST 2 output was consistent with the AST 1 output, when it was expected not to\n");   
+            break;
         case TestingOutcome::PARSE_FAILED:
             BOOST_CHECK_MESSAGE(false, "\nParse1 did not fail, when it was expected to\n");
             break;

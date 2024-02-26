@@ -92,6 +92,6 @@ int k = 3;
 BOOST_AUTO_TEST_CASE(Nothing) {test_parse_string("", TestingOutcome::SUCCESS);}
 
 
-
-// BOOST_AUTO_TEST_CASE(prog1) {test_parse_file("../tests/parserTests/prog1.chad", TestingOutcome::SUCCESS);}
-// BOOST_AUTO_TEST_CASE(prog2) {test_parse_file("../tests/parserTests/prog2.chad", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(simple_file) {test_parse_file("../tests/parserTests/simple.chad", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(prog1) {test_parse_file("../tests/parserTests/prog1.chad", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(prog2) {test_parse_file("../tests/parserTests/prog2.chad", TestingOutcome::SUCCESS);}
