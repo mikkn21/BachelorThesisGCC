@@ -14,8 +14,9 @@ message(STATUS "Using Sanitizer Flags: ${SAN_FLAGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -g -O2 -std=c++17 ${SAN_FLAGS}")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lm")
 
-# Find Boost
-find_package(Boost REQUIRED COMPONENTS unit_test_framework)
+
+# Find Boost unit_test and program options
+find_package(Boost REQUIRED COMPONENTS unit_test_framework program_options)
 include_directories(${Boost_INCLUDE_DIRS})
 
 file(GLOB_RECURSE SRCS "src/*.cpp")

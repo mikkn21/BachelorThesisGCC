@@ -8,10 +8,13 @@
 #include "ast.hpp"
 #include "parser/parser.hpp"
 
+
+// NOTE: Add default values for ALL the compiler options
 namespace grammar::compiler {
     CompilerOptions::CompilerOptions() {
         stopAfter = std::nullopt;
         printAst = false;
+        printInput = false;
     }
 
     // This is compiling from a filename
@@ -55,6 +58,8 @@ namespace grammar::compiler {
 
         CompilerReturnObj obj; 
         obj.ast = parser::parse(input);
+
+
         // print ast tree if option is enabled
         if (options.printAst) {
             std::cout << "AST:\n" << obj.ast << std::endl;
