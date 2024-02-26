@@ -1,39 +1,30 @@
-bool A_123123_aaad = (((((((((((((2&3)))))))))))));
-
+bool A_123123_aaad = (((((((((((((2 & 3)))))))))))));
 int asd_123_123_123 = ((((((true)))))); 
-
-
-bool NOTMYBUSINESS_42 (int A, bool a23, bool b_b_b_ ) {}
-
-
-int FUNC_______() 
-{
-    int FUNC2______() {
-        int FUNC3_____() {
-            int x = 2; 
-            int y = 10 & 10; 
-            bool xy = ((((10)))); 
-        }
-    }
+bool NOTMYBUSINESS_42 (int A, bool a23, bool b_b_b_) {
 }
-
-
-int hello_mom(int word, bool love) {
-    int hello_my_old_friend(int friend) {
-        bool a=((123 == 123));
-        bool d=((123 != 123));
-        bool d=((123 <= 123));
-        bool d=((123 >= 123));
-        bool d=((123 + 123));
-        bool d=((123 - 123));
-        bool d=((123 * 123));
-        bool d=((123 / 123));
-        bool d=((123 % 123));
-        bool d=((123 < 123));
-        bool d=((123 > 123));
-        bool d=((123 & 123));
-        bool d=((123 | 123));
-    }
+int FUNC_______ () {
+int FUNC2______ () {
+int FUNC3_____ () {
+int x = 2;
+int y = 10 & 10;
+bool xy = ((((10))));
 }
-
-
+}
+}
+int hello_mom (int word, bool love) {
+int hello_my_old_friend (int friend) {
+bool a = ((123 == 123));
+bool d = ((123 != 123));
+bool d = ((123 <= 123));
+bool d = ((123 >= 123));
+bool d = ((123 + 123));
+bool d = ((123 - 123));
+bool d = ((123 * 123));
+bool d = ((123 / 123));
+bool d = ((123 % 123));
+bool d = ((123 < 123));
+bool d = ((123 > 123));
+bool d = ((123 & 123));
+bool d = ((123 | 123));
+}
+}

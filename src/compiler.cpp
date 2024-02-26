@@ -17,8 +17,7 @@ namespace grammar::compiler {
         printInput = false;
     }
 
-    // This is compiling from a filename
-    CompilerReturnObj compileFromFile(std::string_view input, const CompilerOptions &options) {
+    std::string getFileContent(std::string_view input) {
         if(input.empty()) {
             std::cerr << "Error: filename is empty!" << std::endl;
             throw std::invalid_argument("Filename is empty"); 
@@ -34,8 +33,12 @@ namespace grammar::compiler {
         buffer << file.rdbuf();
         std::string content = buffer.str();
         file.close();
+        return content;
+    }
 
-
+    // This is compiling from a filename
+    CompilerReturnObj compileFromFile(std::string_view input, const CompilerOptions &options) {
+        std::string content = getFileContent(input);
         CompilerReturnObj obj = compileFromString(std::string_view(content), options);
 
         if(options.stopAfter == StopAfterParser ) {
