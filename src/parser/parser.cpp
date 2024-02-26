@@ -113,21 +113,22 @@ namespace grammar {
          
             Prog ast;
             using PosIter = boost::spirit::line_pos_iterator<std::string_view::const_iterator>;
+            const int SpacesPerTabs = 4;
             PosIter iter(src.begin());
 
             const auto makeError = [&]() {
-                // const auto lineNumber = iter.position();
-                // const auto lineRange = get_current_line(PosIter(src.begin()), iter, PosIter(src.end()));
-                // const auto column = get_column(lineRange.begin(), iter, SpacesPerTabs);
-                // std::string msg = "Parsing failed at " + std::to_string(lineNumber) + ":" + std::to_string(column) + ":\n";
-                // for(const char c : lineRange) {
-                    // if(c == '\t') msg += std::string(SpacesPerTabs, ' ');
-                    // else msg += c;
-                // }
-                std::string msg = "Parsing failed";
+                const auto lineNumber = iter.position();
+                const auto lineRange = get_current_line(PosIter(src.begin()), iter, PosIter(src.end()));
+                const auto column = get_column(lineRange.begin(), iter, SpacesPerTabs);
+                std::string msg = "Parsing failed at " + std::to_string(lineNumber) + ":" + std::to_string(column) + ":\n";
+                for(const char c : lineRange) {
+                    if(c == '\t') msg += std::string(SpacesPerTabs, ' ');
+                    else msg += c;
+                }
+                // std::string msg = "Parsing failed";
                 msg += "\n";
-                // msg += std::string(column - 1, '-');
-                // msg += "^";
+                msg += std::string(column - 1, '-');
+                msg += "^";
                 return msg;
 	        };
 
