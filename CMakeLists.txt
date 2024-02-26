@@ -15,6 +15,9 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -g -O -std=c++17 ${SAN_FLA
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lm")
 
 
+# For clangd syntax help
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # Find Boost unit_test and program options
 find_package(Boost REQUIRED COMPONENTS unit_test_framework program_options)
 include_directories(${Boost_INCLUDE_DIRS})

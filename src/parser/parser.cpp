@@ -39,6 +39,8 @@ namespace grammar {
         const x3::rule<class expression_par, ast::ExpressionPar> expression_par = "expression_par";
         const x3::rule<class function_call, ast::FunctionCall> function_call = "function_call";
         const x3::rule<class argument_list, ast::ArgumentList> argument_list = "argument_list";
+        const x3::rule<class statement_expression, ast::StatementExpression> statement_expression = "statement_expression";
+        const x3::rule<class statement, ast::Statement> statement = "statement";
 
         // Define a parser for operators
         const auto operator_parser = 
@@ -53,20 +55,29 @@ namespace grammar {
         const auto parameter_def = type >> id;
         const auto parameter_list_def = -(parameter % ','); // -(*(parameter >> ',') >> parameter);
         const auto expression_par_def = '(' >> expression >> ')';
-        const auto expression_base = expression_par | int_ | bool_;
+        const auto expression_base = expression_par | id | int_ | bool_;
         const auto expression_def = binop_exp | expression_base; 
         const auto binop_exp_def = expression_base >> (operator_parser > expression);
-        const auto block_line_def = decl;
+
+
+        const auto var_assign_def = id >> '=' >> expression >> ';';
+        const auto while_statement_def = x3::lit("while") >> expression >> block; 
+        
+        const auto statement_expression_def = expression >> ';';
+        const auto statement_def = var_assign| while_statement | statement_expression;
+
+
+        const auto block_line_def = statement | decl;
         const auto block_def = '{' > *block_line >> '}';
+
+
         const auto func_decl_def = type >> id >> ('(' > parameter_list >> ')' >> block);
         const auto var_decl_def = type >> id >> ('=' > expression >> ';');
         const auto decl_def = var_decl | func_decl;
         const auto prog_def = *decl;
- 
+  
         // Not useable
-        const auto array_type_def = type >> x3::lit("[]");
-        const auto var_assign_def = id >> '=' >> expression >> ';';
-        const auto while_statement_def = x3::lit("while") >> expression >> block;   
+        const auto array_type_def = type >> x3::lit("[]");  
         const auto function_call_def = id >> '('>> argument_list >> ')'; 
         const auto argument_list_def = -(expression % ',');
 
@@ -89,7 +100,9 @@ namespace grammar {
             expression,
             function_call,
             argument_list,
-            expression_par
+            expression_par,
+            statement_expression,
+            statement
         )
 
         grammar::ast::Prog parse(std::string_view src)

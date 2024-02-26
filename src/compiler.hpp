@@ -25,6 +25,8 @@ public:
     bool printAst;
     bool printInput;
 
+
+
     CompilerOptions();
 };
 

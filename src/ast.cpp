@@ -35,6 +35,10 @@ namespace grammar
             return os << type.type;
         }
 
+        std::ostream& operator<<(std::ostream& os, const grammar::ast::StatementExpression &exp) {
+            return os << exp.exp << ';' << "\n";
+        }
+
         std::ostream& operator<<(std::ostream& os, const grammar::ast::Expression &exp) {
             boost::apply_visitor(print_visitor(os), exp);
             return os;
@@ -59,7 +63,8 @@ namespace grammar
         }
 
         std::ostream& operator<<(std::ostream& os, const grammar::ast::Type &type) {
-            return os << type.primitive_type;
+            boost::apply_visitor(print_visitor(os), type);
+            return os;
         }
 
         std::ostream& operator<<(std::ostream& os, const grammar::ast::VarDecl &decl) {
@@ -84,6 +89,11 @@ namespace grammar
             return os;
         }
 
+        std::ostream& operator<<(std::ostream& os, const grammar::ast::Statement &statement) {
+            boost::apply_visitor(print_visitor(os), statement);
+            return os;
+        }
+
         std::ostream& operator<<(std::ostream& os, const grammar::ast::FuncDecl &func) {
             return os << func.type << " " << func.id << " (" << func.parameter_list << ") " << func.block;
         }
@@ -93,7 +103,7 @@ namespace grammar
         }
 
         std::ostream& operator<<(std::ostream& os, const grammar::ast::VarAssign &assign) {
-            return os << assign.id << " = " << assign.exp;
+            return os << assign.id << " = " << assign.exp << ';' << "\n" ;
         }
 
         std::ostream& operator<<(std::ostream& os, const grammar::ast::WhileStatement &while_statement) {
