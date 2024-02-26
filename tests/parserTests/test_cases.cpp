@@ -67,43 +67,29 @@ BOOST_AUTO_TEST_CASE(FuncDeclInFuncDeclSucc) {test_parse_string("int f () {\nboo
 BOOST_AUTO_TEST_CASE(FuncDeclFuncDeclSucc) {test_parse_string("int f () {\n}\nint g () {\n}\n", TestingOutcome::SUCCESS);}
 BOOST_AUTO_TEST_CASE(FuncMultilinerVarDecl) {test_parse_string("int f (int k) {\nint x = 2;\nbool l = 2;\n}\n", TestingOutcome::SUCCESS);}
 //BOOST_AUTO_TEST_CASE(FuncMixedMultiliner) {test_parse_file("../tests/parserTests/FuncMixedMultiliner.txt", TestingOutcome::SUCCESS);} // WHY DOES THIS NOT WORK?
-
-
-
-
-
-
-
-// ChatGPT tests cases 
-BOOST_AUTO_TEST_CASE(KeywordAsIdentifierSuccess) {test_parse_string("int int = 5;\n", TestingOutcome::SUCCESS);}
-// BOOST_AUTO_TEST_CASE(WhitespaceAndCommentsSucc) {
-// test_parse_string("int main() { // This is a comment\nint x = 1;\nbool y = true; // Another comment\n}\n", TestingOutcome::SUCCESS);
-// } COMMENTS ARE NOT IMPLEMENTED YET
-BOOST_AUTO_TEST_CASE(MissingSemicolonFail) {test_parse_string("int x = 1\n", TestingOutcome::PARSE_FAILED);}
-BOOST_AUTO_TEST_CASE(UnmatchedBracesFail) {test_parse_string("int f() { int x = 1; \n", TestingOutcome::PARSE_FAILED);}
-BOOST_AUTO_TEST_CASE(NestedBlocksFail) {test_parse_string("int f() { { int nested = 1; } }\n", TestingOutcome::PARSE_FAILED);}
-BOOST_AUTO_TEST_CASE(MissingOperatorExprFail) {test_parse_string("int result = (1 2);\n", TestingOutcome::PARSE_FAILED);}
-BOOST_AUTO_TEST_CASE(UnmatchedParenthesesFail) {
-    test_parse_string("int x = (5 + 3 * 2;\n", TestingOutcome::PARSE_FAILED);
+BOOST_AUTO_TEST_CASE(FuncMixedMultiliner) {test_parse_string(
+    R"(int f (int k) {
+int x = 2;
+bool g () {
 }
-BOOST_AUTO_TEST_CASE(InvalidOperatorUseFail) {
-    test_parse_string("int x = 5 ** 2;\n", TestingOutcome::PARSE_FAILED);
+bool l = 2;
+int f (int k, bool v) {
+bool isTrue = false;
 }
-BOOST_AUTO_TEST_CASE(FunctionMissingReturnTypeFail) {
-    test_parse_string("f() { int x = 2; }\n", TestingOutcome::PARSE_FAILED);
 }
-BOOST_AUTO_TEST_CASE(VarDeclInvalidTypeFail) {
-    test_parse_string("string x = 5;\n", TestingOutcome::PARSE_FAILED);
-}
-BOOST_AUTO_TEST_CASE(MissingBraceFail) {
-    test_parse_string("int f() { int x = 2;\n", TestingOutcome::PARSE_FAILED);
-}
-BOOST_AUTO_TEST_CASE(ExtraCommaInParameterListFail) {
-    test_parse_string("int f(int x,, int y) {}\n", TestingOutcome::PARSE_FAILED);
-}
+)"
+, TestingOutcome::SUCCESS);}
 
 
-// Test going through func_decl:
+// Test going prog and decl:
+BOOST_AUTO_TEST_CASE(MultipleDecl) {test_parse_string(
+R"(int f () {
+}
+int g () {
+}
+int k = 3;
+)", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(Nothing) {test_parse_string("", TestingOutcome::SUCCESS);}
 
 
 

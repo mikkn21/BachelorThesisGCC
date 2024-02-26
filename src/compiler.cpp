@@ -44,11 +44,6 @@ namespace grammar::compiler {
 
     // compile from a string
     CompilerReturnObj compileFromString(std::string_view input, const CompilerOptions &options) {
-        if (input.empty()) {
-            std::cerr << "Error: input string is empty!" << std::endl;
-            throw std::invalid_argument("String is empty");
-        }
-
         if (options.printInput) {
             std::cout << "Input to be parsed: \n" << input;
         }   
