@@ -8,7 +8,7 @@ void TreeTraveler::operator()(const Decl &decl) {
 
 template <>
 void TreeTraveler::operator()(const Prog &prog) {
-    this->visitor.ProgPreDecl(prog);
+    this->visitor.progPreDecl(prog);
     (*this)(prog.decl);
-    this->visitor.ProgPostDecl(prog);
+    this->visitor.progPostDecl(prog);
 }

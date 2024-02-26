@@ -11,6 +11,7 @@ enum EntryType {
 
 class Entry {
 public:
+    Entry(string name, EntryType type);
     string name;
     EntryType type;
 };
@@ -30,9 +31,11 @@ private:
     unordered_map<string, Entry> entries;
 
 public:
-    SymbolTable &parentScope;
+    optional<reference_wrapper<SymbolTable>> parentScope;
 
     SymbolTable();
+
+    SymbolTable(SymbolTable &parent);
 
     void insert(string key, Entry &entry);
     optional<reference_wrapper<Entry>> find(string key);

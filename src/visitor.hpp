@@ -7,10 +7,13 @@
 
 class Visitor {
 public: 
-    Visitor() {}
+    Visitor() { }
 
-    virtual void ProgPreDecl(const Prog &prog) { }
-    virtual void ProgPostDecl(const Prog &prog) { }
+    virtual void progPreDecl(const Prog &prog) { }
+    virtual void progPostDecl(const Prog &prog) { }
+    virtual void preVarDecl(const VarDecl &varDecl) { }
+    virtual void preFuncDecl(const FuncDecl &funcDecl) { }
+    virtual void postFuncDecl(const FuncDecl &funcDecl) { }
 };
 
 class TreeTraveler : boost::static_visitor<> {
@@ -18,7 +21,7 @@ private:
     Visitor &visitor;
 
 public:
-    TreeTraveler(Visitor &visitor) : visitor(visitor) {}
+    TreeTraveler(Visitor &visitor) : visitor(visitor) { }
 
     template <typename T>
     void operator()(const T &t) { }
