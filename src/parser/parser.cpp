@@ -9,7 +9,6 @@ using namespace std;
 
 namespace grammar {
     namespace parser {
-        
         // using iterator_type = std::string::const_iterator;
         // using context_type = x3::phrase_parse_context<x3::ascii::space_type>::type;
         // BOOST_SPIRIT_INSTANTIATE(BinopExp_type, iterator_type, context_type);
@@ -37,6 +36,7 @@ namespace grammar {
         const x3::rule<class decl, ast::Decl> decl = "decl"; 
         const x3::rule<class prog, ast::Prog> prog = "prog";
         const x3::rule<class expression,  ast::Expression> expression = "expression";
+        const x3::rule<class expression_par, ast::ExpressionPar> expression_par = "expression_par";
         const x3::rule<class function_call, ast::FunctionCall> function_call = "function_call";
         const x3::rule<class argument_list, ast::ArgumentList> argument_list = "argument_list";
 
@@ -53,7 +53,8 @@ namespace grammar {
         auto const id_def = x3::raw[ x3::lexeme[(x3::char_("a-zA-Z_") >> *x3::char_("a-zA-Z_0-9"))]];
         const auto parameter_def = type >> id;
         const auto parameter_list_def = -(parameter % ','); // -(*(parameter >> ',') >> parameter);
-        const auto expression_base = '(' >> expression >> ')' | int_ | bool_;
+        const auto expression_par_def = '(' >> expression >> ')';
+        const auto expression_base = expression_par | int_ | bool_;
         const auto expression_def = binop_exp | expression_base; 
         const auto binop_exp_def = expression_base >> operator_parser >> expression;
         const auto block_line_def = decl;
@@ -61,8 +62,8 @@ namespace grammar {
         const auto func_decl_def = type >> id >> '(' >> parameter_list >> ')' >> block;
         const auto var_decl_def = type >> id >> '=' >> expression >> ';';
         const auto decl_def = var_decl | func_decl;
-        const auto prog_def = decl;
-
+        const auto prog_def = *decl;
+ 
         // Not useable
         const auto array_type_def = type >> x3::lit("[]");
         const auto var_assign_def = id >> '=' >> expression >> ';';
@@ -88,7 +89,8 @@ namespace grammar {
             prog,
             expression,
             function_call,
-            argument_list
+            argument_list,
+            expression_par
         )
 
         grammar::ast::Prog parse(std::string_view src)
