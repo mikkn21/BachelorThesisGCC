@@ -3,7 +3,8 @@ giga
 
 # Some random cache
 .ccls-cache
-.cache/clangd
+**/.cache/clangd
+
 
 .build
 
