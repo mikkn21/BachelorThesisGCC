@@ -1,4 +1,4 @@
 
 #include "../ast.hpp"
 
-Prog symbol_collection(Prog prog);
+Prog symbol_collection(Prog &prog);

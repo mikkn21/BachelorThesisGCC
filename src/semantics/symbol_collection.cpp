@@ -10,19 +10,26 @@ public:
     SymbolCollectionVisitor() {}
 
     template <typename T>
-    void operator()(const T &t) const {
+    void operator()(const T &t) {
         std::cout << "Visited unknown" << std::endl;
-    }
-
-    void operator()(const Prog &prog) const {
-        std::cout << "Visited prog" << std::endl;
-        apply_visitor(this, prog.decl);
     }
 };
 
+template <>
+void SymbolCollectionVisitor::operator()(const Decl &decl) {
+    std::cout << "Visited decl" << std::endl;
+}
+
+template <>
+void SymbolCollectionVisitor::operator()(const Prog &prog) {
+    std::cout << "Visited prog" << std::endl;
+    (*this)(prog.decl);
+}
+
+
 Prog symbol_collection(Prog &prog) {
-    auto const visitor = SymbolCollectionVisitor();
-    apply_visitor(visitor, prog);
+    auto visitor = SymbolCollectionVisitor();
+    visitor(prog);
     return prog;
 }
 
