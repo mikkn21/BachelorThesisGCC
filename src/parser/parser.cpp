@@ -49,18 +49,17 @@ namespace grammar {
         // Useable
         const auto primitive_type_def = x3::string("int") | x3::string("bool");
         const auto type_def = primitive_type;  // | array_type;
-        //const auto id_def = x3::lexeme[(x3::char_("a-zA-Z_") >> *x3::char_("a-zA-Z_0-9"))];
-        auto const id_def = x3::raw[ x3::lexeme[(x3::char_("a-zA-Z_") >> *x3::char_("a-zA-Z_0-9"))]];
+        const auto id_def = x3::raw[ x3::lexeme[(x3::char_("a-zA-Z_") >> *x3::char_("a-zA-Z_0-9"))]];
         const auto parameter_def = type >> id;
         const auto parameter_list_def = -(parameter % ','); // -(*(parameter >> ',') >> parameter);
         const auto expression_par_def = '(' >> expression >> ')';
         const auto expression_base = expression_par | int_ | bool_;
         const auto expression_def = binop_exp | expression_base; 
-        const auto binop_exp_def = expression_base >> operator_parser >> expression;
+        const auto binop_exp_def = expression_base >> (operator_parser > expression);
         const auto block_line_def = decl;
-        const auto block_def = '{' >> *block_line >> '}';
-        const auto func_decl_def = type >> id >> '(' >> parameter_list >> ')' >> block;
-        const auto var_decl_def = type >> id >> '=' >> expression >> ';';
+        const auto block_def = '{' > *block_line >> '}';
+        const auto func_decl_def = type >> id >> ('(' > parameter_list >> ')' >> block);
+        const auto var_decl_def = type >> id >> ('=' > expression >> ';');
         const auto decl_def = var_decl | func_decl;
         const auto prog_def = *decl;
  
