@@ -18,11 +18,11 @@ int main(int argc, char* argv[]) {
             ("help,h", "Print this help message") // help is triggered by --help or -h 
             ("parse-only,P", po::bool_switch(), "Stop after parsing") 
             ("print-ast,p", po::bool_switch(), "Print the generated AST")
-            ("print-input,i", po::bool_switch(), "Print the input before parsing");
-
+            ("print-input,i", po::bool_switch(), "Print the input before parsing")
+            ("input-file", po::value<string>(), "Input file to compile"); // this is to necessary
         po::positional_options_description p;
         // Here we say that we expect 1 non-posestional argument namely the file
-        p.add("input-file", 1); // 1 for Mandatory filename. 
+        p.add("input-file", 1); 
 
         // vm holds the logic of the command-line i.e., the options 
         po::variables_map vm;
