@@ -33,7 +33,6 @@ int main(int argc, char* argv[]) {
             cout << desc;
             return 0;
         }
-        
         if (vm["parse-only"].as<bool>()) { 
             options.stopAfter = StopAfterParser;
         }
