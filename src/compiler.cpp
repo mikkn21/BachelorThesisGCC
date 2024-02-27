@@ -7,6 +7,7 @@
 #include "compiler.hpp"
 #include "ast.hpp"
 #include "parser/parser.hpp"
+#include "semantics/symbol_collection.hpp"
 
 
 // NOTE: Add default values for ALL the compiler options
@@ -56,8 +57,7 @@ namespace grammar::compiler {
 
         CompilerReturnObj obj; 
         obj.ast = parser::parse(input);
-
-
+      
         // print ast tree if option is enabled
         if (options.printAst) {
             std::cout << "AST:\n" << obj.ast;
