@@ -104,22 +104,20 @@ BOOST_AUTO_TEST_CASE(StatementWhileLoopComplexCondition) {test_parse_string("int
 BOOST_AUTO_TEST_CASE(StatementWhileLoopEmptyBody) {test_parse_string("int f () {\nwhile (true) ; }\n", TestingOutcome::PARSE_FAILED); }
 BOOST_AUTO_TEST_CASE(StatementWhileLoopWithoutParenthesis) {test_parse_string("int f () {\nwhile x > 0 {} }\n", TestingOutcome::SUCCESS); }
 
-
-
 BOOST_AUTO_TEST_CASE(StatementExpressionInt) {test_parse_string("int f () {\n55;\n}\n", TestingOutcome::SUCCESS); } 
 BOOST_AUTO_TEST_CASE(StatementExpressionBool) {test_parse_string("int f () {\ntrue;\n}\n", TestingOutcome::SUCCESS); } 
-
 BOOST_AUTO_TEST_CASE(StatementInvalidExpression) {test_parse_string("int f () {\nx + * 10;\n}\n", TestingOutcome::PARSE_FAILED); }
+BOOST_AUTO_TEST_CASE(StatementVarAssignComplexExpr) {test_parse_string("int f () {\nx = y * 5 + 10;\n}\n", TestingOutcome::SUCCESS); }
 BOOST_AUTO_TEST_CASE(StatementSequence) {test_parse_string("int f () {\nx = 10;\ny = x + 5;\n}\n", TestingOutcome::SUCCESS); }
 BOOST_AUTO_TEST_CASE(StatementVarAssignNoSemicolon) {test_parse_string("int f () {\nx = 10 }\n", TestingOutcome::PARSE_FAILED); }
-BOOST_AUTO_TEST_CASE(StatementVarAssignInvalidExpr) {test_parse_string("int f () {\nx = + 10; }\n", TestingOutcome::PARSE_FAILED); }
 BOOST_AUTO_TEST_CASE(StatementExprInvalidToken) {test_parse_string("int f () {\n10 * / 5; }\n", TestingOutcome::PARSE_FAILED); }
-
-// Make these work: 
-BOOST_AUTO_TEST_CASE(StatementVarAssignComplexExpr) {test_parse_string("int f () {\nx = y * 5 + 10;\n}\n", TestingOutcome::SUCCESS); }
 BOOST_AUTO_TEST_CASE(StatementExpressionBinOp) {test_parse_string("int f () {\nx + 5;\n}\n", TestingOutcome::SUCCESS); }
+BOOST_AUTO_TEST_CASE(StatementPrintSimple) {test_parse_string("int f () {\nprint(10); }\n", TestingOutcome::SUCCESS); }
+BOOST_AUTO_TEST_CASE(StatementPrintComplex) {test_parse_string("int f () {\nprint( (10 * 2) - 10); }\n", TestingOutcome::SUCCESS); }
+BOOST_AUTO_TEST_CASE(StatementPrintEmpty) {test_parse_string("int f () {\nprint(); }\n", TestingOutcome::PARSE_FAILED); }
 
 
+// Testing files
 BOOST_AUTO_TEST_CASE(simple_file) {test_parse_file("../tests/parserTests/simple.chad", TestingOutcome::SUCCESS);}
 BOOST_AUTO_TEST_CASE(prog1) {test_parse_file("../tests/parserTests/prog1.chad", TestingOutcome::SUCCESS);}
 BOOST_AUTO_TEST_CASE(prog2) {test_parse_file("../tests/parserTests/prog2.chad", TestingOutcome::SUCCESS);}

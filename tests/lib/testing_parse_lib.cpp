@@ -27,7 +27,7 @@ void test_parse(std::string input, TestingOutcome testing_outcome, Compiler comp
 
     grammar::ast::Prog ast1;
     try {
-        ast1 = compiler(input, options).ast; 
+        ast1 = compiler(input, options)->ast; 
         if (compiler == grammar::compiler::compileFromFile) {
             input = grammar::compiler::getFileContent(input);
         }
@@ -44,7 +44,7 @@ void test_parse(std::string input, TestingOutcome testing_outcome, Compiler comp
 
     grammar::ast::Prog ast2;
     try {
-        ast2 = grammar::compiler::compileFromString(ast1_string, options).ast; 
+        ast2 = grammar::compiler::compileFromString(ast1_string, options)->ast; 
     } catch (const grammar::parser::SyntaxError &e) {   
         std::ostringstream temp;
         temp << ast2;

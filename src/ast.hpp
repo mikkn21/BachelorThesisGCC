@@ -52,6 +52,12 @@ namespace grammar
             friend std::ostream& operator<<(std::ostream& os, const grammar::ast::BinopExp &exp);
         };
 
+        struct PrintStatement {
+            Expression exp;
+        public:
+            friend std::ostream& operator<<(std::ostream& os, const grammar::ast::PrintStatement &exp);
+        };
+
         struct VarAssign {
             Id id; 
             Expression exp;
@@ -72,7 +78,7 @@ namespace grammar
             friend std::ostream& operator<<(std::ostream& os, const grammar::ast::StatementExpression &exp);
         };
 
-        struct Statement : x3::variant<grammar::ast::VarAssign, grammar::ast::WhileStatement,grammar::ast::StatementExpression> {
+        struct Statement : x3::variant<grammar::ast::VarAssign, grammar::ast::WhileStatement,grammar::ast::StatementExpression, grammar::ast::PrintStatement> {
             using base_type::base_type;  
             using base_type::operator=;
         public:
@@ -174,6 +180,11 @@ BOOST_FUSION_ADAPT_STRUCT(
     (Expression, lhs)
     (std::string, op)
     (Expression, rhs)
+)
+
+BOOST_FUSION_ADAPT_STRUCT(
+    PrintStatement,
+    (Expression, exp)
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
