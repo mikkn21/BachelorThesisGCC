@@ -1,3 +1,7 @@
+
+#ifndef MGRAMMAR_SYMBOL_TABLE_HPP
+#define MGRAMMAR_SYMBOL_TABLE_HPP 
+
 #include <unordered_map>
 #include <string>
 #include <optional>
@@ -41,3 +45,5 @@ public:
     void insert(string key, Entry &entry);
     optional<reference_wrapper<Entry>> find(string key);
 };
+
+#endif
