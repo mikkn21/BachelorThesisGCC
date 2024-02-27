@@ -30,7 +30,8 @@ int main(int argc, char* argv[]) {
         po::notify(vm);
 
         if (vm.count("help")) {
-            cout << desc;
+            cout << "Usage: giga [options] <input-file>\n\n" 
+                << desc; 
             return 0;
         }
         if (vm["parse-only"].as<bool>()) { 
@@ -46,7 +47,7 @@ int main(int argc, char* argv[]) {
             string_view filename = vm["input-file"].as<string>();
             grammar::compiler::compileFromFile(filename, options);
         } else {
-            cerr << "Error: An input source is required. Use -f for a file or -s for a string.\n";
+            cerr << "Error: An input source is required.\n";
             return 1;
         }
     } catch (exception &e) {
