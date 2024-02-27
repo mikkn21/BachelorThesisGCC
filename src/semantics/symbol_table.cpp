@@ -2,7 +2,7 @@
 #include <optional>
 #include <unordered_map>
 #include "symbol_table.hpp"
-
+#include <functional>
 
 Entry::Entry(string name, EntryType type) : name(name), type(type) { }
 
