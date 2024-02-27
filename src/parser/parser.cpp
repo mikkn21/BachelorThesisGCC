@@ -68,7 +68,7 @@ namespace grammar {
 
 
         const auto block_line_def = statement | decl;
-        const auto block_def = '{' > *block_line >> '}';
+        const auto block_def = '{' > *block_line > '}';
 
 
         const auto func_decl_def = type >> id >> ('(' > parameter_list >> ')' >> block);

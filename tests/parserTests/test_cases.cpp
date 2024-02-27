@@ -107,12 +107,10 @@ BOOST_AUTO_TEST_CASE(StatementWhileLoopEmptyBody) {test_parse_string("int f () {
 BOOST_AUTO_TEST_CASE(StatementExprInvalidToken) {test_parse_string("int f () {\n10 * / 5; }\n", TestingOutcome::PARSE_FAILED); }
 
 // Make these work: 
-// BOOST_AUTO_TEST_CASE(StatementVarAssignComplexExpr) {test_parse_string("int f () {\nx = y * 5 + 10;\n}\n", TestingOutcome::SUCCESS); }
-// BOOST_AUTO_TEST_CASE(StatementWhileLoopComplexCondition) {test_parse_string("int f () {\nwhile (x > 0 && done) { }\n}\n", TestingOutcome::SUCCESS); }
-// BOOST_AUTO_TEST_CASE(StatementExpressionBinOp) {test_parse_string("int f () {\nx + 5;\n}\n", TestingOutcome::SUCCESS); }
+BOOST_AUTO_TEST_CASE(StatementVarAssignComplexExpr) {test_parse_string("int f () {\nx = y * 5 + 10;\n}\n", TestingOutcome::SUCCESS); }
+BOOST_AUTO_TEST_CASE(StatementWhileLoopComplexCondition) {test_parse_string("int f () {\nwhile (x > 0 & done) { }\n}\n", TestingOutcome::SUCCESS); }
+BOOST_AUTO_TEST_CASE(StatementExpressionBinOp) {test_parse_string("int f () {\nx + 5;\n}\n", TestingOutcome::SUCCESS); }
 
-// BOOST_AUTO_TEST_CASE(prog1) {test_parse_file("../tests/parserTests/prog1.chad", TestingOutcome::SUCCESS);}
-// BOOST_AUTO_TEST_CASE(prog2) {test_parse_file("../tests/parserTests/prog2.chad", TestingOutcome::SUCCESS);}
 
 BOOST_AUTO_TEST_CASE(simple_file) {test_parse_file("../tests/parserTests/simple.chad", TestingOutcome::SUCCESS);}
 BOOST_AUTO_TEST_CASE(prog1) {test_parse_file("../tests/parserTests/prog1.chad", TestingOutcome::SUCCESS);}
