@@ -6,53 +6,49 @@
 #include <string>
 #include <optional>
 #include <functional>
+#include <variant>
 #include "../ast.hpp"
+#include <memory>
 
 using namespace std;
 
-enum EntryType {
+enum SymbolType {
     IntType,
     BoolType,
-    FuncType
+    ArrayType
+    //Class, future implementation
 };
 
-class Entry {
+class FuncSymbol{
 public:
-    Entry(string name, EntryType type);
-    string name;
-    EntryType type;
+    FuncSymbol(FuncDecl *funcDecl);
+    std::vector<SymbolType> parameters;
+    SymbolType returnType;
+    FuncDecl *funcDecl;
 };
 
-class IntEntry : public Entry {
+class VarSymbol {
 public:
-    int value;
+    VarSymbol(VarDecl *varDecl);
+    SymbolType type;
+    VarDecl *varDecl;    
 };
 
-class BoolEntry : public Entry {
-public:
-    bool value;
-};
-
-class FuncEntry : public Entry{
-public:
-    FuncEntry(string name, EntryType type, std::vector<Parameter> parameters, string returnType);
-    std::vector<Parameter> parameters;
-    string returnType;
-};
+using Symbol = std::variant<FuncSymbol, VarSymbol>; // add class symbol and type symbol for aliasing, future implementation
 
 class SymbolTable {
 private:
-    unordered_map<string, Entry> entries;
+    unordered_map<string, std::unique_ptr<Symbol>> entries;
 
 public:
-    optional<reference_wrapper<SymbolTable>> parentScope;
+    SymbolTable *parentScope = nullptr;
 
     SymbolTable();
 
-    SymbolTable(SymbolTable &parent);
+    SymbolTable(SymbolTable *parentScope);
 
-    void insert(string key, Entry &entry);
-    optional<reference_wrapper<Entry>> find(string key);
+    void insert(string key, std::unique_ptr<Symbol> symbol);
+    Symbol *find(string key);
 };
 
 #endif

@@ -5,10 +5,26 @@
 
 using boost::apply_visitor;
 
+// Types
+template <>
+void TreeTraveler::operator()(const PrimitiveType &type) {
+
+}
+
+// Expressions
+template <>
+void TreeTraveler::operator()(const int &value) {
+
+}
 
 template <>
-void TreeTraveler::operator()(const Type &type) {
-    
+void TreeTraveler::operator()(const bool &value) {
+
+}
+
+template <>
+void TreeTraveler::operator()(const x3::forward_ast<BinopExp> &binop) {
+
 }
 
 template <>
@@ -17,9 +33,39 @@ void TreeTraveler::operator()(const Id &id) {
 }
 
 template <>
+void TreeTraveler::operator()(const x3::forward_ast<ExpressionPar> &expPar) {
+
+}
+
+template <>
+void TreeTraveler::operator()(const VarAssign &varAssign) {
+
+}
+
+template <>
+void TreeTraveler::operator()(const WhileStatement &whileStatement) {
+
+}
+
+template <>
+void TreeTraveler::operator()(const StatementExpression &statement) {
+
+}
+
+template <>
+void TreeTraveler::operator()(const Block &block) {
+
+}
+
+template <>
+void TreeTraveler::operator()(const ParameterList &block) {
+
+}
+
+template <>
 void TreeTraveler::operator()(const VarDecl &decl) {
     visitor.preVarDecl(decl);
-    (*this)(decl.type);
+    apply_visitor(*this, decl.type);
     (*this)(decl.id);
     apply_visitor(*this, decl.exp);
 }
@@ -27,7 +73,7 @@ void TreeTraveler::operator()(const VarDecl &decl) {
 template <>
 void TreeTraveler::operator()(const FuncDecl &decl) {
     visitor.preFuncDecl(decl);
-    (*this)(decl.type);
+    apply_visitor(*this, decl.type);
     (*this)(decl.id);
     (*this)(decl.parameter_list);
     (*this)(decl.block);
@@ -37,6 +83,8 @@ void TreeTraveler::operator()(const FuncDecl &decl) {
 template <>
 void TreeTraveler::operator()(const Prog &prog) {
     this->visitor.progPreDecl(prog);
-    apply_visitor(*this, prog.decl);
+    for (auto const &decl : prog.decls) {
+        apply_visitor(*this, decl);
+    }
     this->visitor.progPostDecl(prog);
 }

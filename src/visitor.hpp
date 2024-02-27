@@ -24,11 +24,8 @@ public:
     TreeTraveler(Visitor &visitor) : visitor(visitor) { }
 
     template <typename T>
-    void operator()(const T &t) { }
+    void operator()(const T &t);
 };
-
-template <>
-void TreeTraveler::operator()(const Type &type);
 
 template <>
 void TreeTraveler::operator()(const Id &id);
@@ -37,7 +34,7 @@ template <>
 void TreeTraveler::operator()(const VarDecl &varDecl);
 
 template <>
-void TreeTraveler::operator()(const FuncDecl &varDecl);
+void TreeTraveler::operator()(const FuncDecl &decl);
 
 template <>
 void TreeTraveler::operator()(const Prog &prog);
