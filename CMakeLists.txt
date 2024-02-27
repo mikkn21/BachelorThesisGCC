@@ -11,18 +11,23 @@ endif()
 message(STATUS "OS Detected: ${CMAKE_SYSTEM_NAME}")
 message(STATUS "Using Sanitizer Flags: ${SAN_FLAGS}")
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -g -O2 -std=c++17 ${SAN_FLAGS}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -g -O -std=c++17 ${SAN_FLAGS}")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lm")
 
-# Find Boost
-find_package(Boost REQUIRED COMPONENTS unit_test_framework)
+
+# For clangd syntax help
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+# Find Boost unit_test and program options
+find_package(Boost REQUIRED COMPONENTS unit_test_framework program_options)
 include_directories(${Boost_INCLUDE_DIRS})
 
 file(GLOB_RECURSE SRCS "src/*.cpp")
 
 set(LIB giga_lib)
-
-add_library(${LIB} STATIC ${SRCS})
+set(SRCS_NOT_MAIN ${SRCS})
+list(FILTER SRCS_NOT_MAIN EXCLUDE REGEX "main\\.cpp$")
+add_library(${LIB} STATIC ${SRCS_NOT_MAIN})
 target_compile_options(${LIB} PRIVATE -Wno-unused-parameter -Wno-unneeded-internal-declaration)
 
 set(TARGET giga)
@@ -35,16 +40,23 @@ target_compile_options(${TARGET} PRIVATE -Wno-unused-parameter -Wno-unneeded-int
 enable_testing()
 
 file(GLOB_RECURSE TEST_SRCS "tests/*.cpp")
-add_custom_target(tests)
+list(FILTER TEST_SRCS EXCLUDE REGEX ".*/tests/lib/.*\\.cpp$")
+set(TEST_LIB giga_tests_lib)
+file(GLOB_RECURSE TEST_LIB_SRCS "tests/lib/*.cpp")
+add_library(${TEST_LIB} STATIC ${TEST_LIB_SRCS})
+target_link_libraries(${TEST_LIB} ${LIB})
+
 # Add a new target and test for each test file
+add_custom_target(tests)
 foreach(TEST_SRC ${TEST_SRCS})
+    # message(STATUS "This is a status message ${TEST_SRC}")
     # Get the name of the test file without the extension
     get_filename_component(TEST_NAME ${TEST_SRC} NAME_WE)
     set(TEST_NAME ${TEST_NAME}.out)
 
     # Add an executable target for the test file
-    add_executable(${TEST_NAME} ${TEST_SRCS})
-    target_link_libraries(${TEST_NAME} ${Boost_LIBRARIES} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${LIB})
+    add_executable(${TEST_NAME} ${TEST_SRC})
+    target_link_libraries(${TEST_NAME} ${Boost_LIBRARIES} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${LIB} ${TEST_LIB})
     # target_compile_options(${TEST_NAME} PRIVATE -Wno-unused-parameter)
 
     # Set the output directory for the test executable

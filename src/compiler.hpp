@@ -25,9 +25,11 @@ public:
     bool printAst;
     bool printInput;
 
+
+
     CompilerOptions();
 };
-
+std::string getFileContent(std::string_view input);
 CompilerReturnObj compileFromFile(std::string_view input, const CompilerOptions &options);
 CompilerReturnObj compileFromString(std::string_view input, const CompilerOptions &options);
 

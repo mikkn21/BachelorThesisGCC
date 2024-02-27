@@ -9,14 +9,16 @@
 #include "parser/parser.hpp"
 #include "semantics/symbol_collection.hpp"
 
+
+// NOTE: Add default values for ALL the compiler options
 namespace grammar::compiler {
     CompilerOptions::CompilerOptions() {
         stopAfter = std::nullopt;
         printAst = false;
+        printInput = false;
     }
 
-    // This is compiling from a filename
-    CompilerReturnObj compileFromFile(std::string_view input, const CompilerOptions &options) {
+    std::string getFileContent(std::string_view input) {
         if(input.empty()) {
             std::cerr << "Error: filename is empty!" << std::endl;
             throw std::invalid_argument("Filename is empty"); 
@@ -32,8 +34,12 @@ namespace grammar::compiler {
         buffer << file.rdbuf();
         std::string content = buffer.str();
         file.close();
+        return content;
+    }
 
-
+    // This is compiling from a filename
+    CompilerReturnObj compileFromFile(std::string_view input, const CompilerOptions &options) {
+        std::string content = getFileContent(input);
         CompilerReturnObj obj = compileFromString(std::string_view(content), options);
 
         if(options.stopAfter == StopAfterParser ) {
@@ -45,21 +51,16 @@ namespace grammar::compiler {
 
     // compile from a string
     CompilerReturnObj compileFromString(std::string_view input, const CompilerOptions &options) {
-        if (input.empty()) {
-            std::cerr << "Error: input string is empty!" << std::endl;
-            throw std::invalid_argument("String is empty");
-        }
-
         if (options.printInput) {
-            std::cout << "Input to be parsed: \n" << input << std::endl;
+            std::cout << "Input to be parsed: \n" << input;
         }   
 
         CompilerReturnObj obj; 
         obj.ast = parser::parse(input);
-        symbol_collection(obj.ast);
+      
         // print ast tree if option is enabled
         if (options.printAst) {
-            std::cout << "AST:\n" << obj.ast << std::endl;
+            std::cout << "AST:\n" << obj.ast;
         }
 
         if (options.stopAfter == StopAfterParser ) {

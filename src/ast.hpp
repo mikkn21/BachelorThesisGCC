@@ -15,6 +15,8 @@ namespace grammar
 
         struct Decl;
         struct BinopExp;
+        struct Block;
+        struct ExpressionPar;
 
 
         struct Id {
@@ -29,11 +31,17 @@ namespace grammar
             friend std::ostream& operator<<(std::ostream& os, const grammar::ast::PrimitiveType &exp); 
         };
 
-        struct Expression : x3::variant<int, x3::forward_ast<BinopExp>, bool> {
+        struct Expression : x3::variant<int, x3::forward_ast<BinopExp>, grammar::ast::Id, bool, x3::forward_ast<ExpressionPar>> {
             using base_type::base_type;   
             using base_type::operator=;
         public:
             friend std::ostream& operator<<(std::ostream& os, const grammar::ast::Expression &exp);
+        };
+
+        struct ExpressionPar {
+            Expression exp;
+        public:
+            friend std::ostream& operator<<(std::ostream& os, const grammar::ast::ExpressionPar &exp);
         };
 
         struct BinopExp { 
@@ -44,8 +52,35 @@ namespace grammar
             friend std::ostream& operator<<(std::ostream& os, const grammar::ast::BinopExp &exp);
         };
 
+        struct VarAssign {
+            Id id; 
+            Expression exp;
+        public:
+            friend std::ostream& operator<<(std::ostream& os, const grammar::ast::VarAssign &exp);
+        };
 
-        struct BlockLine : x3::variant<x3::forward_ast<Decl> /*, statement*/>  {
+        struct WhileStatement {
+            Expression exp; 
+            x3::forward_ast<Block> block;
+        public:
+            friend std::ostream& operator<<(std::ostream& os, const grammar::ast::WhileStatement &exp);
+        };
+
+        struct StatementExpression {
+            Expression exp;
+        public:
+            friend std::ostream& operator<<(std::ostream& os, const grammar::ast::StatementExpression &exp);
+        };
+
+        struct Statement : x3::variant<grammar::ast::VarAssign, grammar::ast::WhileStatement,grammar::ast::StatementExpression> {
+            using base_type::base_type;  
+            using base_type::operator=;
+        public:
+            friend std::ostream& operator<<(std::ostream& os, const grammar::ast::Statement &exp);
+        };
+
+
+        struct BlockLine : x3::variant<x3::forward_ast<Decl> , grammar::ast::Statement>  {
             using base_type::base_type;   
             using base_type::operator=;
         public:
@@ -58,8 +93,9 @@ namespace grammar
             friend std::ostream& operator<<(std::ostream& os, const grammar::ast::Block &exp);
         };
 
-        struct Type {
-            PrimitiveType primitive_type;
+        struct Type : x3::variant<grammar::ast::PrimitiveType /*, grammar::ast::ArrayType*/> {
+            using base_type::base_type;   
+            using base_type::operator=;
         public:
             friend std::ostream& operator<<(std::ostream& os, const grammar::ast::Type &exp);
         };
@@ -110,19 +146,6 @@ namespace grammar
             friend std::ostream& operator<<(std::ostream& os, const grammar::ast::ArrayType &exp);
         };
 
-        struct VarAssign {
-            Id id; 
-            Expression exp;
-        public:
-            friend std::ostream& operator<<(std::ostream& os, const grammar::ast::VarAssign &exp);
-        };
-
-        struct WhileStatement {
-            Expression exp; 
-            Block block;
-        public:
-            friend std::ostream& operator<<(std::ostream& os, const grammar::ast::WhileStatement &exp);
-        };
 
         struct Decl : x3::variant<VarDecl, FuncDecl/*, ClassDecl*/> { 
             using base_type::base_type;  
@@ -132,7 +155,7 @@ namespace grammar
         };        
 
         struct Prog {
-            Decl decl; 
+            std::vector<Decl> decls; 
         public:
             friend std::ostream& operator<<(std::ostream& os, const grammar::ast::Prog& exp);
         };
@@ -154,8 +177,18 @@ BOOST_FUSION_ADAPT_STRUCT(
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
+    StatementExpression, 
+    (Expression, exp)
+)
+
+BOOST_FUSION_ADAPT_STRUCT(
     Id,
     (std::string, id)
+)
+
+BOOST_FUSION_ADAPT_STRUCT(
+    ExpressionPar,
+    (Expression, exp)
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
@@ -178,11 +211,6 @@ BOOST_FUSION_ADAPT_STRUCT(
 BOOST_FUSION_ADAPT_STRUCT(
     Block,
     (std::vector<BlockLine>, block_line)
-)
-
-BOOST_FUSION_ADAPT_STRUCT(
-    Type,
-    (PrimitiveType, primitive_type)
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
@@ -230,7 +258,7 @@ BOOST_FUSION_ADAPT_STRUCT(
 
 BOOST_FUSION_ADAPT_STRUCT(
     Prog,
-    (Decl, decl)
+    (std::vector<Decl>, decls)
 )
 
 
