@@ -6,12 +6,14 @@
 #include <string>
 #include <optional>
 #include <functional>
+#include "../ast.hpp"
 
 using namespace std;
 
 enum EntryType {
     IntType,
-    BoolType
+    BoolType,
+    FuncType
 };
 
 class Entry {
@@ -21,14 +23,21 @@ public:
     EntryType type;
 };
 
-class IntEntry : Entry {
+class IntEntry : public Entry {
 public:
     int value;
 };
 
-class BoolEntry : Entry {
+class BoolEntry : public Entry {
 public:
     bool value;
+};
+
+class FuncEntry : public Entry{
+public:
+    FuncEntry(string name, EntryType type, std::vector<Parameter> parameters, string returnType);
+    std::vector<Parameter> parameters;
+    string returnType;
 };
 
 class SymbolTable {

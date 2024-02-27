@@ -23,13 +23,12 @@ public:
     }
 
     void preVarDecl(const VarDecl &varDecl) override {
-
         if (varDecl.type.primitive_type.type == "int") {
-            Entry entry = Entry(varDecl.id.id, IntType);
+            Entry entry = Entry(varDecl.id.id, IntType); //should value of variable be saved?
             currentVariableTable.insert(varDecl.id.id, entry);
         }
         else if (varDecl.type.primitive_type.type == "bool") {
-            Entry entry = Entry(varDecl.id.id, BoolType);
+            Entry entry = Entry(varDecl.id.id, BoolType); //should value of variable be saved?
             currentVariableTable.insert(varDecl.id.id, entry);   
         }
         else {
@@ -39,6 +38,14 @@ public:
 
     void preFuncDecl(const FuncDecl &funcDecl) override {
         // Add function to currentFunctionTable
+        std::vector<Parameter> tempParameters;
+        for (auto i : funcDecl.parameter_list.parameter){
+            tempParameters.push_back(i);
+        }
+        FuncEntry entry = FuncEntry(funcDecl.id.id, FuncType, tempParameters, funcDecl.type.primitive_type.type);
+        currentFunctionTable.insert(funcDecl.id.id, entry);
+        SymbolTable newFuncScope = SymbolTable();
+        newFuncScope.parentScope = currentFunctionTable;
         // Create new scope where parent = currentFunctionScope
         // Set current scope to this one
     }

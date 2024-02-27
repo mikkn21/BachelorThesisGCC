@@ -6,6 +6,8 @@
 
 Entry::Entry(string name, EntryType type) : name(name), type(type) { }
 
+FuncEntry::FuncEntry(string name, EntryType type, std::vector<Parameter> parameters, string returnType) : Entry(name, type), parameters(parameters), returnType(returnType) { }
+
 SymbolTable::SymbolTable() { }
 
 SymbolTable::SymbolTable(SymbolTable &parentScope) : parentScope(parentScope) { }

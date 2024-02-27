@@ -28,6 +28,18 @@ public:
 };
 
 template <>
+void TreeTraveler::operator()(const Type &type);
+
+template <>
+void TreeTraveler::operator()(const Id &id);
+
+template <>
+void TreeTraveler::operator()(const VarDecl &varDecl);
+
+template <>
+void TreeTraveler::operator()(const FuncDecl &varDecl);
+
+template <>
 void TreeTraveler::operator()(const Prog &prog);
 
 #endif
