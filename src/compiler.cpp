@@ -12,12 +12,6 @@
 
 // NOTE: Add default values for ALL the compiler options
 namespace grammar::compiler {
-    CompilerOptions::CompilerOptions() {
-        stopAfter = std::nullopt;
-        printAst = false;
-        printInput = false;
-    }
-
     std::string getFileContent(std::string_view input) {
         if(input.empty()) {
             std::cerr << "Error: filename is empty!" << std::endl;

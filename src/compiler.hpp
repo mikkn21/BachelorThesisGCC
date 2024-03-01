@@ -21,14 +21,12 @@ enum StopAfter {
 
 class CompilerOptions {
 public:
-    std::optional<StopAfter> stopAfter;
-    bool printAst;
-    bool printInput;
+    std::optional<StopAfter> stopAfter = std::nullopt;
+    bool printAst = false;
+    bool printInput = false;
 
-
-
-    CompilerOptions();
 };
+
 std::string getFileContent(std::string_view input);
 CompilerReturnObj compileFromFile(std::string_view input, const CompilerOptions &options);
 CompilerReturnObj compileFromString(std::string_view input, const CompilerOptions &options);
