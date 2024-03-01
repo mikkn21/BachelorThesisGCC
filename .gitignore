@@ -6,7 +6,7 @@ giga
 **/.cache/clangd
 
 
-.build
+build/
 
 # vscode
 .vscode
