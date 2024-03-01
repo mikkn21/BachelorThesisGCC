@@ -31,7 +31,7 @@ public:
 
     void preFuncDecl(FuncDecl &funcDecl) override {
         // Add function to currentFunctionTable
-        Symbol variantSymbol = &funcDecl; // is it a problem that a 'Symbol' is created instead of a 'FuncSymbol'?
+        Symbol variantSymbol = &funcDecl;
         std:unique_ptr<Symbol> ptr(&variantSymbol);
         currentSymbolTable.insert(funcDecl.id.id, std::move(ptr));
         // Create new scope where parent = currentScope
