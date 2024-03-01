@@ -49,6 +49,8 @@ public:
 
     void insert(string key, std::unique_ptr<Symbol> symbol);
     Symbol *find(string key);
+
+    void print();
 };
 
 #endif

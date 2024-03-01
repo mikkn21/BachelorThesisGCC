@@ -5,9 +5,19 @@
 #include <functional>
 #include "../ast.hpp"
 #include <variant>
-#include <boost/variant.hpp>
 #include "semantics_error.hpp"
 #include <memory>
+#include <iostream>
+
+struct print_visitor {
+    std::ostream& os;
+    print_visitor(std::ostream& os) : os(os) {}
+
+    template<typename T>
+    void operator()(const T& t) const {
+        os << t;
+    }
+};
 
 struct TypeConverterVisitor : boost::static_visitor<SymbolType> {
     SymbolType operator()(const PrimitiveType &t) {
@@ -54,5 +64,21 @@ Symbol *SymbolTable::find(string key) {
     }
     else {
         return x->second.get();
+    }
+}
+
+std::ostream& operator<<(std::ostream& os, FuncSymbol symbol){
+    return os << " func, returntype: " << symbol.returnType;
+}
+
+std::ostream& operator<<(std::ostream& os, VarSymbol symbol){
+    return os << " var, type: " << symbol.type;
+}
+
+void SymbolTable::print() {
+    for (auto i = entries.begin() ; i != entries.end() ; i++){
+        std::cout << i->first << "\t"; 
+        std::visit(print_visitor(std::cout), *(i->second));
+        std::cout << std::endl;
     }
 }

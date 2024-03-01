@@ -1,4 +1,3 @@
-
 #include <iostream>
 #include <boost/variant.hpp>
 #include "../ast.hpp"
@@ -9,34 +8,43 @@
 
 class SymbolCollectionVisitor : public Visitor {
 private:
-    SymbolTable outerVariableTable = SymbolTable();
-    SymbolTable outerFunctionTable = SymbolTable();
+    SymbolTable outerSymbolTable = SymbolTable();
 
-    SymbolTable &currentVariableTable = outerVariableTable;
-    SymbolTable &currentFunctionTable = outerFunctionTable;
+    SymbolTable &currentSymbolTable = outerSymbolTable;
 
 public: 
     SymbolCollectionVisitor() : Visitor() { }
 
+    void progPreDecl(Prog &prog) override {
+        std::cout << "symbol collection prog post decl" << std::endl;
+    }
+
     void progPostDecl(Prog &prog) override {
-        std::cout << "symbol collection prog post dec" << std::endl;
+        std::cout << "symbol collection prog post decl" << std::endl;
     }
 
     void preVarDecl(VarDecl &varDecl) override {
+        Symbol variantSymbol = &varDecl;
+        std:unique_ptr<Symbol> ptr(&variantSymbol);
+        currentSymbolTable.insert(varDecl.id.id, std::move(ptr));
     }
 
     void preFuncDecl(FuncDecl &funcDecl) override {
         // Add function to currentFunctionTable
-        //FuncSymbol symbol = FuncSymbol(&funcDecl);
-        // currentFunctionTable.insert(funcDecl.id.id, symbol);
-        // SymbolTable newFuncScope = SymbolTable();
-        // newFuncScope.parentScope = currentFunctionTable;
-        // Create new scope where parent = currentFunctionScope
+        Symbol variantSymbol = &funcDecl; // is it a problem that a 'Symbol' is created instead of a 'FuncSymbol'?
+        std:unique_ptr<Symbol> ptr(&variantSymbol);
+        currentSymbolTable.insert(funcDecl.id.id, std::move(ptr));
+        // Create new scope where parent = currentScope
+        SymbolTable newSymbolTable = SymbolTable();
+        newSymbolTable.parentScope = &currentSymbolTable;
         // Set current scope to this one
+        currentSymbolTable = &newSymbolTable; // this changes what 'currentsymbolTable' points to, not the object itself. 
+        //Passing 'newSymbolTable' without '&' would change the object that 'currentSymbolTable' points to instead
     }
 
     void postFuncDecl(FuncDecl &funcDecl) override {
         // Set current scope to parent scope
+        currentSymbolTable = currentSymbolTable.parentScope;
     }
 
 };
