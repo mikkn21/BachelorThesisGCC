@@ -18,20 +18,16 @@ private:
 public: 
     SymbolCollectionVisitor() : Visitor() { }
 
-    void progPostDecl(const Prog &prog) override {
+    void progPostDecl(Prog &prog) override {
         std::cout << "symbol collection prog post dec" << std::endl;
     }
 
-    void preVarDecl(const VarDecl &varDecl) override {
+    void preVarDecl(VarDecl &varDecl) override {
     }
 
-    void preFuncDecl(const FuncDecl &funcDecl) override {
+    void preFuncDecl(FuncDecl &funcDecl) override {
         // Add function to currentFunctionTable
-        // std::vector<Parameter> tempParameters;
-        // for (auto i : funcDecl.parameter_list.parameter){
-        //     tempParameters.push_back(i);
-        // }
-        // FuncSymbol symbol = FuncSymbol(funcDecl.id.id, FuncType, tempParameters, funcDecl.type.primitive_type.type);
+        //FuncSymbol symbol = FuncSymbol(&funcDecl);
         // currentFunctionTable.insert(funcDecl.id.id, symbol);
         // SymbolTable newFuncScope = SymbolTable();
         // newFuncScope.parentScope = currentFunctionTable;
@@ -39,7 +35,7 @@ public:
         // Set current scope to this one
     }
 
-    void postFuncDecl(const FuncDecl &funcDecl) override {
+    void postFuncDecl(FuncDecl &funcDecl) override {
         // Set current scope to parent scope
     }
 
