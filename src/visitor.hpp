@@ -9,11 +9,11 @@ class Visitor {
 public: 
     Visitor() { }
 
-    virtual void progPreDecl(const Prog &prog) { }
-    virtual void progPostDecl(const Prog &prog) { }
-    virtual void preVarDecl(const VarDecl &varDecl) { }
-    virtual void preFuncDecl(const FuncDecl &funcDecl) { }
-    virtual void postFuncDecl(const FuncDecl &funcDecl) { }
+    virtual void progPreDecl(Prog &prog) { }
+    virtual void progPostDecl(Prog &prog) { }
+    virtual void preVarDecl(VarDecl &varDecl) { }
+    virtual void preFuncDecl(FuncDecl &funcDecl) { }
+    virtual void postFuncDecl(FuncDecl &funcDecl) { }
 };
 
 class TreeTraveler : boost::static_visitor<> {

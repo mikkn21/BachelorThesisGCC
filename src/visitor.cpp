@@ -44,22 +44,32 @@ void TreeTraveler::operator()(const VarAssign &varAssign) {
 
 template <>
 void TreeTraveler::operator()(const WhileStatement &whileStatement) {
-
+    
 }
 
 template <>
 void TreeTraveler::operator()(const StatementExpression &statement) {
-
+    apply_visitor(*this, statement.exp);
 }
 
 template <>
 void TreeTraveler::operator()(const Block &block) {
-
+    for (auto const &blockLine : block.block_line) {
+        // apply_visitor(*this, blockLine);
+    }
 }
 
 template <>
-void TreeTraveler::operator()(const ParameterList &block) {
+void TreeTraveler::operator()(const Parameter &parameter) {
+    apply_visitor(*this, parameter.type);
+    (*this)(parameter.id);
+}
 
+template <>
+void TreeTraveler::operator()(const ParameterList &parameterList) {
+    for (auto const &parameter : parameterList.parameter) {
+        (*this)(parameter);
+    }
 }
 
 template <>
