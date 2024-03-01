@@ -54,7 +54,7 @@ void TreeTraveler::operator()(StatementExpression &statement) {
 
 template <>
 void TreeTraveler::operator()(Block &block) {
-    for (auto const &blockLine : block.block_line) {
+    for (auto &blockLine : block.block_line) {
         // apply_visitor(*this, blockLine);
     }
 }
@@ -67,7 +67,7 @@ void TreeTraveler::operator()(Parameter &parameter) {
 
 template <>
 void TreeTraveler::operator()(ParameterList &parameterList) {
-    for (auto const &parameter : parameterList.parameter) {
+    for (auto &parameter : parameterList.parameter) {
         //(*this)(parameter);
     }
 }
@@ -93,8 +93,8 @@ void TreeTraveler::operator()(FuncDecl &decl) {
 template <>
 void TreeTraveler::operator()(Prog &prog) {
     this->visitor.progPreDecl(prog);
-    for (auto const &decl : prog.decls) {
-        //apply_visitor(*this, decl);
+    for (auto &decl : prog.decls) {
+        apply_visitor(*this, decl);
     }
     this->visitor.progPostDecl(prog);
 }
