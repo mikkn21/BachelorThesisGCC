@@ -45,7 +45,7 @@ void TreeTraveler::operator()(Type &type) {
 // Types
 template <>
 void TreeTraveler::operator()(PrimitiveType &type) {
-
+    
 }
 
 // Expressions
@@ -61,7 +61,8 @@ void TreeTraveler::operator()(bool &value) {
 
 template <>
 void TreeTraveler::operator()(BinopExp &binop) {
-
+    (*this)(binop.lhs);
+    (*this)(binop.rhs);
 }
 
 template <>
@@ -71,7 +72,7 @@ void TreeTraveler::operator()(Id &id) {
 
 template <>
 void TreeTraveler::operator()(ExpressionPar &expPar) {
-
+    (*this)(expPar.exp);
 }
 
 // Statements
@@ -129,8 +130,6 @@ void TreeTraveler::operator()(FuncDecl &decl) {
     (*this)(decl.block);
     visitor.postFuncDecl(decl);
 }
-
-
 
 template <>
 void TreeTraveler::operator()(Prog &prog) {
