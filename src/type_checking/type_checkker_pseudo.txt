@@ -1,0 +1,49 @@
+dsfsafsafsa
+
+def type_checker(ast):
+    type_checker_helper(ast.root)
+
+
+# tempalte<typename T>
+def type_checker_helper(ast):
+    for child in ast.children:
+        match child.type:
+            case prog:
+                continue
+            
+            case Binop:
+                asdasdas 
+            case funcDecl:
+                pass
+            case varDecl:
+                t1 = varDecl.type.primitive_type.type
+                t2 = type_checker_helper(varDecl.exp)
+                assert(t1 == t2)
+            
+    pass
+
+
+
+
+"""""
+Prog
+    Decl
+        Var decl
+            type 
+                primitive_type
+                    int 
+            id 
+                x
+            expression
+                binop_exp
+                    expression_base 
+                        2
+                    operator_parser 
+                        +
+                    expression
+                        expression_base
+                            2
+
+"""
+
+
