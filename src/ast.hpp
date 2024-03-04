@@ -31,7 +31,7 @@ namespace grammar
             friend std::ostream& operator<<(std::ostream& os, const grammar::ast::PrimitiveType &exp); 
         };
 
-        struct Expression : x3::variant<int, x3::forward_ast<BinopExp>, grammar::ast::Id, bool, x3::forward_ast<ExpressionPar>> {
+        struct Expression : public x3::variant<int, x3::forward_ast<BinopExp>, grammar::ast::Id, bool, x3::forward_ast<ExpressionPar>> {
             using base_type::base_type;   
             using base_type::operator=;
         public:
@@ -72,7 +72,7 @@ namespace grammar
             friend std::ostream& operator<<(std::ostream& os, const grammar::ast::StatementExpression &exp);
         };
 
-        struct Statement : x3::variant<grammar::ast::VarAssign, grammar::ast::WhileStatement,grammar::ast::StatementExpression> {
+        struct Statement : public x3::variant<grammar::ast::VarAssign, grammar::ast::WhileStatement,grammar::ast::StatementExpression> {
             using base_type::base_type;  
             using base_type::operator=;
         public:
@@ -80,7 +80,7 @@ namespace grammar
         };
 
 
-        struct BlockLine : x3::variant<x3::forward_ast<Decl> , grammar::ast::Statement>  {
+        struct BlockLine : public x3::variant<x3::forward_ast<Decl> , grammar::ast::Statement>  {
             using base_type::base_type;   
             using base_type::operator=;
         public:
@@ -93,7 +93,7 @@ namespace grammar
             friend std::ostream& operator<<(std::ostream& os, const grammar::ast::Block &exp);
         };
 
-        struct Type : x3::variant<grammar::ast::PrimitiveType /*, grammar::ast::ArrayType*/> {
+        struct Type : public x3::variant<grammar::ast::PrimitiveType /*, grammar::ast::ArrayType*/> {
             using base_type::base_type;   
             using base_type::operator=;
         public:
@@ -147,7 +147,7 @@ namespace grammar
         };
 
 
-        struct Decl : x3::variant<VarDecl, FuncDecl/*, ClassDecl*/> { 
+        struct Decl : public x3::variant<VarDecl, FuncDecl/*, ClassDecl*/> { 
             using base_type::base_type;  
             using base_type::operator=;
         public:

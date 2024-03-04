@@ -1,9 +1,46 @@
 
 #include "visitor.hpp"
+#include "compiler_error.hpp"
+#include <variant>
 #include <boost/spirit/home/x3/support/ast/variant.hpp>
 #include <iostream>
 
 using boost::apply_visitor;
+using namespace std;
+namespace x3 = boost::spirit::x3;
+
+
+// Forward AST
+template <typename T>
+void TreeTraveler::operator()(x3::forward_ast<T> &ast) {
+    (*this)(ast.get());
+}
+
+// Variants
+template <>
+void TreeTraveler::operator()(Decl &decl) {
+    apply_visitor(*this, decl);
+}
+
+template <>
+void TreeTraveler::operator()(Statement &statement) {
+    apply_visitor(*this, statement);
+}
+
+template <>
+void TreeTraveler::operator()(Expression &exp) {
+    apply_visitor(*this, exp);
+}
+
+template <>
+void TreeTraveler::operator()(BlockLine &blockLine) {
+    apply_visitor(*this, blockLine);
+}
+
+template <>
+void TreeTraveler::operator()(Type &type) {
+    apply_visitor(*this, type);
+}
 
 // Types
 template <>
@@ -23,7 +60,7 @@ void TreeTraveler::operator()(bool &value) {
 }
 
 template <>
-void TreeTraveler::operator()(x3::forward_ast<BinopExp> &binop) {
+void TreeTraveler::operator()(BinopExp &binop) {
 
 }
 
@@ -33,68 +70,74 @@ void TreeTraveler::operator()(Id &id) {
 }
 
 template <>
-void TreeTraveler::operator()(x3::forward_ast<ExpressionPar> &expPar) {
+void TreeTraveler::operator()(ExpressionPar &expPar) {
 
 }
 
+// Statements
 template <>
 void TreeTraveler::operator()(VarAssign &varAssign) {
-
+    (*this)(varAssign.id);
+    (*this)(varAssign.exp);
 }
 
 template <>
 void TreeTraveler::operator()(WhileStatement &whileStatement) {
-    
+    (*this)(whileStatement.exp);
+    (*this)(whileStatement.block);
 }
 
 template <>
 void TreeTraveler::operator()(StatementExpression &statement) {
-    apply_visitor(*this, statement.exp);
+    (*this)(statement.exp);
 }
 
 template <>
 void TreeTraveler::operator()(Block &block) {
     for (auto &blockLine : block.block_line) {
-        // apply_visitor(*this, blockLine);
+        (*this)(blockLine);
     }
 }
 
 template <>
 void TreeTraveler::operator()(Parameter &parameter) {
-    apply_visitor(*this, parameter.type);
+    (*this)(parameter.type);
     (*this)(parameter.id);
 }
 
 template <>
 void TreeTraveler::operator()(ParameterList &parameterList) {
     for (auto &parameter : parameterList.parameter) {
-        //(*this)(parameter);
+        (*this)(parameter);
     }
 }
 
 template <>
 void TreeTraveler::operator()(VarDecl &decl) {
     visitor.preVarDecl(decl);
-    apply_visitor(*this, decl.type);
+    (*this)(decl.type);
     (*this)(decl.id);
-    apply_visitor(*this, decl.exp);
+    (*this)(decl.exp);
 }
 
 template <>
 void TreeTraveler::operator()(FuncDecl &decl) {
     visitor.preFuncDecl(decl);
-    apply_visitor(*this, decl.type);
+    (*this)(decl.type);
     (*this)(decl.id);
     (*this)(decl.parameter_list);
     (*this)(decl.block);
     visitor.postFuncDecl(decl);
 }
 
+
+
 template <>
 void TreeTraveler::operator()(Prog &prog) {
     this->visitor.progPreDecl(prog);
     for (auto &decl : prog.decls) {
-        apply_visitor(*this, decl);
+        (*this)(decl);
     }
     this->visitor.progPostDecl(prog);
 }
+

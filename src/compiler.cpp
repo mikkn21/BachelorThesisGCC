@@ -61,6 +61,8 @@ namespace grammar::compiler {
             return obj;
         } // NOTE: add the other stopAfter options at some point
 
+        symbol_collection(obj.ast);
+
         return obj;
     }
 

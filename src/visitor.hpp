@@ -5,6 +5,8 @@
 #include <boost/variant.hpp>
 #include "ast.hpp"
 
+namespace x3 = boost::spirit::x3;
+
 class Visitor {
 public: 
     Visitor() { }
@@ -24,17 +26,11 @@ public:
     TreeTraveler(Visitor &visitor) : visitor(visitor) { }
 
     template <typename T>
+    void operator()(x3::forward_ast<T> &ast);
+
+    template <typename T>
     void operator()(T &t);
 };
-
-template <>
-void TreeTraveler::operator()(Id &id);
-
-template <>
-void TreeTraveler::operator()(VarDecl &varDecl);
-
-template <>
-void TreeTraveler::operator()(FuncDecl &decl);
 
 template <>
 void TreeTraveler::operator()(Prog &prog);
