@@ -10,7 +10,15 @@ using namespace std;
 namespace x3 = boost::spirit::x3;
 
 
-// Forward AST
+// --- Adding new implementations for AST nodes ---
+// Variants need to be added at the top with the other varionts and have the
+// same implementation as the others.
+//
+// The others need to be added below anywhere. Look at the other implementations
+// for "inpiration".
+
+
+// Handle forward AST by calling the operator on the undelying object.
 template <typename T>
 void TreeTraveler::operator()(x3::forward_ast<T> &ast) {
     (*this)(ast.get());
@@ -45,7 +53,7 @@ void TreeTraveler::operator()(Type &type) {
 // Types
 template <>
 void TreeTraveler::operator()(PrimitiveType &type) {
-    
+
 }
 
 // Expressions
