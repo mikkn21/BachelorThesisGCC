@@ -37,7 +37,7 @@ namespace grammar
             friend std::ostream& operator<<(std::ostream& os, const PrimitiveType &exp); 
         };
 
-        struct Expression : x3::variant<int, x3::forward_ast<BinopExp>, Id, bool, x3::forward_ast<ExpressionPar>>, LocationInfo {
+        struct Expression : public x3::variant<int, x3::forward_ast<BinopExp>, Id, bool, x3::forward_ast<ExpressionPar>>, LocationInfo {
             using base_type::base_type;   
             using base_type::operator=;
         public:
@@ -84,15 +84,14 @@ namespace grammar
             friend std::ostream& operator<<(std::ostream& os, const StatementExpression &exp);
         };
 
-        struct Statement : x3::variant<VarAssign, WhileStatement,StatementExpression, PrintStatement>, LocationInfo {
+        struct Statement : public x3::variant<VarAssign, WhileStatement,StatementExpression, PrintStatement>, LocationInfo {
             using base_type::base_type;  
             using base_type::operator=;
         public:
             friend std::ostream& operator<<(std::ostream& os, const Statement &exp);
         };
 
-
-        struct BlockLine : x3::variant<x3::forward_ast<Decl> , Statement>, LocationInfo  {
+        struct BlockLine : public x3::variant<x3::forward_ast<Decl> , Statement>, LocationInfo  {
             using base_type::base_type;   
             using base_type::operator=;
         public:
@@ -105,7 +104,7 @@ namespace grammar
             friend std::ostream& operator<<(std::ostream& os, const Block &exp);
         };
 
-        struct Type : x3::variant<PrimitiveType /*, ArrayType*/>, LocationInfo {
+        struct Type : public x3::variant<PrimitiveType /*, ArrayType*/>, LocationInfo {
             using base_type::base_type;   
             using base_type::operator=;
         public:
@@ -158,8 +157,7 @@ namespace grammar
             friend std::ostream& operator<<(std::ostream& os, const ArrayType &exp);
         };
 
-
-        struct Decl : x3::variant<VarDecl, FuncDecl/*, ClassDecl*/>, LocationInfo { 
+        struct Decl : public x3::variant<VarDecl, FuncDecl/*, ClassDecl*/>, LocationInfo { 
             using base_type::base_type;  
             using base_type::operator=;
         public:

@@ -1,4 +1,4 @@
-#define BOOST_TEST_MODULE Parse
+#define BOOST_TEST_MODULE TypeCheck
 #define BOOST_TEST_DYN_LINK  
 
 #include "../lib/testing_type_check_lib.hpp" 

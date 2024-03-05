@@ -17,7 +17,8 @@ struct CompilerReturnObj {
 
 enum StopAfter {
     StopAfterParser,
-    StopAfterTypeCheck
+    StopAfterTypeCheck,
+    StopAfterSymbolCollection
 };
 
 class CompilerOptions {
@@ -27,7 +28,6 @@ public:
     bool printInput = false;
 
 };
-
 
 std::string getFileContent(std::string_view input);
 std::unique_ptr<CompilerReturnObj> compileFromFile(std::string_view input, const CompilerOptions &options);
