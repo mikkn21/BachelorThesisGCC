@@ -15,24 +15,15 @@ private:
 public: 
     SymbolCollectionVisitor() : Visitor() { }
 
-    void preVisit(Prog &prog) override {
-        std::cout << "symbol collection prog post decl" << std::endl;
-    }
-
-    void postVisit(Prog &prog) override {
-        std::cout << "symbol collection prog post decl" << std::endl;
-    }
-
     void preVisit(VarDecl &varDecl) override {
         Symbol variantSymbol = &varDecl;
-        std:unique_ptr<Symbol> ptr(&variantSymbol);
+        std::unique_ptr<Symbol> ptr(&variantSymbol);
         currentSymbolTable.insert(varDecl.id.id, std::move(ptr));
     }
 
     void preVisit(FuncDecl &funcDecl) override {
         // Add function to currentFunctionTable
-        Symbol variantSymbol = &funcDecl;
-        std:unique_ptr<Symbol> ptr(&variantSymbol);
+        std::unique_ptr<Symbol> ptr = std::make_unique<Symbol>(&funcDecl);
         currentSymbolTable.insert(funcDecl.id.id, std::move(ptr));
         // Create new scope where parent = currentScope
         SymbolTable newSymbolTable = SymbolTable();

@@ -36,10 +36,6 @@ namespace grammar::compiler {
         std::string content = getFileContent(input);
         CompilerReturnObj obj = compileFromString(std::string_view(content), options);
 
-        if(options.stopAfter == StopAfterParser ) {
-            return obj;
-        } // NOTE: add the other stopAfter options at some point
-
         return obj;
     }
 
@@ -47,11 +43,11 @@ namespace grammar::compiler {
     CompilerReturnObj compileFromString(std::string_view input, const CompilerOptions &options) {
         if (options.printInput) {
             std::cout << "Input to be parsed: \n" << input;
-        }   
+        }
 
-        CompilerReturnObj obj; 
+        CompilerReturnObj obj;
         obj.ast = parser::parse(input);
-      
+
         // print ast tree if option is enabled
         if (options.printAst) {
             std::cout << "AST:\n" << obj.ast;
@@ -59,9 +55,13 @@ namespace grammar::compiler {
 
         if (options.stopAfter == StopAfterParser ) {
             return obj;
-        } // NOTE: add the other stopAfter options at some point
+        }
 
         symbol_collection(obj.ast);
+
+        if (options.stopAfter == StopAfterSymbolCollection) {
+            return obj;
+        }
 
         return obj;
     }
