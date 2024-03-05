@@ -20,7 +20,10 @@ namespace grammar
 { 
     namespace ast
     {   
-
+        
+        std::ostream& operator<<(std::ostream& os, const grammar::ast::LocationInfo &location_info) {
+            return os << '[' << location_info.line << ", " << location_info.column << ']';
+        };
         
         std::ostream& operator<<(std::ostream& os, const grammar::ast::BinopExp &exp) {
             return os << exp.lhs << " " << exp.op << " " << exp.rhs;
@@ -46,6 +49,10 @@ namespace grammar
 
         std::ostream& operator<<(std::ostream& os, const grammar::ast::ExpressionPar &exp) {
             return os << "(" << exp.exp << ")";
+        }
+
+        std::ostream& operator<<(std::ostream& os, const grammar::ast::PrintStatement &exp) {
+            return os << "print(" << exp.exp << ");";
         }
 
         std::ostream& operator<<(std::ostream& os, const grammar::ast::BlockLine &block_line) {

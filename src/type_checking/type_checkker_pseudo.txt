@@ -1,0 +1,52 @@
+dsfsafsafsa
+
+def type_checker(ast):
+    type_checker_helper(ast.root)
+
+
+tempalte<typename Prog>
+def type_checker_helper(prog):
+    for child in prog.decls:
+        type_checker_help(child)
+
+
+template<typename decl>
+def type_checker_helper(decl):
+    type_checker_helper(decl)
+
+
+template<typename VarDecl>
+def type_checker_helper(vardecl) -> void: 
+    type1 = type_checker_helper(vardecl.type)
+    type2 = type_checker_helper(vardecl.exp)
+    if type1 != type2:
+        throw error
+
+
+def type_checker_helper(type):
+    
+
+
+
+"""""
+Prog
+    Decl
+        Var decl
+            type 
+                primitive_type
+                    int 
+            id 
+                x
+            expression
+                binop_exp
+                    expression_base 
+                        2
+                    operator_parser 
+                        +
+                    expression
+                        expression_base
+                            2
+
+"""
+
+
