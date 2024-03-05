@@ -7,12 +7,11 @@
 #include "compiler.hpp"
 #include "ast.hpp"
 #include "parser/parser.hpp"
+#include "semantics/symbol_collection.hpp"
 
 
 // NOTE: Add default values for ALL the compiler options
 namespace grammar::compiler {
-
-    // Function to get file content
     std::string getFileContent(std::string_view input) {
         if(input.empty()) {
             std::cerr << "Error: filename is empty!" << std::endl;
@@ -37,10 +36,6 @@ namespace grammar::compiler {
         std::string content = getFileContent(input);
         auto obj = compileFromString(std::string_view(content), options);
 
-        if(options.stopAfter == StopAfterParser ) {
-            return obj;
-        } // NOTE: add the other stopAfter options at some point
-
         return obj;
     }
 
@@ -60,7 +55,13 @@ namespace grammar::compiler {
 
         if (options.stopAfter == StopAfterParser ) {
             return obj;
-        } // NOTE: add the other stopAfter options at some point
+        }
+
+        symbol_collection(obj.ast);
+
+        if (options.stopAfter == StopAfterSymbolCollection) {
+            return obj;
+        }
 
         return obj;
     }
