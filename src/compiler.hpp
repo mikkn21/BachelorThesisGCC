@@ -16,7 +16,8 @@ struct CompilerReturnObj {
 };
 
 enum StopAfter {
-    StopAfterParser
+    StopAfterParser,
+    StopAfterTypeCheck
 };
 
 class CompilerOptions {
