@@ -53,98 +53,128 @@ void TreeTraveler::operator()(Type &type) {
 // Types
 template <>
 void TreeTraveler::operator()(PrimitiveType &type) {
-
+    visitor.preVisit(type);
+    visitor.postVisit(type);
 }
 
 // Expressions
 template <>
 void TreeTraveler::operator()(int &value) {
-
+    visitor.preVisit(value);
+    visitor.postVisit(value);
 }
 
 template <>
 void TreeTraveler::operator()(bool &value) {
-
+    visitor.preVisit(value);
+    visitor.postVisit(value);
 }
 
 template <>
 void TreeTraveler::operator()(BinopExp &binop) {
+    visitor.preVisit(binop);
     (*this)(binop.lhs);
+    visitor.preRhsVisit(binop);
     (*this)(binop.rhs);
+    visitor.postVisit(binop);
 }
 
 template <>
 void TreeTraveler::operator()(Id &id) {
-
+    visitor.preVisit(id);
+    visitor.postVisit(id);
 }
 
 template <>
 void TreeTraveler::operator()(ExpressionPar &expPar) {
+    visitor.preVisit(expPar);
     (*this)(expPar.exp);
+    visitor.postVisit(expPar);
 }
 
 // Statements
 template <>
 void TreeTraveler::operator()(VarAssign &varAssign) {
+    visitor.preVisit(varAssign);
     (*this)(varAssign.id);
+    visitor.preExpVisit(varAssign);
     (*this)(varAssign.exp);
+    visitor.postVisit(varAssign);
 }
 
 template <>
 void TreeTraveler::operator()(WhileStatement &whileStatement) {
+    visitor.preVisit(whileStatement);
     (*this)(whileStatement.exp);
+    visitor.preBlockVisit(whileStatement);
     (*this)(whileStatement.block);
+    visitor.postVisit(whileStatement);
 }
 
 template <>
 void TreeTraveler::operator()(StatementExpression &statement) {
+    visitor.preVisit(statement);
     (*this)(statement.exp);
+    visitor.postVisit(statement);
 }
 
 template <>
 void TreeTraveler::operator()(Block &block) {
+    visitor.preVisit(block);
     for (auto &blockLine : block.block_line) {
         (*this)(blockLine);
     }
+    visitor.postVisit(block);
 }
 
 template <>
 void TreeTraveler::operator()(Parameter &parameter) {
+    visitor.preVisit(parameter);
     (*this)(parameter.type);
+    visitor.preIdVisit(parameter);
     (*this)(parameter.id);
+    visitor.postVisit(parameter);
 }
 
 template <>
 void TreeTraveler::operator()(ParameterList &parameterList) {
+    visitor.preVisit(parameterList);
     for (auto &parameter : parameterList.parameter) {
         (*this)(parameter);
     }
+    visitor.postVisit(parameterList);
 }
 
 template <>
 void TreeTraveler::operator()(VarDecl &decl) {
-    visitor.preVarDecl(decl);
+    visitor.preVisit(decl);
     (*this)(decl.type);
+    visitor.preIdVisit(decl);
     (*this)(decl.id);
+    visitor.preExpVisit(decl);
     (*this)(decl.exp);
+    visitor.postVisit(decl);
 }
 
 template <>
 void TreeTraveler::operator()(FuncDecl &decl) {
-    visitor.preFuncDecl(decl);
+    visitor.preVisit(decl);
     (*this)(decl.type);
+    visitor.preIdVisit(decl);
     (*this)(decl.id);
+    visitor.preParameterListVisit(decl);
     (*this)(decl.parameter_list);
+    visitor.preBlockVisit(decl);
     (*this)(decl.block);
-    visitor.postFuncDecl(decl);
+    visitor.preVisit(decl);
 }
 
 template <>
 void TreeTraveler::operator()(Prog &prog) {
-    this->visitor.progPreDecl(prog);
+    visitor.preVisit(prog);
     for (auto &decl : prog.decls) {
         (*this)(decl);
     }
-    this->visitor.progPostDecl(prog);
+    visitor.postVisit(prog);
 }
 

@@ -15,21 +15,21 @@ private:
 public: 
     SymbolCollectionVisitor() : Visitor() { }
 
-    void progPreDecl(Prog &prog) override {
+    void preVisit(Prog &prog) override {
         std::cout << "symbol collection prog post decl" << std::endl;
     }
 
-    void progPostDecl(Prog &prog) override {
+    void postVisit(Prog &prog) override {
         std::cout << "symbol collection prog post decl" << std::endl;
     }
 
-    void preVarDecl(VarDecl &varDecl) override {
+    void preVisit(VarDecl &varDecl) override {
         Symbol variantSymbol = &varDecl;
         std:unique_ptr<Symbol> ptr(&variantSymbol);
         currentSymbolTable.insert(varDecl.id.id, std::move(ptr));
     }
 
-    void preFuncDecl(FuncDecl &funcDecl) override {
+    void preVisit(FuncDecl &funcDecl) override {
         // Add function to currentFunctionTable
         Symbol variantSymbol = &funcDecl;
         std:unique_ptr<Symbol> ptr(&variantSymbol);
@@ -42,7 +42,7 @@ public:
         //Passing 'newSymbolTable' without '&' would change the object that 'currentSymbolTable' points to instead
     }
 
-    void postFuncDecl(FuncDecl &funcDecl) override {
+    void postVisit(FuncDecl &funcDecl) override {
         // Set current scope to parent scope
         currentSymbolTable = currentSymbolTable.parentScope;
     }
