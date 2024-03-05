@@ -13,160 +13,164 @@ namespace grammar
     namespace ast
     {   
 
+        struct LocationInfo {
+        	std::size_t line, column;
+        public:
+            friend std::ostream& operator<<(std::ostream& os, const LocationInfo &location_info);
+        };
+
         struct Decl;
         struct BinopExp;
         struct Block;
         struct ExpressionPar;
 
 
-        struct Id {
+        struct Id : LocationInfo {
             std::string id;
         public:
-            friend std::ostream& operator<<(std::ostream& os, const grammar::ast::Id &exp);
+            friend std::ostream& operator<<(std::ostream& os, const Id &exp);
         };
 
-        struct PrimitiveType {
+        struct PrimitiveType : LocationInfo {
             std::string type; // "int" or "bool"
         public:
-            friend std::ostream& operator<<(std::ostream& os, const grammar::ast::PrimitiveType &exp); 
+            friend std::ostream& operator<<(std::ostream& os, const PrimitiveType &exp); 
         };
 
-        struct Expression : x3::variant<int, x3::forward_ast<BinopExp>, grammar::ast::Id, bool, x3::forward_ast<ExpressionPar>> {
+        struct Expression : x3::variant<int, x3::forward_ast<BinopExp>, Id, bool, x3::forward_ast<ExpressionPar>>, LocationInfo {
             using base_type::base_type;   
             using base_type::operator=;
         public:
-            friend std::ostream& operator<<(std::ostream& os, const grammar::ast::Expression &exp);
+            friend std::ostream& operator<<(std::ostream& os, const Expression &exp);
         };
 
-        struct ExpressionPar {
+        struct ExpressionPar : LocationInfo {
             Expression exp;
         public:
-            friend std::ostream& operator<<(std::ostream& os, const grammar::ast::ExpressionPar &exp);
+            friend std::ostream& operator<<(std::ostream& os, const ExpressionPar &exp);
         };
 
-        struct BinopExp { 
+        struct BinopExp : LocationInfo { 
             Expression lhs;
             std::string op;
             Expression rhs;
         public: 
-            friend std::ostream& operator<<(std::ostream& os, const grammar::ast::BinopExp &exp);
+            friend std::ostream& operator<<(std::ostream& os, const BinopExp &exp);
         };
 
-        struct PrintStatement {
+        struct PrintStatement : LocationInfo {
             Expression exp;
         public:
-            friend std::ostream& operator<<(std::ostream& os, const grammar::ast::PrintStatement &exp);
+            friend std::ostream& operator<<(std::ostream& os, const PrintStatement &exp);
         };
 
-        struct VarAssign {
+        struct VarAssign : LocationInfo {
             Id id; 
             Expression exp;
         public:
-            friend std::ostream& operator<<(std::ostream& os, const grammar::ast::VarAssign &exp);
+            friend std::ostream& operator<<(std::ostream& os, const VarAssign &exp);
         };
 
-        struct WhileStatement {
+        struct WhileStatement : LocationInfo {
             Expression exp; 
             x3::forward_ast<Block> block;
         public:
-            friend std::ostream& operator<<(std::ostream& os, const grammar::ast::WhileStatement &exp);
+            friend std::ostream& operator<<(std::ostream& os, const WhileStatement &exp);
         };
 
-        struct StatementExpression {
+        struct StatementExpression : LocationInfo {
             Expression exp;
         public:
-            friend std::ostream& operator<<(std::ostream& os, const grammar::ast::StatementExpression &exp);
+            friend std::ostream& operator<<(std::ostream& os, const StatementExpression &exp);
         };
 
-        struct Statement : x3::variant<grammar::ast::VarAssign, grammar::ast::WhileStatement,grammar::ast::StatementExpression, grammar::ast::PrintStatement> {
+        struct Statement : x3::variant<VarAssign, WhileStatement,StatementExpression, PrintStatement>, LocationInfo {
             using base_type::base_type;  
             using base_type::operator=;
         public:
-            friend std::ostream& operator<<(std::ostream& os, const grammar::ast::Statement &exp);
+            friend std::ostream& operator<<(std::ostream& os, const Statement &exp);
         };
 
 
-        struct BlockLine : x3::variant<x3::forward_ast<Decl> , grammar::ast::Statement>  {
+        struct BlockLine : x3::variant<x3::forward_ast<Decl> , Statement>, LocationInfo  {
             using base_type::base_type;   
             using base_type::operator=;
         public:
-            friend std::ostream& operator<<(std::ostream& os, const grammar::ast::BlockLine &exp);
+            friend std::ostream& operator<<(std::ostream& os, const BlockLine &exp);
         };
 
-        struct Block {
+        struct Block : LocationInfo {
             std::vector<BlockLine> block_line;
         public:
-            friend std::ostream& operator<<(std::ostream& os, const grammar::ast::Block &exp);
+            friend std::ostream& operator<<(std::ostream& os, const Block &exp);
         };
 
-        struct Type : x3::variant<grammar::ast::PrimitiveType /*, grammar::ast::ArrayType*/> {
+        struct Type : x3::variant<PrimitiveType /*, ArrayType*/>, LocationInfo {
             using base_type::base_type;   
             using base_type::operator=;
         public:
-            friend std::ostream& operator<<(std::ostream& os, const grammar::ast::Type &exp);
+            friend std::ostream& operator<<(std::ostream& os, const Type &exp);
         };
 
-        struct VarDecl {
+        struct VarDecl : LocationInfo {
             Type type;
             Id id;
             Expression exp;
         public:
-            friend std::ostream& operator<<(std::ostream& os, const grammar::ast::VarDecl &exp);
+            friend std::ostream& operator<<(std::ostream& os, const VarDecl &exp);
         };
 
-        struct Parameter {
+        struct Parameter : LocationInfo {
             Type type;
             Id id; 
         public:
-            friend std::ostream& operator<<(std::ostream& os, const grammar::ast::Parameter &exp);
+            friend std::ostream& operator<<(std::ostream& os, const Parameter &exp);
         };        
 
-        struct ParameterList { 
+        struct ParameterList : LocationInfo { 
             std::vector<Parameter> parameter; 
         public:
-            friend std::ostream& operator<<(std::ostream& os, const grammar::ast::ParameterList &exp);
+            friend std::ostream& operator<<(std::ostream& os, const ParameterList &exp);
         };
          
 
-        struct ArgumentList {
+        struct ArgumentList : LocationInfo {
             std::vector<Expression> arguments;
         };
 
-        struct FunctionCall {
+        struct FunctionCall : LocationInfo {
             Id id; 
             ArgumentList argument_list;
         };
 
-        struct FuncDecl { 
+        struct FuncDecl : LocationInfo { 
             Type type;  
             Id id;  
             ParameterList parameter_list;  
             Block block; 
         public:
-            friend std::ostream& operator<<(std::ostream& os, const grammar::ast::FuncDecl &exp);
+            friend std::ostream& operator<<(std::ostream& os, const FuncDecl &exp);
         };
         
-        struct ArrayType {
+        struct ArrayType : LocationInfo {
             Type type;
         public:
-            friend std::ostream& operator<<(std::ostream& os, const grammar::ast::ArrayType &exp);
+            friend std::ostream& operator<<(std::ostream& os, const ArrayType &exp);
         };
 
 
-        struct Decl : x3::variant<VarDecl, FuncDecl/*, ClassDecl*/> { 
+        struct Decl : x3::variant<VarDecl, FuncDecl/*, ClassDecl*/>, LocationInfo { 
             using base_type::base_type;  
             using base_type::operator=;
         public:
-            friend std::ostream& operator<<(std::ostream& os, const grammar::ast::Decl &exp);
+            friend std::ostream& operator<<(std::ostream& os, const Decl &exp);
         };        
 
-        struct Prog {
+        struct Prog : LocationInfo {
             std::vector<Decl> decls; 
         public:
-            friend std::ostream& operator<<(std::ostream& os, const grammar::ast::Prog& exp);
+            friend std::ostream& operator<<(std::ostream& os, const Prog& exp);
         };
-
-        //using boost::fusion::operator<<;
 
     } // namespace ast
 } // namespace grammar 
