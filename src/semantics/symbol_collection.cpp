@@ -8,7 +8,7 @@
 
 class SymbolCollectionVisitor : public Visitor {
 private:
-    SymbolTable outerSymbolTable = SymbolTable();
+    SymbolTable outerSymbolTable = new SymbolTable();
 
     SymbolTable &currentSymbolTable = outerSymbolTable;
 
@@ -35,8 +35,7 @@ public:
         std:unique_ptr<Symbol> ptr(&variantSymbol);
         currentSymbolTable.insert(funcDecl.id.id, std::move(ptr));
         // Create new scope where parent = currentScope
-        SymbolTable newSymbolTable = SymbolTable();
-        newSymbolTable.parentScope = &currentSymbolTable;
+        SymbolTable newSymbolTable = SymbolTable(&currentSymbolTable);
         // Set current scope to this one
         currentSymbolTable = &newSymbolTable; // this changes what 'currentsymbolTable' points to, not the object itself. 
         //Passing 'newSymbolTable' without '&' would change the object that 'currentSymbolTable' points to instead

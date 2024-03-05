@@ -5,6 +5,16 @@
 #include <boost/fusion/include/adapt_struct.hpp>
 #include <boost/spirit/home/x3/support/ast/variant.hpp>
 #include <vector>
+#include <memory>
+
+class SymbolTable; 
+
+/*class SymbolTableDeleter {
+    public:
+        void operator()(SymbolTable *symTab) {
+            delete symTab;
+        }
+};*/
 
 namespace x3 = boost::spirit::x3;
 
@@ -136,6 +146,7 @@ namespace grammar
             Id id;  
             ParameterList parameter_list;  
             Block block; 
+            std::unique_ptr<SymbolTable> symTab = nullptr;
         public:
             friend std::ostream& operator<<(std::ostream& os, const grammar::ast::FuncDecl &exp);
         };

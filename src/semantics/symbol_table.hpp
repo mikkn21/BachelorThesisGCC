@@ -1,4 +1,3 @@
-
 #ifndef MGRAMMAR_SYMBOL_TABLE_HPP
 #define MGRAMMAR_SYMBOL_TABLE_HPP 
 
@@ -14,8 +13,8 @@ using namespace std;
 
 enum SymbolType {
     IntType,
-    BoolType,
-    ArrayType
+    BoolType
+    //ArrayType
     //Class, future implementation
 };
 
@@ -46,6 +45,10 @@ public:
     SymbolTable();
 
     SymbolTable(SymbolTable *parentScope);
+
+    /*~SymbolTable(){
+        entries.clear();
+    }*/
 
     void insert(string key, std::unique_ptr<Symbol> symbol);
     Symbol *find(string key);
