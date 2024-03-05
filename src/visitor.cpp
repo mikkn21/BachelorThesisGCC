@@ -103,6 +103,13 @@ void TreeTraveler::operator()(VarAssign &varAssign) {
 }
 
 template <>
+void TreeTraveler::operator()(PrintStatement &print) {
+    visitor.preVisit(print);
+    (*this)(print.exp);
+    visitor.postVisit(print);
+}
+
+template <>
 void TreeTraveler::operator()(WhileStatement &whileStatement) {
     visitor.preVisit(whileStatement);
     (*this)(whileStatement.exp);

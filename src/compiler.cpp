@@ -57,7 +57,7 @@ namespace grammar::compiler {
             return obj;
         }
 
-        symbol_collection(obj.ast);
+        symbol_collection(obj->ast);
 
         if (options.stopAfter == StopAfterSymbolCollection) {
             return obj;

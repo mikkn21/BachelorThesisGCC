@@ -64,6 +64,9 @@ public:
     virtual void preParameterListVisit(FuncDecl &decl) { }
     virtual void preBlockVisit(FuncDecl &decl) { }
     virtual void postVisit(FuncDecl &decl) { }
+
+    virtual void preVisit(PrintStatement &print) { }
+    virtual void postVisit(PrintStatement &print) { }
 };
 
 class TreeTraveler : boost::static_visitor<> {
