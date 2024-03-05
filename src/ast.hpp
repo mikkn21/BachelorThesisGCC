@@ -135,6 +135,8 @@ namespace grammar
         };
 
         struct FuncDecl { 
+            FuncDecl();
+            ~FuncDecl();
             Type type;  
             Id id;  
             ParameterList parameter_list;  

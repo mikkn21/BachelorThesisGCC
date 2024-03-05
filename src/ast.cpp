@@ -1,5 +1,6 @@
 #include <iostream>
 #include "ast.hpp"
+#include "semantics/symbol_table.hpp"
 
 namespace {
     struct print_visitor : boost::static_visitor<> {
@@ -20,7 +21,8 @@ namespace grammar
 { 
     namespace ast
     {   
-
+        FuncDecl::FuncDecl() = default;
+        FuncDecl::~FuncDecl() = default;
         
         std::ostream& operator<<(std::ostream& os, const grammar::ast::BinopExp &exp) {
             return os << exp.lhs << " " << exp.op << " " << exp.rhs;
