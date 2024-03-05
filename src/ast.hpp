@@ -9,13 +9,6 @@
 
 class SymbolTable; 
 
-/*class SymbolTableDeleter {
-    public:
-        void operator()(SymbolTable *symTab) {
-            delete symTab;
-        }
-};*/
-
 namespace x3 = boost::spirit::x3;
 
 namespace grammar 

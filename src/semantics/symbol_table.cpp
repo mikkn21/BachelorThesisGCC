@@ -49,9 +49,11 @@ VarSymbol::VarSymbol(VarDecl *varDecl) : varDecl(varDecl) {
     type = convertType(varDecl->type);
 }
 
-SymbolTable::SymbolTable() { }
+SymbolTable::SymbolTable() = default;
 
 SymbolTable::SymbolTable(SymbolTable *parentScope) : parentScope(nullptr) { }
+
+SymbolTable::~SymbolTable() = default;
 
 void SymbolTable::insert(string key, std::unique_ptr<Symbol> symbol) {
     entries.insert({key, std::move(symbol)}); 

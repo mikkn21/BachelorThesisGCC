@@ -46,9 +46,7 @@ public:
 
     SymbolTable(SymbolTable *parentScope);
 
-    /*~SymbolTable(){
-        entries.clear();
-    }*/
+    ~SymbolTable();
 
     void insert(string key, std::unique_ptr<Symbol> symbol);
     Symbol *find(string key);
