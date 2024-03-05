@@ -3,6 +3,7 @@
 
 #include "ast.hpp"
 #include <optional>
+#include <memory>
 #include <string_view>
 
 namespace grammar::compiler {
