@@ -38,7 +38,7 @@ SymbolType convertType(Type type) {
     return boost::apply_visitor(visitor, type);
 }
 
-FuncSymbol::FuncSymbol(FuncDecl *funcDecl) : funcDecl(funcDecl){ 
+FuncSymbol::FuncSymbol(FuncDecl *funcDecl, std::unique_ptr<SymbolTable> scope) : funcDecl(funcDecl), symTab(std::move(scope)){ 
     for (auto i : funcDecl->parameter_list.parameter){
         parameters.push_back(convertType(i.type));
     }

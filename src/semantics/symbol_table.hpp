@@ -18,12 +18,15 @@ enum SymbolType {
     //Class, future implementation
 };
 
+class SymbolTable;
+
 class FuncSymbol{
 public:
-    FuncSymbol(FuncDecl *funcDecl);
+    FuncSymbol(FuncDecl *funcDecl, std::unique_ptr<SymbolTable> symTab);
     std::vector<SymbolType> parameters;
     SymbolType returnType;
     FuncDecl *funcDecl;
+    std::unique_ptr<SymbolTable> symTab;
 };
 
 class VarSymbol {

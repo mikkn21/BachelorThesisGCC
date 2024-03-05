@@ -5,6 +5,7 @@
 #include "symbol_table.hpp"
 #include "symbol_collection.hpp"
 #include <string>
+#include <variant>
 
 class SymbolCollectionVisitor : public Visitor {
 private:
@@ -25,20 +26,25 @@ public:
 
     void preVarDecl(VarDecl &varDecl) override {
         Symbol variantSymbol = &varDecl;
-        std:unique_ptr<Symbol> ptr(&variantSymbol);
+        std::unique_ptr<Symbol> ptr(&variantSymbol);
         currentSymbolTable.insert(varDecl.id.id, std::move(ptr));
     }
 
     void preFuncDecl(FuncDecl &funcDecl) override {
-        // Add function to currentFunctionTable
-        Symbol variantSymbol = &funcDecl;
-        std:unique_ptr<Symbol> ptr(&variantSymbol);
-        currentSymbolTable.insert(funcDecl.id.id, std::move(ptr));
         // Create new scope where parent = currentScope
         SymbolTable newSymbolTable = SymbolTable(&currentSymbolTable);
         // Set current scope to this one
         currentSymbolTable = &newSymbolTable; // this changes what 'currentsymbolTable' points to, not the object itself. 
         //Passing 'newSymbolTable' without '&' would change the object that 'currentSymbolTable' points to instead
+        std::unique_ptr<SymbolTable> symTabPtr(&newSymbolTable);
+        
+        //Symbol *funcSym = new FuncSymbol(&funcDecl, std::move(tempPtr));
+        
+        std::unique_ptr<Symbol> ptr = std::make_unique<Symbol>(FuncSymbol(&funcDecl, std::move(symTabPtr)));
+        //std::unique_ptr<Symbol> symPtr = ptr;
+        // Add function to currentFunctionTable
+        currentSymbolTable.insert(funcDecl.id.id, std::move(ptr));
+        
     }
 
     void postFuncDecl(FuncDecl &funcDecl) override {

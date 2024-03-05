@@ -7,7 +7,8 @@
 #include <vector>
 #include <memory>
 
-class SymbolTable; 
+class FuncSymbol;
+class VarSymbol;
 
 namespace x3 = boost::spirit::x3;
 
@@ -107,6 +108,7 @@ namespace grammar
             Type type;
             Id id;
             Expression exp;
+            VarSymbol *sym = nullptr;
         public:
             friend std::ostream& operator<<(std::ostream& os, const grammar::ast::VarDecl &exp);
         };
@@ -141,7 +143,7 @@ namespace grammar
             Id id;  
             ParameterList parameter_list;  
             Block block; 
-            std::unique_ptr<SymbolTable> symTab = nullptr;
+            FuncSymbol *sym = nullptr;
         public:
             friend std::ostream& operator<<(std::ostream& os, const grammar::ast::FuncDecl &exp);
         };
