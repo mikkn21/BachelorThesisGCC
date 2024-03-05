@@ -63,12 +63,12 @@ namespace grammar {
         const auto id_def = x3::raw[ x3::lexeme[(x3::char_("a-zA-Z_") >> *x3::char_("a-zA-Z_0-9"))]];
         const auto parameter_def = type >> id;
         const auto parameter_list_def = -(parameter % ',');
-        const auto expression_par_def = '(' >> expression > ')';
+        const auto expression_par_def = ('(' >> expression) > ')';
         const auto expression_base = expression_par | id | int_ | bool_;
         const auto expression_def = binop_exp | expression_base;
         const auto binop_exp_def = expression_base >> (operator_parser > expression);
         
-        const auto var_assign_def = id >> '=' >> expression > ";";
+        const auto var_assign_def = (id >> '=' >> expression) > ";";
         const auto while_statement_def = x3::lit("while") > expression > block;
 
         const auto statement_expression_def = expression >> ';';
@@ -85,7 +85,7 @@ namespace grammar {
 
         // Not useable, TODO
         const auto array_type_def = type >> x3::lit("[]");
-        const auto function_call_def = id >> '('>> argument_list > ')';
+        const auto function_call_def = (id >> '('>> argument_list) > ')';
         const auto argument_list_def = -(expression % ',');
 
         BOOST_SPIRIT_DEFINE(
