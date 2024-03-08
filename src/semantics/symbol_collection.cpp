@@ -17,14 +17,6 @@ private:
 public: 
     SymbolCollectionVisitor(SymbolTable &symTab) : Visitor(), currentSymbolTable(symTab) { }
 
-    void preVisit(Prog &prog) override {
-        std::cout << "symbol collection prog post decl" << std::endl;
-    }
-
-    void postVisit(Prog &prog) override {
-        std::cout << "symbol collection prog post decl" << std::endl;
-    }
-
     void preVisit(VarDecl &varDecl) override {
         VarSymbol *variantSymbol = new VarSymbol(&varDecl);
         //currentSymbolTable.insert(varDecl.id.id, variantSymbol);
