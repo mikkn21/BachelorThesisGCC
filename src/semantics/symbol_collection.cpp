@@ -17,21 +17,21 @@ private:
 public: 
     SymbolCollectionVisitor(SymbolTable &symTab) : Visitor(), currentSymbolTable(symTab) { }
 
-    void progPreDecl(Prog &prog) override {
+    void preVisit(Prog &prog) override {
         std::cout << "symbol collection prog post decl" << std::endl;
     }
 
-    void progPostDecl(Prog &prog) override {
+    void postVisit(Prog &prog) override {
         std::cout << "symbol collection prog post decl" << std::endl;
     }
 
-    void preVarDecl(VarDecl &varDecl) override {
+    void preVisit(VarDecl &varDecl) override {
         VarSymbol *variantSymbol = new VarSymbol(&varDecl);
         //currentSymbolTable.insert(varDecl.id.id, variantSymbol);
         currentSymbolTable.entries.emplace(varDecl.id.id, variantSymbol);
     }
 
-    void preFuncDecl(FuncDecl &funcDecl) override {
+    void preVisit(FuncDecl &funcDecl) override {
         // Create new scope where parent = currentScope
         SymbolTable newSymbolTable = new SymbolTable(&currentSymbolTable);
         // Set current scope to this one
@@ -43,7 +43,7 @@ public:
         currentSymbolTable.entries.emplace(funcDecl.id.id, funcSym);
     }
 
-    void postFuncDecl(FuncDecl &funcDecl) override {
+    void postVisit(FuncDecl &funcDecl) override {
         // Set current scope to parent scope
         currentSymbolTable = currentSymbolTable.parentScope;
     }
