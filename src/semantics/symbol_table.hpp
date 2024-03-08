@@ -23,38 +23,33 @@ class SymbolTable;
 
 class Symbol{
 public:
-    virtual ~Symbol() {
-        std::cout << "symbol decon" << std::endl;
-    }
+    virtual ~Symbol() { }
 };
 
 class FuncSymbol : public Symbol{
 public:
     FuncSymbol(FuncDecl *funcDecl, SymbolTable *symTab);
+    ~FuncSymbol() override;
     std::vector<SymbolType> parameters;
     SymbolType returnType;
     SymbolTable *symTab;
-    ~FuncSymbol() override;
 };
 
 class VarSymbol : public Symbol {
 public:
     VarSymbol(VarDecl *varDecl);
-    ~VarSymbol() override {
-        std::cout << "var symbol decon" << std::endl;
-    }
+    ~VarSymbol() override { }
     SymbolType type;
-    VarDecl *varDecl;    
+    VarDecl *varDecl;
 };
 
 // add class symbol and type symbol for aliasing, future implementation
 
 class SymbolTable {
 private:
-    
+    unordered_map<string, Symbol*> entries;
 
 public:
-    unordered_map<string, Symbol*> entries;
 
     SymbolTable *parentScope = nullptr;
 
@@ -64,10 +59,9 @@ public:
 
     ~SymbolTable();
 
-    // void insert(string key, Symbol *symbol);
+    void insert(string key, Symbol* symbol);
+    Symbol *findLocal(string key);
     Symbol *find(string key);
-
-    void print();
 };
 
 #endif
