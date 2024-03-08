@@ -20,29 +20,36 @@ enum SymbolType {
 
 class SymbolTable;
 
-class FuncSymbol{
+class Symbol{
+
+};
+
+class FuncSymbol : public Symbol{
 public:
-    FuncSymbol(FuncDecl *funcDecl, std::unique_ptr<SymbolTable> symTab);
+    FuncSymbol(FuncDecl *funcDecl, SymbolTable *symTab);
+    ~FuncSymbol();
     std::vector<SymbolType> parameters;
     SymbolType returnType;
     FuncDecl *funcDecl;
-    std::unique_ptr<SymbolTable> symTab;
+    SymbolTable *symTab;
 };
 
-class VarSymbol {
+class VarSymbol : public Symbol {
 public:
     VarSymbol(VarDecl *varDecl);
     SymbolType type;
     VarDecl *varDecl;    
 };
 
-using Symbol = std::variant<FuncSymbol, VarSymbol>; // add class symbol and type symbol for aliasing, future implementation
+// add class symbol and type symbol for aliasing, future implementation
 
 class SymbolTable {
 private:
-    unordered_map<string, std::unique_ptr<Symbol>> entries;
+    
 
 public:
+    unordered_map<string, Symbol*> entries;
+
     SymbolTable *parentScope = nullptr;
 
     SymbolTable();
@@ -51,7 +58,7 @@ public:
 
     ~SymbolTable();
 
-    void insert(string key, std::unique_ptr<Symbol> symbol);
+    void insert(string key, Symbol *symbol);
     Symbol *find(string key);
 
     void print();

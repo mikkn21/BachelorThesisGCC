@@ -8,6 +8,7 @@
 #include "ast.hpp"
 #include "parser/parser.hpp"
 #include "semantics/symbol_collection.hpp"
+#include "semantics/symbol_table.hpp"
 
 
 // NOTE: Add default values for ALL the compiler options
@@ -61,8 +62,9 @@ namespace grammar::compiler {
             return obj;
         } // NOTE: add the other stopAfter options at some point
 
-        symbol_collection(obj.ast);
-
+        SymbolTable *outerTable = new SymbolTable();
+        symbol_collection(obj.ast, *outerTable);
+        delete(outerTable);
         return obj;
     }
 

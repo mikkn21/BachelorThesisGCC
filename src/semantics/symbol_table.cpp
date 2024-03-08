@@ -38,7 +38,7 @@ SymbolType convertType(Type type) {
     return boost::apply_visitor(visitor, type);
 }
 
-FuncSymbol::FuncSymbol(FuncDecl *funcDecl, std::unique_ptr<SymbolTable> scope) : funcDecl(funcDecl), symTab(std::move(scope)){ 
+FuncSymbol::FuncSymbol(FuncDecl *funcDecl, SymbolTable *scope) : funcDecl(funcDecl), symTab(scope){ 
     for (auto i : funcDecl->parameter_list.parameter){
         parameters.push_back(convertType(i.type));
     }
@@ -49,15 +49,24 @@ VarSymbol::VarSymbol(VarDecl *varDecl) : varDecl(varDecl) {
     type = convertType(varDecl->type);
 }
 
+FuncSymbol::~FuncSymbol(){
+    delete(symTab);
+}
+
 SymbolTable::SymbolTable() = default;
 
 SymbolTable::SymbolTable(SymbolTable *parentScope) : parentScope(nullptr) { }
 
-SymbolTable::~SymbolTable() = default;
-
-void SymbolTable::insert(string key, std::unique_ptr<Symbol> symbol) {
-    entries.insert({key, std::move(symbol)}); 
+SymbolTable::~SymbolTable(){
+    for (auto i : entries){
+        delete(i.second);
+    }
+    entries.clear();
 }
+
+/*void SymbolTable::insert(string key, Symbol *symbol) {
+    entries.emplace(key, std::make_unique<Symbol>(symbol)); 
+}*/
 
 Symbol *SymbolTable::find(string key) {
     auto x = entries.find(key);
@@ -65,7 +74,7 @@ Symbol *SymbolTable::find(string key) {
         return nullptr;
     }
     else {
-        return x->second.get();
+        return x->second;
     }
 }
 
@@ -77,10 +86,10 @@ std::ostream& operator<<(std::ostream& os, VarSymbol symbol){
     return os << " var, type: " << symbol.type;
 }
 
-void SymbolTable::print() {
+/*void SymbolTable::print() {
     for (auto i = entries.begin() ; i != entries.end() ; i++){
         std::cout << i->first << "\t"; 
         std::visit(print_visitor(std::cout), *(i->second));
         std::cout << std::endl;
     }
-}
+}*/

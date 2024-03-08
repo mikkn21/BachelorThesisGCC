@@ -6,15 +6,16 @@
 #include "symbol_collection.hpp"
 #include <string>
 #include <variant>
+#include <unordered_map>
 
 class SymbolCollectionVisitor : public Visitor {
 private:
-    SymbolTable outerSymbolTable = new SymbolTable();
+    //SymbolTable const * outerSymbolTable = new SymbolTable();
 
-    SymbolTable &currentSymbolTable = outerSymbolTable;
+    SymbolTable &currentSymbolTable;
 
 public: 
-    SymbolCollectionVisitor() : Visitor() { }
+    SymbolCollectionVisitor(SymbolTable &symTab) : Visitor(), currentSymbolTable(symTab) { }
 
     void progPreDecl(Prog &prog) override {
         std::cout << "symbol collection prog post decl" << std::endl;
@@ -25,26 +26,21 @@ public:
     }
 
     void preVarDecl(VarDecl &varDecl) override {
-        Symbol variantSymbol = &varDecl;
-        std::unique_ptr<Symbol> ptr(&variantSymbol);
-        currentSymbolTable.insert(varDecl.id.id, std::move(ptr));
+        VarSymbol *variantSymbol = new VarSymbol(&varDecl);
+        //currentSymbolTable.insert(varDecl.id.id, variantSymbol);
+        currentSymbolTable.entries.emplace(varDecl.id.id, variantSymbol);
     }
 
     void preFuncDecl(FuncDecl &funcDecl) override {
         // Create new scope where parent = currentScope
-        SymbolTable newSymbolTable = SymbolTable(&currentSymbolTable);
+        SymbolTable newSymbolTable = new SymbolTable(&currentSymbolTable);
         // Set current scope to this one
         currentSymbolTable = &newSymbolTable; // this changes what 'currentsymbolTable' points to, not the object itself. 
         //Passing 'newSymbolTable' without '&' would change the object that 'currentSymbolTable' points to instead
-        std::unique_ptr<SymbolTable> symTabPtr(&newSymbolTable);
         
-        //Symbol *funcSym = new FuncSymbol(&funcDecl, std::move(tempPtr));
-        
-        std::unique_ptr<Symbol> ptr = std::make_unique<Symbol>(FuncSymbol(&funcDecl, std::move(symTabPtr)));
-        //std::unique_ptr<Symbol> symPtr = ptr;
+        FuncSymbol *funcSym = new FuncSymbol(&funcDecl, &newSymbolTable);
         // Add function to currentFunctionTable
-        currentSymbolTable.insert(funcDecl.id.id, std::move(ptr));
-        
+        currentSymbolTable.entries.emplace(funcDecl.id.id, funcSym);
     }
 
     void postFuncDecl(FuncDecl &funcDecl) override {
@@ -54,8 +50,8 @@ public:
 
 };
 
-Prog symbol_collection(Prog &prog) {
-    auto visitor = SymbolCollectionVisitor();
+Prog symbol_collection(Prog &prog, SymbolTable &symTab) {
+    auto visitor = SymbolCollectionVisitor(symTab);
     auto traveler = TreeTraveler(visitor);
     traveler(prog);
     return prog;
