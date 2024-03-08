@@ -2,18 +2,28 @@
 #define MGRAMMAR_COMPILER_HPP 
 
 #include "ast.hpp"
+#include "semantics/symbol_table.hpp"
 #include <optional>
 #include <memory>
 #include <string_view>
 
 namespace grammar::compiler {
 
+using namespace std;
 
 struct CompilerReturnObj {
+private:
+     unique_ptr<SymbolTable> globalScope;
+
+public:
     ast::Prog ast; 
     // Other options not implemented 
     // IR 
     // Essembly
+
+    void setGlobalScope(unique_ptr<SymbolTable> globalScope) {
+        this->globalScope = std::move(globalScope);
+    }
 };
 
 enum StopAfter {

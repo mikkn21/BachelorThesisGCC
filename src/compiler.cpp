@@ -44,11 +44,11 @@ namespace grammar::compiler {
     std::unique_ptr<CompilerReturnObj> compileFromString(std::string_view input, const CompilerOptions &options) {
         if (options.printInput) {
             std::cout << "Input to be parsed: \n" << input;
-        }   
- 
+        }
+
         auto obj = std::make_unique<CompilerReturnObj>();
         obj->ast = parser::parse(input);
-    
+
         // print ast tree if option is enabled
         if (options.printAst) {
             std::cout << "AST:\n" << obj->ast;
@@ -58,9 +58,9 @@ namespace grammar::compiler {
             return obj;
         }
 
-        SymbolTable *outerTable = new SymbolTable();
-        symbol_collection(obj->ast, outerTable);
-        delete(outerTable);
+        unique_ptr<SymbolTable> globalScope = make_unique<SymbolTable>();
+        symbol_collection(obj->ast, globalScope.get());
+        obj->setGlobalScope(std::move(globalScope));
 
         if (options.stopAfter == StopAfterSymbolCollection) {
             return obj;
