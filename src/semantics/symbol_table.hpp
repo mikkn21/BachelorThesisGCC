@@ -8,6 +8,7 @@
 #include <variant>
 #include "../ast.hpp"
 #include <memory>
+#include <iostream>
 
 using namespace std;
 
@@ -21,22 +22,27 @@ enum SymbolType {
 class SymbolTable;
 
 class Symbol{
-
+public:
+    virtual ~Symbol() {
+        std::cout << "symbol decon" << std::endl;
+    }
 };
 
 class FuncSymbol : public Symbol{
 public:
     FuncSymbol(FuncDecl *funcDecl, SymbolTable *symTab);
-    ~FuncSymbol();
     std::vector<SymbolType> parameters;
     SymbolType returnType;
-    FuncDecl *funcDecl;
     SymbolTable *symTab;
+    ~FuncSymbol() override;
 };
 
 class VarSymbol : public Symbol {
 public:
     VarSymbol(VarDecl *varDecl);
+    ~VarSymbol() override {
+        std::cout << "var symbol decon" << std::endl;
+    }
     SymbolType type;
     VarDecl *varDecl;    
 };
@@ -58,7 +64,7 @@ public:
 
     ~SymbolTable();
 
-    void insert(string key, Symbol *symbol);
+    // void insert(string key, Symbol *symbol);
     Symbol *find(string key);
 
     void print();

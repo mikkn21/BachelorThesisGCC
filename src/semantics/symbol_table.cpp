@@ -38,7 +38,7 @@ SymbolType convertType(Type type) {
     return boost::apply_visitor(visitor, type);
 }
 
-FuncSymbol::FuncSymbol(FuncDecl *funcDecl, SymbolTable *scope) : funcDecl(funcDecl), symTab(scope){ 
+FuncSymbol::FuncSymbol(FuncDecl *funcDecl, SymbolTable *scope) : symTab(scope){ 
     for (auto i : funcDecl->parameter_list.parameter){
         parameters.push_back(convertType(i.type));
     }
@@ -49,19 +49,26 @@ VarSymbol::VarSymbol(VarDecl *varDecl) : varDecl(varDecl) {
     type = convertType(varDecl->type);
 }
 
-FuncSymbol::~FuncSymbol(){
+FuncSymbol::~FuncSymbol() {
+    std::cout << "func symbol decon" << std::endl;
     delete(symTab);
 }
 
-SymbolTable::SymbolTable() = default;
+SymbolTable::SymbolTable() {
+    std::cout << "symbol table construct" << std::endl;
 
-SymbolTable::SymbolTable(SymbolTable *parentScope) : parentScope(nullptr) { }
+}
+
+SymbolTable::SymbolTable(SymbolTable *parentScope) : parentScope(parentScope) {
+    std::cout << "symbol table construct" << std::endl;
+}
 
 SymbolTable::~SymbolTable(){
-    for (auto i : entries){
+    std::cout << "symbol table deconstruct" << std::endl;
+    std::cout << entries.size() << std::endl;
+    for (const auto &i : entries){
         delete(i.second);
     }
-    entries.clear();
 }
 
 /*void SymbolTable::insert(string key, Symbol *symbol) {

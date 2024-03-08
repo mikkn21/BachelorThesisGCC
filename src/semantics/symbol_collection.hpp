@@ -5,6 +5,6 @@
 #include "../ast.hpp"
 #include "symbol_table.hpp"
 
-Prog symbol_collection(Prog &prog, SymbolTable &symTab);
+void symbol_collection(Prog &prog, SymbolTable *symTab);
 
 #endif
