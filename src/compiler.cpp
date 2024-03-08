@@ -59,7 +59,7 @@ namespace grammar::compiler {
         }
 
         SymbolTable *outerTable = new SymbolTable();
-        symbol_collection(obj.ast, outerTable);
+        symbol_collection(obj->ast, outerTable);
         delete(outerTable);
 
         if (options.stopAfter == StopAfterSymbolCollection) {
