@@ -7,8 +7,9 @@
 #include "compiler.hpp"
 #include "ast.hpp"
 #include "parser/parser.hpp"
-#include "semantics/symbol_collection.hpp"
 #include "type_checking/typeChecking.hpp"
+#include "semantics/symbol_collection.hpp"
+
 
 
 namespace grammar::compiler {

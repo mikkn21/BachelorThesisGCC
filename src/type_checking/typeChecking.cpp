@@ -4,11 +4,9 @@
 #include <stack>
 #include <string>
 
-namespace grammar {
-
 using namespace std;
 
-class TypeChecker : Visitor {
+class TypeChecker : public Visitor {
 
 
     stack<string> typeStack = stack<string>(); 
@@ -90,15 +88,6 @@ class TypeChecker : Visitor {
         }
     }
 
-
-    Prog typeChecker(Prog &prog) {
-        auto visitor = TypeChecker();
-        auto traveler = TreeTraveler(visitor);
-        traveler(prog);
-        return prog;
-    }
-
-
 private:
 
     // template<typename T>
@@ -116,10 +105,15 @@ private:
 }; 
 
 
+Prog typeChecker(Prog &prog) {
+    auto visitor = TypeChecker();
+    auto traveler = TreeTraveler(visitor);
+    traveler(prog);
+    return prog;
+}
 
 
 
-} // namespace grammar
 
 
 
