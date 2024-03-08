@@ -173,7 +173,7 @@ void TreeTraveler::operator()(FuncDecl &decl) {
     (*this)(decl.parameter_list);
     visitor.preBlockVisit(decl);
     (*this)(decl.block);
-    visitor.preVisit(decl);
+    visitor.postVisit(decl);
 }
 
 template <>
