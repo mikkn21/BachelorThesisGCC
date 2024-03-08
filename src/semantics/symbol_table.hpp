@@ -1,4 +1,3 @@
-
 #ifndef MGRAMMAR_SYMBOL_TABLE_HPP
 #define MGRAMMAR_SYMBOL_TABLE_HPP 
 
@@ -9,48 +8,60 @@
 #include <variant>
 #include "../ast.hpp"
 #include <memory>
+#include <iostream>
 
 using namespace std;
 
 enum SymbolType {
     IntType,
-    BoolType,
-    ArrayType
+    BoolType
+    //ArrayType
     //Class, future implementation
 };
 
-class FuncSymbol{
+class SymbolTable;
+
+class Symbol{
 public:
-    FuncSymbol(FuncDecl *funcDecl);
+    virtual ~Symbol() { }
+};
+
+class FuncSymbol : public Symbol{
+public:
+    FuncSymbol(FuncDecl *funcDecl, SymbolTable *symTab);
+    ~FuncSymbol() override;
     std::vector<SymbolType> parameters;
     SymbolType returnType;
-    FuncDecl *funcDecl;
+    SymbolTable *symTab;
 };
 
-class VarSymbol {
+class VarSymbol : public Symbol {
 public:
     VarSymbol(VarDecl *varDecl);
+    ~VarSymbol() override { }
     SymbolType type;
-    VarDecl *varDecl;    
+    VarDecl *varDecl;
 };
 
-using Symbol = std::variant<FuncSymbol, VarSymbol>; // add class symbol and type symbol for aliasing, future implementation
+// add class symbol and type symbol for aliasing, future implementation
 
 class SymbolTable {
 private:
-    unordered_map<string, std::unique_ptr<Symbol>> entries;
+    unordered_map<string, Symbol*> entries;
 
 public:
+
     SymbolTable *parentScope = nullptr;
 
     SymbolTable();
 
     SymbolTable(SymbolTable *parentScope);
 
-    void insert(string key, std::unique_ptr<Symbol> symbol);
-    Symbol *find(string key);
+    ~SymbolTable();
 
-    void print();
+    void insert(string key, Symbol* symbol);
+    Symbol *findLocal(string key);
+    Symbol *find(string key);
 };
 
 #endif

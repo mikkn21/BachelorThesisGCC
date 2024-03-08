@@ -5,6 +5,10 @@
 #include <boost/fusion/include/adapt_struct.hpp>
 #include <boost/spirit/home/x3/support/ast/variant.hpp>
 #include <vector>
+#include <memory>
+
+class FuncSymbol;
+class VarSymbol;
 
 namespace x3 = boost::spirit::x3;
 
@@ -115,6 +119,7 @@ namespace grammar
             Type type;
             Id id;
             Expression exp;
+            VarSymbol *sym = nullptr;
         public:
             friend std::ostream& operator<<(std::ostream& os, const VarDecl &exp);
         };
@@ -143,10 +148,14 @@ namespace grammar
         };
 
         struct FuncDecl : LocationInfo { 
+            FuncDecl();
+            ~FuncDecl();
+
             Type type;  
             Id id;  
             ParameterList parameter_list;  
             Block block; 
+            FuncSymbol *sym = nullptr;
         public:
             friend std::ostream& operator<<(std::ostream& os, const FuncDecl &exp);
         };
