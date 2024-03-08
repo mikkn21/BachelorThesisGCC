@@ -3,7 +3,7 @@
 #include <string_view>
 #include <fstream>
 #include <sstream>
-
+#include <memory>
 #include "compiler.hpp"
 #include "ast.hpp"
 #include "parser/parser.hpp"
@@ -33,38 +33,39 @@ namespace grammar::compiler {
     }
 
     // This is compiling from a filename
-    CompilerReturnObj compileFromFile(std::string_view input, const CompilerOptions &options) {
+    std::unique_ptr<CompilerReturnObj> compileFromFile(std::string_view input, const CompilerOptions &options) {
         std::string content = getFileContent(input);
-        CompilerReturnObj obj = compileFromString(std::string_view(content), options);
-
-        if(options.stopAfter == StopAfterParser ) {
-            return obj;
-        } // NOTE: add the other stopAfter options at some point
+        auto obj = compileFromString(std::string_view(content), options);
 
         return obj;
     }
 
     // compile from a string
-    CompilerReturnObj compileFromString(std::string_view input, const CompilerOptions &options) {
+    std::unique_ptr<CompilerReturnObj> compileFromString(std::string_view input, const CompilerOptions &options) {
         if (options.printInput) {
             std::cout << "Input to be parsed: \n" << input;
         }   
-
-        CompilerReturnObj obj; 
-        obj.ast = parser::parse(input);
-      
+ 
+        auto obj = std::make_unique<CompilerReturnObj>();
+        obj->ast = parser::parse(input);
+    
         // print ast tree if option is enabled
         if (options.printAst) {
-            std::cout << "AST:\n" << obj.ast;
+            std::cout << "AST:\n" << obj->ast;
         }
 
         if (options.stopAfter == StopAfterParser ) {
             return obj;
-        } // NOTE: add the other stopAfter options at some point
+        }
 
         SymbolTable *outerTable = new SymbolTable();
         symbol_collection(obj.ast, outerTable);
         delete(outerTable);
+
+        if (options.stopAfter == StopAfterSymbolCollection) {
+            return obj;
+        }
+
         return obj;
     }
 
