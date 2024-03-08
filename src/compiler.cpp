@@ -8,9 +8,9 @@
 #include "ast.hpp"
 #include "parser/parser.hpp"
 #include "semantics/symbol_collection.hpp"
+#include "type_checking/typeChecking.hpp"
 
 
-// NOTE: Add default values for ALL the compiler options
 namespace grammar::compiler {
     std::string getFileContent(std::string_view input) {
         if(input.empty()) {
@@ -47,7 +47,7 @@ namespace grammar::compiler {
  
         auto obj = std::make_unique<CompilerReturnObj>();
         obj->ast = parser::parse(input);
-    
+        
         // print ast tree if option is enabled
         if (options.printAst) {
             std::cout << "AST:\n" << obj->ast;
@@ -57,10 +57,17 @@ namespace grammar::compiler {
             return obj;
         }
 
-        symbol_collection(obj->ast);
+        obj->ast = symbol_collection(obj->ast);
 
-        if (options.stopAfter == StopAfterSymbolCollection) {
-            return obj;
+        if (options.stopAfter == StopAfterSymbolCollection ) {
+             return obj;
+        }
+
+
+        obj->ast = typeChecker(obj->ast);
+
+        if (options.stopAfter == StopAfterTypeCheck ) {
+             return obj;
         }
 
         return obj;

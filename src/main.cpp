@@ -10,7 +10,6 @@ namespace po = boost::program_options;
 
 int main(int argc, char* argv[]) {
     CompilerOptions options = CompilerOptions();
-
     try {
         po::options_description desc("Compiler Options");
         desc.add_options()
@@ -18,6 +17,7 @@ int main(int argc, char* argv[]) {
             ("help,h", "Print this help message") // help is triggered by --help or -h 
             ("parse-only,P", po::bool_switch(), "Stop after parsing") 
             ("symbol-collection-only,S", po::bool_switch(), "Stop after symbol collection") 
+            ("type-check-only,T", po::bool_switch(), "Stop after type checking") 
             ("print-ast,p", po::bool_switch(), "Print the generated AST")
             ("print-input,i", po::bool_switch(), "Print the input before parsing")
             ("input-file", po::value<string>(), "Input file to compile"); // this is to necessary
@@ -40,6 +40,9 @@ int main(int argc, char* argv[]) {
         }
         if (vm["symbol-collection-only"].as<bool>()) { 
             options.stopAfter = StopAfterSymbolCollection;
+        }
+        if (vm["type-check-only"].as<bool>()) { 
+            options.stopAfter = StopAfterTypeCheck;
         }
         if (vm["print-ast"].as<bool>()) {
             options.printAst = true;

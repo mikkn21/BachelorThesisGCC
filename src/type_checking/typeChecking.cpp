@@ -1,5 +1,6 @@
 #include "typeChecking.hpp"
 #include "../visitor.hpp"
+#include <cassert>
 #include <stack>
 #include <string>
 
@@ -7,31 +8,58 @@ namespace grammar {
 
 using namespace std;
 
-class typeChecker : Visitor {
+class TypeChecker : Visitor {
 
 
     stack<string> typeStack = stack<string>(); 
 
-    void preVisit(VarDecl &vardecl) override {
-       clear(typeStack); 
+
+
+    void postVisit(Prog &prog) override {
+        // Make sure the stack is empty at the end
+        assert(typeStack.size() == 0);
+    }
+
+    void postVisit(StatementExpression &exp) override {
+        // The type of the expression is just yeeted.
+        typeStack.pop();
+    }
+
+    void postVisit(VarAssign &varassign) override {
+        // id 
+        auto t1 = pop(typeStack);
+        // exp resault
+        auto t2 = pop(typeStack);
+
+        if (t1 != t2) {
+             throw TypeCheckError("Variable type do not match type of evaluated expression");
+        }
     }
 
 
-    void postVisit(VarDecl &vardecl) override {
-                 
+    void postVisit(VarDecl &vardecl) override {  
+        // id  
         auto t1 = pop(typeStack);
+        // exp resault 
         auto t2 = pop(typeStack);
 
-        if ( t2 != t1) {
-            throw new TypeCheckError("Type does not match expression");
+        if (t2 != t1) {
+            throw TypeCheckError("Type does not match expression");
         }
-
-
     } 
 
-    void preVisit(PrimitiveType &primtype) override {
+    void preBlockVisit(WhileStatement &whileStatement) override {
+        // exp
+        auto t1 = pop(typeStack);
+
+        if (t1 != "bool") {
+            throw TypeCheckError("Expression in while statement is not a bool");
+        }
+    }
+
+    void postVisit(Id &id) override {
         // Change to use the symbolTable instead
-        typeStack.push(primtype.type);
+        // Push the type of the id to the stack.
     }
 
 
@@ -44,32 +72,47 @@ class typeChecker : Visitor {
     }
 
     void postVisit(BinopExp &binop) override  {
+        // exp resault
         auto t1 = pop(typeStack);
+        // exp resault
         auto t2 = pop(typeStack);
         
-        if ( t2 != t1) {
-            throw new TypeCheckError("Type of lefthand side does not match Type of righthand side");
+        if (t2 != t1) {
+            throw TypeCheckError("Type of lefthand side does not match Type of righthand side");
         }
-    
-        typeStack.push(t1);
+
+        auto const op = binop.op;
+        if (op == "==" || op == "!=" || op == "<=" || op == ">=" ||
+        op == "<"  || op == ">"  || op == "&"  || op == "|") {
+            typeStack.push("bool");
+        } else {
+            typeStack.push(t1);
+        }
     }
+
+
+    Prog typeChecker(Prog &prog) {
+        auto visitor = TypeChecker();
+        auto traveler = TreeTraveler(visitor);
+        traveler(prog);
+        return prog;
+    }
+
 
 private:
 
-    template<typename T>
-    void clear(stack<T> myStack) {
-        stack<string>().swap(myStack);
-    }
+    // template<typename T>
+    // void clear(stack<T>& myStack) {
+    //     myStack = stack<T>(); 
+    // }
    
+
     template<typename T>
-    T pop(stack<T> myStack) {
-        auto t1 = myStack.top(); 
+    T pop(stack<T>& myStack) {
+        T topElement = std::move(myStack.top()); 
         myStack.pop();
-        return t1;
-
+        return topElement;
     } 
-
-
 }; 
 
 

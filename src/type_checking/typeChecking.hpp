@@ -2,13 +2,13 @@
 #define TYPE_CHECK_ERROR
 
 #include "../error/base_error.hpp"
+#include "../ast.hpp"
 
     class TypeCheckError: public BaseError {
     public:
         using BaseError::BaseError;
     };
-    
-    template<typename type>
-    void typeCheckHelper(type);
+
+    Prog typeChecker(Prog &prog);
 
 #endif //TYPE_CHECK_ERROR 

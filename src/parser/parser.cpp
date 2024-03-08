@@ -4,6 +4,8 @@
 #include "../ast.hpp"
 #include "parser.hpp"
 
+
+
 using namespace std;
 
 namespace grammar {
@@ -145,7 +147,8 @@ namespace grammar {
                 if(!r || iter !=  PosIter(src.end())) {
                     throw SyntaxError(makeError() + "\nEnd of x3 error.");
                 }
-		        return ast;
+		        // return ast;
+                return ast;
 
             }catch(const x3::expectation_failure<PosIter> &e) {
 	            iter = e.where();
