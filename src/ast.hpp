@@ -1,6 +1,7 @@
 #ifndef MGRAMMAR_AST_HPP
 #define MGRAMMAR_AST_HPP 
 
+// #include "semantics/symbol_table.hpp" // this breaks everything
 #include <boost/fusion/include/io.hpp>
 #include <boost/fusion/include/adapt_struct.hpp>
 #include <boost/spirit/home/x3/support/ast/variant.hpp>
@@ -31,6 +32,7 @@ namespace grammar
 
         struct Id : LocationInfo {
             std::string id;
+            // SymbolTable *sym = nullptr;
         public:
             friend std::ostream& operator<<(std::ostream& os, const Id &exp);
         };
