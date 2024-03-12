@@ -5,45 +5,39 @@
 #include "symbol_table.hpp"
 #include "symbol_collection.hpp"
 #include <string>
+#include <variant>
+#include <unordered_map>
 
 class SymbolCollectionVisitor : public Visitor {
 private:
-    SymbolTable outerSymbolTable = SymbolTable();
-
-    SymbolTable &currentSymbolTable = outerSymbolTable;
+    SymbolTable *currentSymbolTable; // Has to be a pointer, not a reference!!!
 
 public: 
-    SymbolCollectionVisitor() : Visitor() { }
+    SymbolCollectionVisitor(SymbolTable *symTab) : Visitor(), currentSymbolTable(symTab) { }
 
     void preVisit(VarDecl &varDecl) override {
-        Symbol variantSymbol = &varDecl;
-        std::unique_ptr<Symbol> ptr(&variantSymbol);
-        currentSymbolTable.insert(varDecl.id.id, std::move(ptr));
+        VarSymbol *variantSymbol = new VarSymbol(&varDecl);
+        currentSymbolTable->insert(varDecl.id.id, variantSymbol);
     }
 
     void preVisit(FuncDecl &funcDecl) override {
-        // Add function to currentFunctionTable
-        std::unique_ptr<Symbol> ptr = std::make_unique<Symbol>(&funcDecl);
-        currentSymbolTable.insert(funcDecl.id.id, std::move(ptr));
-        // Create new scope where parent = currentScope
-        SymbolTable newSymbolTable = SymbolTable();
-        newSymbolTable.parentScope = &currentSymbolTable;
-        // Set current scope to this one
-        currentSymbolTable = &newSymbolTable; // this changes what 'currentsymbolTable' points to, not the object itself. 
-        //Passing 'newSymbolTable' without '&' would change the object that 'currentSymbolTable' points to instead
+        SymbolTable *newSymbolTable = new SymbolTable(currentSymbolTable);
+        FuncSymbol *funcSymbol = new FuncSymbol(&funcDecl, newSymbolTable);
+
+        currentSymbolTable->insert(funcDecl.id.id, funcSymbol);
+        funcDecl.sym = funcSymbol;
+        currentSymbolTable = newSymbolTable; // Note that no object is changed, only pointers.
     }
 
     void postVisit(FuncDecl &funcDecl) override {
-        // Set current scope to parent scope
-        currentSymbolTable = currentSymbolTable.parentScope;
+        currentSymbolTable = currentSymbolTable->parentScope;
     }
 
 };
 
-Prog symbol_collection(Prog &prog) {
-    auto visitor = SymbolCollectionVisitor();
+void symbol_collection(Prog &prog, SymbolTable *symTab) {
+    auto visitor = SymbolCollectionVisitor(symTab);
     auto traveler = TreeTraveler(visitor);
     traveler(prog);
-    return prog;
 }
 

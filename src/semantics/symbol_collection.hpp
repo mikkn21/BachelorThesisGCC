@@ -3,7 +3,8 @@
 #define MGRAMMAR_SYMBOL_COLLECTION_HPP 
 
 #include "../ast.hpp"
+#include "symbol_table.hpp"
 
-Prog symbol_collection(Prog &prog);
+void symbol_collection(Prog &prog, SymbolTable *symTab);
 
 #endif

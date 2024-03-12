@@ -9,6 +9,7 @@
 #include "parser/parser.hpp"
 #include "type_checking/typeChecking.hpp"
 #include "semantics/symbol_collection.hpp"
+#include "semantics/symbol_table.hpp"
 
 
 
@@ -44,8 +45,8 @@ namespace grammar::compiler {
     std::unique_ptr<CompilerReturnObj> compileFromString(std::string_view input, const CompilerOptions &options) {
         if (options.printInput) {
             std::cout << "Input to be parsed: \n" << input;
-        }   
- 
+        }
+
         auto obj = std::make_unique<CompilerReturnObj>();
         obj->ast = parser::parse(input);
         
@@ -58,7 +59,9 @@ namespace grammar::compiler {
             return obj;
         }
 
-        obj->ast = symbol_collection(obj->ast);
+        unique_ptr<SymbolTable> globalScope = make_unique<SymbolTable>();
+        symbol_collection(obj->ast, globalScope.get());
+        obj->setGlobalScope(std::move(globalScope));
 
         if (options.stopAfter == StopAfterSymbolCollection ) {
              return obj;

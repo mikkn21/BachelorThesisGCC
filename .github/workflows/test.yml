@@ -28,4 +28,6 @@ jobs:
         make -j 2
 
     - name: Run Tests with CTest
-      run: ctest --output-on-failure
+      run: |
+        cd build
+        ctest --output-on-failure

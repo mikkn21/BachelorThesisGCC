@@ -9,6 +9,8 @@
 #include <memory>
 #include <iostream>
 
+using namespace std;
+
 struct print_visitor {
     std::ostream& os;
     print_visitor(std::ostream& os) : os(os) {}
@@ -28,7 +30,7 @@ struct TypeConverterVisitor : boost::static_visitor<SymbolType> {
         else if (type == "bool"){
             return BoolType;
         }
-        
+
         throw SemanticsError("Unknown type");
     }
 };
@@ -38,7 +40,7 @@ SymbolType convertType(Type type) {
     return boost::apply_visitor(visitor, type);
 }
 
-FuncSymbol::FuncSymbol(FuncDecl *funcDecl) : funcDecl(funcDecl){ 
+FuncSymbol::FuncSymbol(FuncDecl *funcDecl, SymbolTable *scope) : symTab(scope){ 
     for (auto i : funcDecl->parameter_list.parameter){
         parameters.push_back(convertType(i.type));
     }
@@ -49,36 +51,45 @@ VarSymbol::VarSymbol(VarDecl *varDecl) : varDecl(varDecl) {
     type = convertType(varDecl->type);
 }
 
+FuncSymbol::~FuncSymbol() {
+    delete(symTab);
+}
+
 SymbolTable::SymbolTable() { }
 
 SymbolTable::SymbolTable(SymbolTable *parentScope) : parentScope(parentScope) { }
 
-void SymbolTable::insert(string key, std::unique_ptr<Symbol> symbol) {
-    entries.insert({key, std::move(symbol)}); 
+SymbolTable::~SymbolTable(){
+    for (const auto &i : entries){
+        delete(i.second);
+    }
 }
 
-Symbol *SymbolTable::find(string key) {
+void SymbolTable::insert(string key, Symbol *symbol) {
+    entries.emplace(key, symbol); 
+}
+
+Symbol *SymbolTable::findLocal(string key) {
     auto x = entries.find(key);
     if (x == entries.end()) {
         return nullptr;
     }
     else {
-        return x->second.get();
+        return x->second;
     }
 }
 
-std::ostream& operator<<(std::ostream& os, FuncSymbol symbol){
-    return os << " func, returntype: " << symbol.returnType;
-}
-
-std::ostream& operator<<(std::ostream& os, VarSymbol symbol){
-    return os << " var, type: " << symbol.type;
-}
-
-void SymbolTable::print() {
-    for (auto i = entries.begin() ; i != entries.end() ; i++){
-        std::cout << i->first << "\t"; 
-        std::visit(print_visitor(std::cout), *(i->second));
-        std::cout << std::endl;
+Symbol *SymbolTable::find(string key) {
+    auto x = entries.find(key);
+    if (x == entries.end()) {
+        if (parentScope == nullptr) {
+            return nullptr;
+        } else {
+            return parentScope->find(key);
+        }
+    }
+    else {
+        return x->second;
     }
 }
+

@@ -28,13 +28,13 @@ set(LIB giga_lib)
 set(SRCS_NOT_MAIN ${SRCS})
 list(FILTER SRCS_NOT_MAIN EXCLUDE REGEX "main\\.cpp$")
 add_library(${LIB} STATIC ${SRCS_NOT_MAIN})
-target_compile_options(${LIB} PRIVATE -Wno-unused-parameter -Wno-unneeded-internal-declaration)
+target_compile_options(${LIB} PRIVATE -Wno-unused-parameter -Wno-unneeded-internal-declaration -Wunused-label)
 
 set(TARGET giga)
 
 add_executable(${TARGET} ${SRCS})
 target_link_libraries(${TARGET} ${Boost_LIBRARIES})
-target_compile_options(${TARGET} PRIVATE -Wno-unused-parameter -Wno-unneeded-internal-declaration)
+target_compile_options(${TARGET} PRIVATE -Wno-unused-parameter -Wno-unneeded-internal-declaration -Wunused-label)
 
 # Add a new target for tests
 enable_testing()
