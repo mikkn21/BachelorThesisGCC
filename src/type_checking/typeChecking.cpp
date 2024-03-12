@@ -122,6 +122,9 @@ private:
 
     template<typename T>
     T pop(stack<T>& myStack) {
+        if (myStack.empty()) {
+            throw std::runtime_error("Attempting to pop from an empty stack");
+        }
         T topElement = std::move(myStack.top()); 
         myStack.pop();
         return topElement;
