@@ -3,6 +3,7 @@
 
 #include "../lib/testing_type_check_lib.hpp" 
 
+BOOST_AUTO_TEST_CASE(TEMP) {BOOST_TEST(2 == 2);}
 
 // Test VarDecl
 // BOOST_AUTO_TEST_CASE(TypeDoMatchExp) {testTypeCheckString("int x = 2;\n", TestingOutcome::SUCCESS);}

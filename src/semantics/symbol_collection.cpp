@@ -15,9 +15,14 @@ private:
 public: 
     SymbolCollectionVisitor(SymbolTable *symTab) : Visitor(), currentSymbolTable(symTab) { }
 
+    // void preVisit(Id &id) override {
+    //     id.sym = currentSymbolTable;
+    // }
+
     void preVisit(VarDecl &varDecl) override {
         VarSymbol *variantSymbol = new VarSymbol(&varDecl);
         currentSymbolTable->insert(varDecl.id.id, variantSymbol);
+        varDecl.sym = variantSymbol; // Mikkel addded this line I think it is correct?
     }
 
     void preVisit(FuncDecl &funcDecl) override {

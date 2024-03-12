@@ -44,7 +44,7 @@ namespace grammar::compiler {
     // compile from a string
     std::unique_ptr<CompilerReturnObj> compileFromString(std::string_view input, const CompilerOptions &options) {
         if (options.printInput) {
-            std::cout << "Input to be parsed: \n" << input;
+            std::cout << "Input: \n" << input;
         }
 
         auto obj = std::make_unique<CompilerReturnObj>();

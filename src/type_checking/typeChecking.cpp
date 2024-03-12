@@ -1,8 +1,12 @@
 #include "typeChecking.hpp"
 #include "../visitor.hpp"
 #include <cassert>
+#include <cstddef>
+#include <iostream>
 #include <stack>
 #include <string>
+#include "../ast.hpp"
+#include "../semantics/symbol_table.hpp"
 
 using namespace std;
 
@@ -20,11 +24,13 @@ class TypeChecker : public Visitor {
 
     void postVisit(StatementExpression &exp) override {
         // The type of the expression is just yeeted.
+        cout << "Debug: Entering postVisit statementExpression" << endl;
         typeStack.pop();
     }
 
     void postVisit(VarAssign &varassign) override {
         // id 
+        cout << "Debug: Entering postVisit VarAssign" << endl;
         auto t1 = pop(typeStack);
         // exp resault
         auto t2 = pop(typeStack);
@@ -36,18 +42,32 @@ class TypeChecker : public Visitor {
 
 
     void postVisit(VarDecl &vardecl) override {  
-        // id  
+        //id  
+        // idea to get the type of the variable
+        // auto vardeclType = vardecl.sym->type;
+        // string t1;
+        // if (vardeclType == 0) {
+        //     t1 = "int";
+        // }
+        // if (vardeclType == 1 ) {
+        //     t1 = "bool";
+        // }
+        cout << "Debug: VarDecl.sym: " << (vardecl.sym == nullptr) << endl;
+        cout << "Debug: VarDecl.sym: " << vardecl.sym << endl;
+        cout << "Debug: Entering postVisit VarDecl" << endl;
+
         auto t1 = pop(typeStack);
-        // exp resault 
+        // exp resault
         auto t2 = pop(typeStack);
 
         if (t2 != t1) {
-            throw TypeCheckError("Type does not match expression");
+          throw TypeCheckError("Type does not match expression");
         }
     } 
 
     void preBlockVisit(WhileStatement &whileStatement) override {
         // exp
+        cout << "Debug: Entering preBlockVisit WhileStatement" << endl;
         auto t1 = pop(typeStack);
 
         if (t1 != "bool") {
@@ -58,19 +78,23 @@ class TypeChecker : public Visitor {
     void postVisit(Id &id) override {
         // Change to use the symbolTable instead
         // Push the type of the id to the stack.
+        cout << "Debug: Entering postVisit Id" << endl;
     }
 
 
     void postVisit(int &value) override {
-        typeStack.push("int");
+      cout << "Debug: Entering postVisit int" << endl;
+      typeStack.push("int");
     }
 
     void postVisit(bool &value) override {
+        cout << "Debug: Entering postVisit bool" << endl;
         typeStack.push("bool");
     }
 
     void postVisit(BinopExp &binop) override  {
         // exp resault
+        cout << "Debug: Entering postVisit BinopExp" << endl;
         auto t1 = pop(typeStack);
         // exp resault
         auto t2 = pop(typeStack);
