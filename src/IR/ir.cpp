@@ -115,8 +115,9 @@ class IRVisitor : public Visitor {
 public:
     IRVisitor() : Visitor() { }
 
+    // there should be no need for preVisit for var_decl
     void postVisit(VarDecl &var_decl) {
-        
+        // int c = (2+2)
     }
 
     void preVisit(Id &id) {
