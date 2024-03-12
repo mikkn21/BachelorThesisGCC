@@ -44,7 +44,7 @@ namespace grammar
             friend std::ostream& operator<<(std::ostream& os, const PrimitiveType &exp); 
         };
 
-        struct Expression : public x3::variant<int, x3::forward_ast<BinopExp>, Id, bool, x3::forward_ast<ExpressionPar>>, LocationInfo {
+        struct Expression : public x3::variant<int, x3::forward_ast<BinopExp>, bool, Id, x3::forward_ast<ExpressionPar>>, LocationInfo {
             using base_type::base_type;   
             using base_type::operator=;
         public:

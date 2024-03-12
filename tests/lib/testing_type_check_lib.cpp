@@ -21,7 +21,7 @@ void testTypeChecking(std::string input, TestingOutcome testing_outcome, Compile
     std::cout << "\n----------------------" << std::endl;
     grammar::compiler::CompilerOptions options = grammar::compiler::CompilerOptions();
     options.stopAfter = grammar::compiler::StopAfterTypeCheck;
-    options.printAst = true;
+    options.printAst = false;
     options.printInput = true;
 
     grammar::ast::Prog ast1;

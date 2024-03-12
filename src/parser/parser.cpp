@@ -66,7 +66,7 @@ namespace grammar {
         const auto parameter_def = type >> id;
         const auto parameter_list_def = -(parameter % ',');
         const auto expression_par_def = ('(' >> expression) > ')';
-        const auto expression_base = expression_par | id | int_ | bool_;
+        const auto expression_base = expression_par | int_ | bool_ | id;
         const auto expression_def = binop_exp | expression_base;
         const auto binop_exp_def = expression_base >> (operator_parser > expression);
         

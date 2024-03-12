@@ -27,8 +27,11 @@ class TypeChecker : public Visitor {
         cout << "Debug: Entering postVisit statementExpression" << endl;
         typeStack.pop();
     }
+    
 
     // void postVisit(PrimitiveType &primType) override {
+    //     cout << "Debug: Entering postVisit PrimitiveType" << endl;
+
     //     if (primType.type == "int") {
     //         typeStack.push("prim_int");
     //     }
@@ -62,8 +65,8 @@ class TypeChecker : public Visitor {
         auto t2 = pop(typeStack);
         cout << "Debug: postVisit VarDecl t2: " << t2 << endl;
         if (t2 != t1) {
-            cout << "Types do not mathch" << endl;
-        //   throw TypeCheckError("Type does not match expression");
+            // cout << "Types do not mathch" << endl;
+            throw TypeCheckError("Type does not match expression");
         }
     } 
 
@@ -81,15 +84,19 @@ class TypeChecker : public Visitor {
         if (auto *varSymbolPtr = std::get_if<VarSymbol*>(&id.sym)) {
             VarSymbol* varSymbol = *varSymbolPtr; 
             typeStack.push(varSymbol->type == 0 ? "int" : "bool");
+          
             std::cout << "Debug: looked at: " << id.id << " Entering postVisit Id with type (VarSymbol*) " << varSymbol->type << " = " << (varSymbol->type == 0 ? "int" : "bool")
                           << std::endl;
+
         } else if (auto *funcSymbolPtr = std::get_if<FuncSymbol*>(&id.sym)) {
             FuncSymbol* funcSymbol = *funcSymbolPtr; 
             typeStack.push(funcSymbol->returnType == 0 ? "int" : "bool");
+
             std::cout << "Debug: looked at: " << id.id << " Entering postVisit Id with type (funcSymbol*) " << funcSymbol->returnType << " = " << (funcSymbol->returnType == 0 ? "int" : "bool")
                           << std::endl;
+
         } else {
-            std::cerr << "Error: looked at: " << id.id << " Symbol is uninitialized (std::monostate) in postVisit ID." << std::endl;
+            throw TypeCheckError("uninitialized symbol --> " + id.id);
         }
     }
 
