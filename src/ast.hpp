@@ -5,6 +5,7 @@
 #include <boost/fusion/include/io.hpp>
 #include <boost/fusion/include/adapt_struct.hpp>
 #include <boost/spirit/home/x3/support/ast/variant.hpp>
+#include <variant>
 #include <vector>
 #include <memory>
 
@@ -32,7 +33,7 @@ namespace grammar
 
         struct Id : LocationInfo {
             std::string id;
-            // SymbolTable *sym = nullptr;
+            std::variant<std::monostate, VarSymbol*, FuncSymbol*> sym = std::monostate{}; // monostate tells us this can be empty since we can't use nullptr
         public:
             friend std::ostream& operator<<(std::ostream& os, const Id &exp);
         };

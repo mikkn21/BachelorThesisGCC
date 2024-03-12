@@ -7,6 +7,7 @@
 #include <string>
 #include <variant>
 #include <unordered_map>
+#include <stdexcept> 
 
 class SymbolCollectionVisitor : public Visitor {
 private:
@@ -15,9 +16,18 @@ private:
 public: 
     SymbolCollectionVisitor(SymbolTable *symTab) : Visitor(), currentSymbolTable(symTab) { }
 
-    // void preVisit(Id &id) override {
-    //     id.sym = currentSymbolTable;
-    // }
+    void preVisit(Id &id) override {
+        Symbol *sym = currentSymbolTable->find(id.id);
+        if (sym != nullptr) {
+            if (auto varSym = dynamic_cast<VarSymbol *>(sym)) {
+                id.sym = varSym;
+            } else if (auto funcSym = dynamic_cast<FuncSymbol *>(sym)) {
+                id.sym = funcSym;
+            } else {
+                throw std::runtime_error("Symbol is not a VarSymbol or FuncSymbol");
+            }
+        }
+    }
 
     void preVisit(VarDecl &varDecl) override {
         VarSymbol *variantSymbol = new VarSymbol(&varDecl);

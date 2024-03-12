@@ -3,19 +3,19 @@
 
 #include "../lib/testing_type_check_lib.hpp" 
 
-BOOST_AUTO_TEST_CASE(TEMP) {BOOST_TEST(2 == 2);}
+// BOOST_AUTO_TEST_CASE(TEMP) {BOOST_TEST(2 == 2);}
 
 // Test VarDecl
-// BOOST_AUTO_TEST_CASE(TypeDoMatchExp) {testTypeCheckString("int x = 2;\n", TestingOutcome::SUCCESS);}
-// BOOST_AUTO_TEST_CASE(TypeDoMatchExpInt) {testTypeCheckString("int x = int;\n", TestingOutcome::FAILED);}
-// BOOST_AUTO_TEST_CASE(TypeDoNOTMatchExp) {testTypeCheckString("int x = bool;\n", TestingOutcome::FAILED);}
-// BOOST_AUTO_TEST_CASE(TypeDoNOTMatchExp2) {testTypeCheckString("bool x = 2;\n", TestingOutcome::FAILED);}
-// BOOST_AUTO_TEST_CASE(TypeDoMatchExp3) {testTypeCheckString("bool x = true;\n", TestingOutcome::SUCCESS);}
-// BOOST_AUTO_TEST_CASE(TypeDoMatchExp4) {testTypeCheckString("bool x = false;\n", TestingOutcome::SUCCESS);}
-// BOOST_AUTO_TEST_CASE(TypeDoNotMatchExpTrue) {testTypeCheckString("bool x = True;\n", TestingOutcome::FAILED);}
-// BOOST_AUTO_TEST_CASE(TypeDoNotMatchExpFalse) {testTypeCheckString("bool x = False;\n", TestingOutcome::FAILED);}
-// BOOST_AUTO_TEST_CASE(TypeDoNotMatchExpNegativeInt) {testTypeCheckString("int x = -123123123;\n", TestingOutcome::FAILED);}
-// BOOST_AUTO_TEST_CASE(TypeDoMatchExpZero) {testTypeCheckString("int x = 0;\n", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(TypeDoMatchExp) {testTypeCheckString("int x = 2;\n", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(TypeDoMatchExpInt) {testTypeCheckString("int x = int;\n", TestingOutcome::FAILED);}
+BOOST_AUTO_TEST_CASE(TypeDoNOTMatchExp) {testTypeCheckString("int x = bool;\n", TestingOutcome::FAILED);}
+BOOST_AUTO_TEST_CASE(TypeDoNOTMatchExp2) {testTypeCheckString("bool x = 2;\n", TestingOutcome::FAILED);}
+BOOST_AUTO_TEST_CASE(TypeDoMatchExp3) {testTypeCheckString("bool x = true;\n", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(TypeDoMatchExp4) {testTypeCheckString("bool x = false;\n", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(TypeDoNotMatchExpTrue) {testTypeCheckString("bool x = True;\n", TestingOutcome::FAILED);}
+BOOST_AUTO_TEST_CASE(TypeDoNotMatchExpFalse) {testTypeCheckString("bool x = False;\n", TestingOutcome::FAILED);}
+BOOST_AUTO_TEST_CASE(TypeDoNotMatchExpNegativeInt) {testTypeCheckString("int x = -123123123;\n", TestingOutcome::FAILED);}
+BOOST_AUTO_TEST_CASE(TypeDoMatchExpZero) {testTypeCheckString("int x = 0;\n", TestingOutcome::SUCCESS);}
 
 // Test Exp + varDecl 
 // BOOST_AUTO_TEST_CASE(TypeMatchBinOp) {testTypeCheckString("int x = 2 + 2 ;\n", TestingOutcome::SUCCESS);}

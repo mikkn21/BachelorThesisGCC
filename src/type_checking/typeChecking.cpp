@@ -28,6 +28,19 @@ class TypeChecker : public Visitor {
         typeStack.pop();
     }
 
+    // void postVisit(PrimitiveType &primType) override {
+    //     if (primType.type == "int") {
+    //         typeStack.push("prim_int");
+    //     }
+    //     else if (primType.type == "bool") {
+    //         typeStack.push("prim_bool");
+    //     }
+    //     else {
+    //         typeStack.push("unknown"); // catch all to get correct errors
+    //     }
+
+    // }
+
     void postVisit(VarAssign &varassign) override {
         // id 
         cout << "Debug: Entering postVisit VarAssign" << endl;
@@ -43,25 +56,14 @@ class TypeChecker : public Visitor {
 
     void postVisit(VarDecl &vardecl) override {  
         //id  
-        // idea to get the type of the variable
-        // auto vardeclType = vardecl.sym->type;
-        // string t1;
-        // if (vardeclType == 0) {
-        //     t1 = "int";
-        // }
-        // if (vardeclType == 1 ) {
-        //     t1 = "bool";
-        // }
-        cout << "Debug: VarDecl.sym: " << (vardecl.sym == nullptr) << endl;
-        cout << "Debug: VarDecl.sym: " << vardecl.sym << endl;
-        cout << "Debug: Entering postVisit VarDecl" << endl;
-
         auto t1 = pop(typeStack);
+        cout << "Debug: postVisit VarDecl t1: " << t1 << endl;
         // exp resault
         auto t2 = pop(typeStack);
-
+        cout << "Debug: postVisit VarDecl t2: " << t2 << endl;
         if (t2 != t1) {
-          throw TypeCheckError("Type does not match expression");
+            cout << "Types do not mathch" << endl;
+        //   throw TypeCheckError("Type does not match expression");
         }
     } 
 
@@ -76,10 +78,21 @@ class TypeChecker : public Visitor {
     }
 
     void postVisit(Id &id) override {
-        // Change to use the symbolTable instead
-        // Push the type of the id to the stack.
-        cout << "Debug: Entering postVisit Id" << endl;
+        if (auto *varSymbolPtr = std::get_if<VarSymbol*>(&id.sym)) {
+            VarSymbol* varSymbol = *varSymbolPtr; 
+            typeStack.push(varSymbol->type == 0 ? "int" : "bool");
+            std::cout << "Debug: looked at: " << id.id << " Entering postVisit Id with type (VarSymbol*) " << varSymbol->type << " = " << (varSymbol->type == 0 ? "int" : "bool")
+                          << std::endl;
+        } else if (auto *funcSymbolPtr = std::get_if<FuncSymbol*>(&id.sym)) {
+            FuncSymbol* funcSymbol = *funcSymbolPtr; 
+            typeStack.push(funcSymbol->returnType == 0 ? "int" : "bool");
+            std::cout << "Debug: looked at: " << id.id << " Entering postVisit Id with type (funcSymbol*) " << funcSymbol->returnType << " = " << (funcSymbol->returnType == 0 ? "int" : "bool")
+                          << std::endl;
+        } else {
+            std::cerr << "Error: looked at: " << id.id << " Symbol is uninitialized (std::monostate) in postVisit ID." << std::endl;
+        }
     }
+
 
 
     void postVisit(int &value) override {
