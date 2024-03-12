@@ -1,2 +1,7 @@
-int x = bool;
+int f() {
+     int x = 2;
+     int y = 3
+     y = 4;
+     return 2;
+}
 

@@ -58,6 +58,10 @@ namespace grammar
             return os << "print(" << exp.exp << ");";
         }
 
+        std::ostream& operator<<(std::ostream& os, const grammar::ast::ReturnStatement &ret) {
+            return os << "return " << ret.exp << ";";
+        }
+
         std::ostream& operator<<(std::ostream& os, const grammar::ast::BlockLine &block_line) {
             boost::apply_visitor(print_visitor(os), block_line);
             return os;

@@ -67,6 +67,12 @@ public:
 
     virtual void preVisit(PrintStatement &print) { }
     virtual void postVisit(PrintStatement &print) { }
+
+    virtual void preVisit(ReturnStatement &ret) { }
+    virtual void postVisit(ReturnStatement &ret) { }
+
+    virtual void preVisit(BlockLine &blockLine) { }
+    virtual void postVisit(BlockLine &blockLine) { }
 };
 
 class TreeTraveler : boost::static_visitor<> {

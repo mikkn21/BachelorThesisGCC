@@ -71,6 +71,12 @@ namespace grammar
             friend std::ostream& operator<<(std::ostream& os, const PrintStatement &exp);
         };
 
+        struct ReturnStatement : LocationInfo {
+            Expression exp;
+        public:
+            friend std::ostream& operator<<(std::ostream& os, const ReturnStatement &exp);
+        };
+
         struct VarAssign : LocationInfo {
             Id id; 
             Expression exp;
@@ -91,7 +97,7 @@ namespace grammar
             friend std::ostream& operator<<(std::ostream& os, const StatementExpression &exp);
         };
 
-        struct Statement : public x3::variant<VarAssign, WhileStatement,StatementExpression, PrintStatement>, LocationInfo {
+        struct Statement : public x3::variant<VarAssign, WhileStatement,StatementExpression, PrintStatement, ReturnStatement>, LocationInfo {
             using base_type::base_type;  
             using base_type::operator=;
         public:
@@ -198,6 +204,11 @@ BOOST_FUSION_ADAPT_STRUCT(
 
 BOOST_FUSION_ADAPT_STRUCT(
     PrintStatement,
+    (Expression, exp)
+)
+
+BOOST_FUSION_ADAPT_STRUCT(
+    ReturnStatement,
     (Expression, exp)
 )
 

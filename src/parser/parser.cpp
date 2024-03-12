@@ -52,6 +52,7 @@ namespace grammar {
         const x3::rule<class statement_expression, StatementExpression> statement_expression = "statement_expression";
         const x3::rule<class statement, Statement> statement = "statement";
         const x3::rule<class print_statement, PrintStatement> print_statement = "print_statement";
+        const x3::rule<class return_statement, ReturnStatement> return_statement = "return_statement";
 
         // Define a parser for operators
         const auto operator_parser =
@@ -74,8 +75,9 @@ namespace grammar {
         const auto while_statement_def = x3::lit("while") > expression > block;
 
         const auto statement_expression_def = expression >> ';';
-        const auto statement_def = var_assign| while_statement | statement_expression | print_statement;
+        const auto statement_def = var_assign| while_statement | statement_expression | print_statement | return_statement;
         const auto print_statement_def = x3::lit("print") > '(' > expression > ')' > ';';
+        const auto return_statement_def = x3::lit("return") > expression > ';';
 
         const auto block_line_def = statement | decl;
         const auto block_def = '{' > *block_line > '}';
@@ -112,7 +114,8 @@ namespace grammar {
             expression_par,
             statement_expression,
             statement,
-            print_statement
+            print_statement,
+            return_statement
         )
 
         grammar::ast::Prog parse(std::string_view src)

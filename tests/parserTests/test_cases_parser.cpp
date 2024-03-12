@@ -116,6 +116,13 @@ BOOST_AUTO_TEST_CASE(StatementPrintSimple) {test_parse_string("int f () {\nprint
 BOOST_AUTO_TEST_CASE(StatementPrintComplex) {test_parse_string("int f () {\nprint( (10 * 2) - 10); }\n", TestingOutcome::SUCCESS); }
 BOOST_AUTO_TEST_CASE(StatementPrintEmpty) {test_parse_string("int f () {\nprint(); }\n", TestingOutcome::PARSE_FAILED); }
 
+// return statement
+BOOST_AUTO_TEST_CASE(ReturnSimpleTrue) {test_parse_string("int f () {return 2; }", TestingOutcome::SUCCESS); }
+BOOST_AUTO_TEST_CASE(ReturnSimpleFalse) {test_parse_string("int f () {return 2 }", TestingOutcome::PARSE_FAILED); }
+BOOST_AUTO_TEST_CASE(ReturnBinopTrue) {test_parse_string("int f () {return 2 + 2; }", TestingOutcome::SUCCESS); }
+BOOST_AUTO_TEST_CASE(ReturnMultiLinesTrue) {test_parse_string("int f () { int x = 2; x = 4; return 2 + 2; }", TestingOutcome::SUCCESS); }
+BOOST_AUTO_TEST_CASE(ReturnVarTrue) {test_parse_string("int f () { int x = 2; x = 4; return x; }", TestingOutcome::SUCCESS); }
+
 
 // Testing files
 BOOST_AUTO_TEST_CASE(simple_file) {test_parse_file("../tests/parserTests/simple.chad", TestingOutcome::SUCCESS);}

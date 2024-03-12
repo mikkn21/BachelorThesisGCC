@@ -19,6 +19,8 @@ enum SymbolType {
     //Class, future implementation
 };
 
+SymbolType convertType(Type type);
+
 class SymbolTable;
 
 class Symbol{
@@ -52,6 +54,8 @@ private:
 public:
 
     SymbolTable *parentScope = nullptr;
+
+    FuncSymbol *creator = nullptr;
 
     SymbolTable();
 

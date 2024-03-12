@@ -31,7 +31,7 @@ struct TypeConverterVisitor : boost::static_visitor<SymbolType> {
             return BoolType;
         }
 
-        throw SemanticsError("Unknown type");
+        throw SemanticsError("Unknown primitive type");
     }
 };
 
@@ -45,6 +45,7 @@ FuncSymbol::FuncSymbol(FuncDecl *funcDecl, SymbolTable *scope) : symTab(scope){
         parameters.push_back(convertType(i.type));
     }
     returnType = convertType(funcDecl->type);
+    scope->creator = this;
 }
 
 VarSymbol::VarSymbol(VarDecl *varDecl) : varDecl(varDecl) {
