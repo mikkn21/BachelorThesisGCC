@@ -39,3 +39,33 @@ Run `prog.out`. If you are already in the directory, you can run `./prog.out` to
     - Alternatively, you can run `make` instead to make all files which would include the test files
 4. `ctest`
 
+## Docker
+
+This guide describes how to use Docker with a mounted volume, allowing you to run tests on an Ubuntu machine as if you were working directly on Ubuntu, regardless of your actual host operating system.
+
+### Starting an Interactive Shell with Docker
+
+1. **Preparation**: Ensure you're in the root directory of your project where the Dockerfile is located.
+2. **Clear Cache**: Before running your Docker container, it's recommended to clear your build directory to avoid any CMake cache issues. This ensures a fresh environment for each build:
+```bash
+rm -rf ./build/*
+```
+
+3. **Build your image**: 
+Before you can run your container, you need to build your Docker image. Make sure your Dockerfile is in the root directory of your project and run:
+```bash
+docker build -t my_image .
+```
+
+4. **Mount Project Through Docker**: To run your Docker container with your project directory mounted (ensuring any changes on your host are directly reflected in the container), execute the following command:
+```bash
+docker run --rm -it -v $(pwd):/app -w /app my_image
+```
+This starts an interactive shell session within the Docker container. From here, you can proceed to build and test your project:
+```bash 
+mkdir build && cd build
+cmake .. && make && ctest 
+``` 
+Following this procedure, you can access any generated log files directly under build/Testing/Temporary/, both from within the container and from your host machine.
+
+5. **Stopping the Container**: To exit the interactive shell and stop the container, simply type ``exit`` or press ``Ctrl+D``. If you started the container with the --rm flag as suggested in step 4, Docker will automatically remove the container once it stops, ensuring your system remains clean and clutter-free.
