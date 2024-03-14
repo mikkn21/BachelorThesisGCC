@@ -45,6 +45,8 @@ This guide describes how to use Docker with a mounted volume, allowing you to ru
 
 ### Starting an Interactive Shell with Docker
 
+> **Note**: It's crucial to be in the **root directory of your project** when following these steps, especially for the `$(pwd)` command in step 4 to work correctly. This command relies on your current directory path to mount the project into the Docker container.
+
 1. **Preparation**: Ensure you're in the root directory of your project where the Dockerfile is located.
 2. **Clear Cache**: Before running your Docker container, it's recommended to clear your build directory to avoid any CMake cache issues. This ensures a fresh environment for each build:
 ```bash
