@@ -13,7 +13,8 @@ message(STATUS "Using Sanitizer Flags: ${SAN_FLAGS}")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -g -O -std=c++17 ${SAN_FLAGS}")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lm")
-
+# For clangd syntax help
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # For clangd syntax help
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)

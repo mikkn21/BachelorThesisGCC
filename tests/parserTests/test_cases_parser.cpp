@@ -1,4 +1,3 @@
-
 #define BOOST_TEST_MODULE Parse
 #define BOOST_TEST_DYN_LINK  
 
