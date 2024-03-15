@@ -1,16 +1,12 @@
-#include <iostream>
 #include <boost/variant.hpp>
 #include "../ast.hpp"
 #include "../visitor.hpp"
 #include "semantics_error.hpp"
 #include "symbol_table.hpp"
 #include "symbol_collection.hpp"
-#include <set>
 #include <string>
 #include <variant>
-#include <unordered_map>
 #include <boost/spirit/home/x3.hpp>
-#include <stdexcept> 
 #include "../parser/parser.hpp"
 
 class SymbolCollectionVisitor : public Visitor {
