@@ -28,6 +28,9 @@ public:
             throw SemanticsError("Identifier is a reserved keyword");
         }
 
+
+        id.scope = currentSymbolTable;
+
         Symbol *sym = currentSymbolTable->find(id.id);
         if (sym != nullptr) {
             if (auto varSym = dynamic_cast<VarSymbol *>(sym)) {
@@ -35,7 +38,7 @@ public:
             } else if (auto funcSym = dynamic_cast<FuncSymbol *>(sym)) {
                 id.sym = funcSym;
             } else {
-                throw SemanticsError(id.id + " not initialzed yet");
+                throw SemanticsError(id.id + " not initialzed at this point");
             }
         } else {
             throw SemanticsError(id.id + " not declared in scope");

@@ -43,6 +43,7 @@ public:
     ~VarSymbol() override { }
     SymbolType type;
     VarDecl *varDecl;
+    int uid;
 };
 
 // add class symbol and type symbol for aliasing, future implementation
@@ -54,6 +55,8 @@ private:
 public:
 
     SymbolTable *parentScope = nullptr;
+
+    int depth;
 
     FuncSymbol *creator = nullptr;
 
