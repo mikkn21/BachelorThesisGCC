@@ -2,48 +2,81 @@
 #include <boost/variant.hpp>
 #include "../ast.hpp"
 #include "../visitor.hpp"
+#include "semantics_error.hpp"
 #include "symbol_table.hpp"
 #include "symbol_collection.hpp"
+#include <set>
 #include <string>
+#include <variant>
+#include <unordered_map>
+#include <boost/spirit/home/x3.hpp>
+#include <stdexcept> 
+#include "../parser/parser.hpp"
 
 class SymbolCollectionVisitor : public Visitor {
 private:
-    SymbolTable outerSymbolTable = SymbolTable();
+    SymbolTable *currentSymbolTable; // Has to be a pointer, not a reference!!!
 
-    SymbolTable &currentSymbolTable = outerSymbolTable;
 
 public: 
-    SymbolCollectionVisitor() : Visitor() { }
+
+    SymbolCollectionVisitor(SymbolTable *symTab) : Visitor(), currentSymbolTable(symTab) { }
+
+
+    void preVisit(Id &id) override {
+        if (grammar::parser::isReserved(id.id)) {
+            throw SemanticsError("Identifier is a reserved keyword");
+        }
+
+        Symbol *sym = currentSymbolTable->find(id.id);
+        if (sym != nullptr) {
+            if (auto varSym = dynamic_cast<VarSymbol *>(sym)) {
+                id.sym = varSym;
+            } else if (auto funcSym = dynamic_cast<FuncSymbol *>(sym)) {
+                id.sym = funcSym;
+            } else {
+                throw SemanticsError(id.id + " not initialzed yet");
+            }
+        } else {
+            throw SemanticsError(id.id + " not declared in scope");
+        }
+    }
 
     void preVisit(VarDecl &varDecl) override {
-        Symbol variantSymbol = &varDecl;
-        std::unique_ptr<Symbol> ptr(&variantSymbol);
-        currentSymbolTable.insert(varDecl.id.id, std::move(ptr));
+        if (currentSymbolTable->find(varDecl.id.id)) {
+            throw SemanticsError("Variable already declared in scope");
+        }
+
+        VarSymbol *variantSymbol = new VarSymbol(&varDecl);
+        currentSymbolTable->insert(varDecl.id.id, variantSymbol);
+        varDecl.sym = variantSymbol; // Mikkel addded this line I think it is correct?
     }
 
     void preVisit(FuncDecl &funcDecl) override {
-        // Add function to currentFunctionTable
-        std::unique_ptr<Symbol> ptr = std::make_unique<Symbol>(&funcDecl);
-        currentSymbolTable.insert(funcDecl.id.id, std::move(ptr));
-        // Create new scope where parent = currentScope
-        SymbolTable newSymbolTable = SymbolTable();
-        newSymbolTable.parentScope = &currentSymbolTable;
-        // Set current scope to this one
-        currentSymbolTable = &newSymbolTable; // this changes what 'currentsymbolTable' points to, not the object itself. 
-        //Passing 'newSymbolTable' without '&' would change the object that 'currentSymbolTable' points to instead
+        if (currentSymbolTable->find(funcDecl.id.id)) {
+            throw  SemanticsError("Function already declared in scope");
+        }
+
+        SymbolTable *newSymbolTable = new SymbolTable(currentSymbolTable);
+        FuncSymbol *funcSymbol = new FuncSymbol(&funcDecl, newSymbolTable);
+
+        currentSymbolTable->insert(funcDecl.id.id, funcSymbol);
+        funcDecl.sym = funcSymbol;
+        currentSymbolTable = newSymbolTable; // Note that no object is changed, only pointers.
     }
 
     void postVisit(FuncDecl &funcDecl) override {
-        // Set current scope to parent scope
-        currentSymbolTable = currentSymbolTable.parentScope;
+        currentSymbolTable = currentSymbolTable->parentScope;
     }
+
+
+
 
 };
 
-Prog symbol_collection(Prog &prog) {
-    auto visitor = SymbolCollectionVisitor();
+void symbol_collection(Prog &prog, SymbolTable *symTab) {
+    auto visitor = SymbolCollectionVisitor(symTab);
     auto traveler = TreeTraveler(visitor);
     traveler(prog);
-    return prog;
 }
 

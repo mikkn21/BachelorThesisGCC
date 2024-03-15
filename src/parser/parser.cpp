@@ -1,8 +1,11 @@
 #include <boost/spirit/home/x3.hpp>
 #include <boost/spirit/include/support_line_pos_iterator.hpp>
+#include <set>
 #include <sys/resource.h>
 #include "../ast.hpp"
 #include "parser.hpp"
+
+
 
 using namespace std;
 
@@ -50,6 +53,26 @@ namespace grammar {
         const x3::rule<class statement_expression, StatementExpression> statement_expression = "statement_expression";
         const x3::rule<class statement, Statement> statement = "statement";
         const x3::rule<class print_statement, PrintStatement> print_statement = "print_statement";
+        const x3::rule<class return_statement, ReturnStatement> return_statement = "return_statement";
+
+
+       // Reserved keywords
+       const std::set<std::string> reservedKeywords = {
+            "if", "else", "while", "return", "print"
+        };
+
+        auto reserved(const std::string &keyword) {
+            if (reservedKeywords.find(keyword) != reservedKeywords.end()) {
+                return x3::lit(keyword);
+            }
+            throw SyntaxError("Keyword not found in reserved keywords");
+
+        }
+
+        bool isReserved(const std::string &keyword) {
+            return reservedKeywords.find(keyword) != reservedKeywords.end();
+        }
+
 
         // Define a parser for operators
         const auto operator_parser =
@@ -64,16 +87,17 @@ namespace grammar {
         const auto parameter_def = type >> id;
         const auto parameter_list_def = -(parameter % ',');
         const auto expression_par_def = ('(' >> expression) > ')';
-        const auto expression_base = expression_par | id | int_ | bool_;
+        const auto expression_base = expression_par | int_ | bool_ | id;
         const auto expression_def = binop_exp | expression_base;
         const auto binop_exp_def = expression_base >> (operator_parser > expression);
         
         const auto var_assign_def = (id >> '=' >> expression) > ";";
-        const auto while_statement_def = x3::lit("while") > expression > block;
+        const auto while_statement_def = reserved("while") > expression > block;
 
         const auto statement_expression_def = expression >> ';';
-        const auto statement_def = var_assign| while_statement | statement_expression | print_statement;
-        const auto print_statement_def = x3::lit("print") > '(' > expression > ')' > ';';
+        const auto statement_def = var_assign| while_statement | statement_expression | print_statement | return_statement;
+        const auto print_statement_def = reserved("print") > '(' > expression > ')' > ';';
+        const auto return_statement_def = reserved("return") > expression > ';';
 
         const auto block_line_def = statement | decl;
         const auto block_def = '{' > *block_line > '}';
@@ -110,7 +134,8 @@ namespace grammar {
             expression_par,
             statement_expression,
             statement,
-            print_statement
+            print_statement,
+            return_statement
         )
 
         grammar::ast::Prog parse(std::string_view src)
@@ -145,7 +170,8 @@ namespace grammar {
                 if(!r || iter !=  PosIter(src.end())) {
                     throw SyntaxError(makeError() + "\nEnd of x3 error.");
                 }
-		        return ast;
+		        // return ast;
+                return ast;
 
             }catch(const x3::expectation_failure<PosIter> &e) {
 	            iter = e.where();

@@ -19,7 +19,8 @@ namespace grammar {
     public:
         using BaseError::BaseError;
     };
-
+    
+    bool isReserved(const std::string &keyword);
         
     } // namespace parser 
 

@@ -3,6 +3,7 @@
 #include "../../src/type_checking/typeChecking.hpp"
 #include <string>
 #include "testing_type_check_lib.hpp"
+#include "../../src/parser/parser.hpp"
 
 std::string remove_whitespace(const std::string& str) {
     std::string result;
@@ -21,7 +22,7 @@ void testTypeChecking(std::string input, TestingOutcome testing_outcome, Compile
     std::cout << "\n----------------------" << std::endl;
     grammar::compiler::CompilerOptions options = grammar::compiler::CompilerOptions();
     options.stopAfter = grammar::compiler::StopAfterTypeCheck;
-    options.printAst = true;
+    options.printAst = false;
     options.printInput = true;
 
     grammar::ast::Prog ast1;
@@ -29,6 +30,9 @@ void testTypeChecking(std::string input, TestingOutcome testing_outcome, Compile
         ast1 = compiler(input, options)->ast; 
     } catch (const TypeCheckError &e) {   
         BOOST_CHECK_MESSAGE(testing_outcome == TestingOutcome::FAILED, "\n"  <<  e.what() << "\n");
+        return;
+    } catch (exception &e) {
+        BOOST_CHECK_MESSAGE(false, "\n--- An unknown error type was encountered in the test.\n" << e.what());
         return;
     }
         

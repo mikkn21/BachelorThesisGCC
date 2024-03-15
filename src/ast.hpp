@@ -1,10 +1,16 @@
 #ifndef MGRAMMAR_AST_HPP
 #define MGRAMMAR_AST_HPP 
 
+// #include "semantics/symbol_table.hpp" // this breaks everything
 #include <boost/fusion/include/io.hpp>
 #include <boost/fusion/include/adapt_struct.hpp>
 #include <boost/spirit/home/x3/support/ast/variant.hpp>
+#include <variant>
 #include <vector>
+#include <memory>
+
+class FuncSymbol;
+class VarSymbol;
 
 namespace x3 = boost::spirit::x3;
 
@@ -27,6 +33,7 @@ namespace grammar
 
         struct Id : LocationInfo {
             std::string id;
+            std::variant<std::monostate, VarSymbol*, FuncSymbol*> sym = std::monostate{}; // monostate tells us this can be empty since we can't use nullptr
         public:
             friend std::ostream& operator<<(std::ostream& os, const Id &exp);
         };
@@ -37,7 +44,7 @@ namespace grammar
             friend std::ostream& operator<<(std::ostream& os, const PrimitiveType &exp); 
         };
 
-        struct Expression : public x3::variant<int, x3::forward_ast<BinopExp>, Id, bool, x3::forward_ast<ExpressionPar>>, LocationInfo {
+        struct Expression : public x3::variant<int, x3::forward_ast<BinopExp>, bool, Id, x3::forward_ast<ExpressionPar>>, LocationInfo {
             using base_type::base_type;   
             using base_type::operator=;
         public:
@@ -64,6 +71,12 @@ namespace grammar
             friend std::ostream& operator<<(std::ostream& os, const PrintStatement &exp);
         };
 
+        struct ReturnStatement : LocationInfo {
+            Expression exp;
+        public:
+            friend std::ostream& operator<<(std::ostream& os, const ReturnStatement &exp);
+        };
+
         struct VarAssign : LocationInfo {
             Id id; 
             Expression exp;
@@ -84,7 +97,7 @@ namespace grammar
             friend std::ostream& operator<<(std::ostream& os, const StatementExpression &exp);
         };
 
-        struct Statement : public x3::variant<VarAssign, WhileStatement,StatementExpression, PrintStatement>, LocationInfo {
+        struct Statement : public x3::variant<VarAssign, WhileStatement,StatementExpression, PrintStatement, ReturnStatement>, LocationInfo {
             using base_type::base_type;  
             using base_type::operator=;
         public:
@@ -115,6 +128,7 @@ namespace grammar
             Type type;
             Id id;
             Expression exp;
+            VarSymbol *sym = nullptr;
         public:
             friend std::ostream& operator<<(std::ostream& os, const VarDecl &exp);
         };
@@ -143,10 +157,14 @@ namespace grammar
         };
 
         struct FuncDecl : LocationInfo { 
+            FuncDecl();
+            ~FuncDecl();
+
             Type type;  
             Id id;  
             ParameterList parameter_list;  
             Block block; 
+            FuncSymbol *sym = nullptr;
         public:
             friend std::ostream& operator<<(std::ostream& os, const FuncDecl &exp);
         };
@@ -186,6 +204,11 @@ BOOST_FUSION_ADAPT_STRUCT(
 
 BOOST_FUSION_ADAPT_STRUCT(
     PrintStatement,
+    (Expression, exp)
+)
+
+BOOST_FUSION_ADAPT_STRUCT(
+    ReturnStatement,
     (Expression, exp)
 )
 

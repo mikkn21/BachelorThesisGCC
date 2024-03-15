@@ -1,5 +1,6 @@
 #include <iostream>
 #include "ast.hpp"
+#include "semantics/symbol_table.hpp"
 
 namespace {
     struct print_visitor : boost::static_visitor<> {
@@ -19,7 +20,9 @@ namespace {
 namespace grammar 
 { 
     namespace ast
-    {   
+    {
+        FuncDecl::FuncDecl() = default;
+        FuncDecl::~FuncDecl() = default;
         
         std::ostream& operator<<(std::ostream& os, const grammar::ast::LocationInfo &location_info) {
             return os << '[' << location_info.line << ", " << location_info.column << ']';
@@ -53,6 +56,10 @@ namespace grammar
 
         std::ostream& operator<<(std::ostream& os, const grammar::ast::PrintStatement &exp) {
             return os << "print(" << exp.exp << ");";
+        }
+
+        std::ostream& operator<<(std::ostream& os, const grammar::ast::ReturnStatement &ret) {
+            return os << "return " << ret.exp << ";";
         }
 
         std::ostream& operator<<(std::ostream& os, const grammar::ast::BlockLine &block_line) {

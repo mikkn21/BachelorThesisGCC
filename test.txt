@@ -1,3 +1,6 @@
 int f() {
-x = 10;
+     while(true) {
+          int x = 2;
+     }
 }
+

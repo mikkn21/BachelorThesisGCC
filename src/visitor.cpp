@@ -42,7 +42,9 @@ void TreeTraveler::operator()(Expression &exp) {
 
 template <>
 void TreeTraveler::operator()(BlockLine &blockLine) {
+    visitor.preVisit(blockLine);
     apply_visitor(*this, blockLine);
+    visitor.postVisit(blockLine);
 }
 
 template <>
@@ -107,6 +109,13 @@ void TreeTraveler::operator()(PrintStatement &print) {
     visitor.preVisit(print);
     (*this)(print.exp);
     visitor.postVisit(print);
+}
+
+template <>
+void TreeTraveler::operator()(ReturnStatement &ret) {
+    visitor.preVisit(ret);
+    (*this)(ret.exp);
+    visitor.postVisit(ret);
 }
 
 template <>
