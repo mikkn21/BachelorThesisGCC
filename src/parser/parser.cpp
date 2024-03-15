@@ -56,7 +56,7 @@ namespace grammar {
         const x3::rule<class return_statement, ReturnStatement> return_statement = "return_statement";
 
 
-        // Reserved keywords
+       // Reserved keywords
        const std::set<std::string> reservedKeywords = {
             "if", "else", "while", "return", "print"
         };
@@ -69,13 +69,9 @@ namespace grammar {
 
         }
 
-        auto isNotReservedKeyword = [](auto& ctx) {
-            auto& identifier = x3::_attr(ctx);
-            string keyword(identifier.begin(), identifier.end());
-            if (reservedKeywords.find(keyword) != reservedKeywords.end()) {
-                x3::_pass(ctx) = false; // Fail the parse if it's a reserved keyword
-            }
-        };
+        bool isReserved(const std::string &keyword) {
+            return reservedKeywords.find(keyword) != reservedKeywords.end();
+        }
 
 
         // Define a parser for operators
@@ -87,7 +83,7 @@ namespace grammar {
         // Useable
         const auto primitive_type_def = x3::string("int") | x3::string("bool");
         const auto type_def = primitive_type;  // | array_type;
-        const auto id_def = x3::raw[ x3::lexeme[(x3::char_("a-zA-Z_") >> *x3::char_("a-zA-Z_0-9"))]][isNotReservedKeyword];
+        const auto id_def = x3::raw[ x3::lexeme[(x3::char_("a-zA-Z_") >> *x3::char_("a-zA-Z_0-9"))]];
         const auto parameter_def = type >> id;
         const auto parameter_list_def = -(parameter % ',');
         const auto expression_par_def = ('(' >> expression) > ')';

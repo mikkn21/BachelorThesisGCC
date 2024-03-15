@@ -29,7 +29,7 @@ class TypeChecker : public Visitor {
     
     void postVisit(VarAssign &varassign) override {
         // id 
-        cout << "Debug: Entering postVisit VarAssign" << endl;
+        // cout << "Debug: Entering postVisit VarAssign" << endl;
         auto t1 = pop(typeStack);
         // exp resault
         auto t2 = pop(typeStack);
@@ -39,13 +39,14 @@ class TypeChecker : public Visitor {
         }
     }
 
+
     void postVisit(VarDecl &vardecl) override {  
         //id  
         auto t1 = pop(typeStack);
-        cout << "Debug: postVisit VarDecl t1: " << t1 << endl;
+        // cout << "Debug: postVisit VarDecl t1: " << t1 << endl;
         // exp resault
         auto t2 = pop(typeStack);
-        cout << "Debug: postVisit VarDecl t2: " << t2 << endl;
+        // cout << "Debug: postVisit VarDecl t2: " << t2 << endl;
         if (t1 != t2) {
             // cout << "Types do not mathch" << endl;
             throw TypeCheckError("Type does not match expression");
@@ -54,7 +55,7 @@ class TypeChecker : public Visitor {
 
     void preBlockVisit(WhileStatement &whileStatement) override {
         // exp
-        cout << "Debug: Entering preBlockVisit WhileStatement" << endl;
+        // cout << "Debug: Entering preBlockVisit WhileStatement" << endl;
         auto t1 = pop(typeStack);
 
         if (t1 != "bool") {
@@ -62,24 +63,13 @@ class TypeChecker : public Visitor {
         }
     }
 
+
     void postVisit(Id &id) override {
+
         if (auto *varSymbolPtr = std::get_if<VarSymbol*>(&id.sym)) {
             VarSymbol* varSymbol = *varSymbolPtr; 
             typeStack.push(varSymbol->type == 0 ? "int" : "bool");
-          
-            // std::cout << "Debug: looked at: " << id.id << " Entering postVisit Id with type (VarSymbol*) " << varSymbol->type << " = " << (varSymbol->type == 0 ? "int" : "bool")
-                        //   << std::endl;
-
-        } else if (auto *funcSymbolPtr = std::get_if<FuncSymbol*>(&id.sym)) {
-            FuncSymbol* funcSymbol = *funcSymbolPtr; 
-            func = funcSymbol;
-
-            // std::cout << "Debug: looked at: " << id.id << " Entering postVisit Id with type (funcSymbol*) " << funcSymbol->returnType << " = " << (funcSymbol->returnType == 0 ? "int" : "bool")
-              //            << std::endl;
-
-        } else {
-            throw TypeCheckError(id.id + " is an uninitialized symbol");
-        }
+        }     
     }
 
     void preVisit(BlockLine &blockLine) override {
@@ -107,6 +97,10 @@ class TypeChecker : public Visitor {
         hasFuncReturned = true;
     }
 
+    void preVisit(FuncDecl &funcDecl) override {
+        func = funcDecl.sym;
+    }
+
     void postVisit(FuncDecl &funcDecl) override {
         if (!hasFuncReturned) {
             throw TypeCheckError("Function " + funcDecl.id.id + " does not always return");
@@ -115,25 +109,19 @@ class TypeChecker : public Visitor {
     }
 
     void postVisit(int &value) override {
-      cout << "Debug: Entering postVisit int" << endl;
       typeStack.push("int");
     }
 
     void postVisit(bool &value) override {
-        cout << "Debug: Entering postVisit bool" << endl;
         typeStack.push("bool");
     }
 
 
     void postVisit(BinopExp &binop) override  {
         // exp resault
-        cout << "Debug: Entering postVisit BinopExp" << endl;
         auto t1 = pop(typeStack); // lhs
-        cout << "Debug: postVisit BinopExp t1: " << t1 << endl;
         // exp resault
         auto t2 = pop(typeStack); // rhs
-        cout << "Debug: postVisit BinopExp t2: " << t2 << endl;
-
     
         if (t1 != t2) {
             throw TypeCheckError("Type of lefthand side does not match Type of righthand side");

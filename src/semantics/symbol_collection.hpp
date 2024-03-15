@@ -7,4 +7,5 @@
 
 void symbol_collection(Prog &prog, SymbolTable *symTab);
 
+
 #endif

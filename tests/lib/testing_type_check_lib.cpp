@@ -31,8 +31,8 @@ void testTypeChecking(std::string input, TestingOutcome testing_outcome, Compile
     } catch (const TypeCheckError &e) {   
         BOOST_CHECK_MESSAGE(testing_outcome == TestingOutcome::FAILED, "\n"  <<  e.what() << "\n");
         return;
-    } catch (...) {
-        BOOST_CHECK_MESSAGE(false, "\n--- An unknown error type was encountered in the test. This means that the error wasn't a type checking error, meaning you're testing for something wrong");
+    } catch (exception &e) {
+        BOOST_CHECK_MESSAGE(false, "\n--- An unknown error type was encountered in the test.\n" << e.what());
         return;
     }
         
