@@ -37,7 +37,7 @@ enum class Op {
 struct DIR {}; // DIRECT MEMORY ACCESS
 struct IND {}; // INDIRECT MEMORY ACCESS
 struct IRL { // INDIRECT RELATIVE MEMORY ACCESS
-    long offset;
+    long offset; // We are compiling to x86_64, so we can use 64-bit offsets
     IRL(long offset) : offset(offset) {}
 };
 
@@ -142,6 +142,6 @@ IR intermediate_code_generation(Prog &prog) {
 }
 
 
-Instruction addInstruction = Instruction(Op::ADD, Arg(ImmediateValue(5), DIR()), Arg(SpecialRegister::RAX, DIR()));
+Instruction addInstruction = Instruction(Op::ADD, Arg(ImmediateValue(5), IND()), Arg(SpecialRegister::RAX, DIR()));
 // Instruction jmpInstruction = Instruction(Op::JMP, Arg(Label("ds"), MemAccessType::DIR));
 // Instruction addInstruction = Instruction(Op::ADD, Arg(Register(5), M::IND), Arg(SpecialRegister::RAX, MemAccessType::DIR));
