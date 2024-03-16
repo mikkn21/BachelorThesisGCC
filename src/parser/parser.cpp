@@ -4,7 +4,7 @@
 #include <sys/resource.h>
 #include "../ast.hpp"
 #include "parser.hpp"
-
+#include <unordered_set>
 
 
 using namespace std;
@@ -57,7 +57,9 @@ namespace grammar {
 
 
        // Reserved keywords
-       const std::set<std::string> reservedKeywords = {
+       // NOTE: Unordered set is used for O(1) lookup time
+       // Looking at GodBolt it generates half the assembly code compared to a normal set
+       const unordered_set<string> reservedKeywords = {
             "if", "else", "while", "return", "print"
         };
 
