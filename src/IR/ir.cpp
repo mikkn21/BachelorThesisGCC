@@ -8,8 +8,11 @@
 //#include "ir.hpp"
 #include "../ast.hpp"
 #include "../visitor.hpp"
+#include "../semantics/symbol_table.hpp"
 #include <set>
 #include <list>
+#include <stack>
+#include <iostream>
 
 enum class Op {
     MOV,
@@ -101,44 +104,83 @@ struct Instruction {
 
     Instruction(Op op, Arg arg1, Arg arg2, std::optional<std::string> comment = std::nullopt)
         : operation(op), comment(comment) { args.reserve(2); args.push_back(arg1); args.push_back(arg2); }
+
 };
 
+std::ostream& operator<<(std::ostream& os, const Instruction &instruction) {
+    string args = "";
+    for (auto arg : instruction.args) {
+        args << arg.target;
+    }
+    return os //<< instruction.operation << " " << args << " " << instruction.comment;
+};
 
+std::ostream& operator<<(std::ostream& os, const Op &operation) {
+            return os << instruction.op << " " << instruction.args << " " << instruction.comment;
+};
+
+using namespace std;
+
+using AstValue = std::variant<int, bool>;
 class IRVisitor : public Visitor {
     size_t register_counter = 0;
     // function container
     // a function name cannot start with an integer in front, so by giving it a unique id in front, we can garantuee the function name is unique
     std::vector<std::string> function_container;
+    stack<AstValue> temp_storage = stack<AstValue>();    
+
 
     int new_register() {return register_counter++; }
 
 public:
+
+    IR code;
+
     IRVisitor() : Visitor() { }
 
+    void preVisit(Prog &prog) {
+        // add main prologue
+        
+        // add main epilogue
+    }
+
     // there should be no need for preVisit for var_decl
-    void postVisit(VarDecl &var_decl) {
+    void postVisit(VarDecl &var_decl) override {
         // int c = (2+2) + 2
+        AstValue value = pop(temp_storage);
+        if (std::holds_alternative<int>(value)) {
+            code.push_back(Instruction(Op::MOV, Arg(ImmediateValue(get<int>(value)), DIR()), Arg(Register(var_decl.sym->uid), DIR())));
+        } else if (std::holds_alternative<bool>(value)) {
+            bool bool_value = std::get<bool>(value);
+            int int_value = bool_value ? 1 : 0; // convert to int for assembly
+            code.push_back(Instruction(Op::MOV, Arg(ImmediateValue(int_value), DIR()), Arg(Register(var_decl.sym->uid), DIR())));
+        }
     }
 
-    void preVisit(Id &id) {
-        // give it unique register id
-        // add it to the symbol table for id
+    void preVisit(int i) {
+        temp_storage.push(i);
     }
 
-    void preVisit(Expression &exp) {
-            
-    }
+private:
+
+    template<typename T>
+    T pop(stack<T>& myStack) {
+        if (myStack.empty()) {
+            throw std::runtime_error("Attempting to pop from an empty stack");
+        }
+        T topElement = std::move(myStack.top()); 
+        myStack.pop();
+        return topElement;
+    } 
 };
 
-struct IR {
-    std::vector<Instruction> instructions;
-};
+using IR = std::vector<Instruction>;
 
 IR intermediate_code_generation(Prog &prog) {
     auto visitor = IRVisitor();
     auto traveler = TreeTraveler(visitor);
     traveler(prog);
-    return IR{}; 
+    return std::move(visitor.code); 
 }
 
 
