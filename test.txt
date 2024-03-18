@@ -1,6 +1,4 @@
-int f() {
-     while(true) {
-          int x = 2;
-     }
+int whileiamcool() {
+     return 0;
 }
 

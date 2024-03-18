@@ -56,13 +56,24 @@ namespace grammar {
         const x3::rule<class return_statement, ReturnStatement> return_statement = "return_statement";
 
 
-       // Reserved keywords
-       // NOTE: Unordered set is used for O(1) lookup time
-       // Looking at GodBolt it generates half the assembly code compared to a normal set
+        struct reservedkeywords : x3::symbols<std::string> {
+            reservedkeywords() {
+                add("if", "if")
+                    ("else", "else")
+                    ("while", "while")
+                    ("return", "return")
+                    ("print", "print"); 
+            }
+        } reservedkeywordsInstance; 
+
+   
+        // TODO: Remove 
+        // TODO: Remeber this is also forward declared in symbol collection
        const unordered_set<string> reservedKeywords = {
             "if", "else", "while", "return", "print"
         };
 
+        // TODO: Remove 
         auto reserved(const std::string &keyword) {
             if (reservedKeywords.find(keyword) != reservedKeywords.end()) {
                 return x3::lit(keyword);
@@ -71,6 +82,7 @@ namespace grammar {
 
         }
 
+        // TODO: Remove 
         bool isReserved(const std::string &keyword) {
             return reservedKeywords.find(keyword) != reservedKeywords.end();
         }
@@ -85,7 +97,7 @@ namespace grammar {
         // Useable
         const auto primitive_type_def = x3::string("int") | x3::string("bool");
         const auto type_def = primitive_type;  // | array_type;
-        const auto id_def = x3::raw[ x3::lexeme[(x3::char_("a-zA-Z_") >> *x3::char_("a-zA-Z_0-9"))]];
+        const auto id_def = x3::raw[ x3::lexeme[(x3::char_("a-zA-Z_") >> *x3::char_("a-zA-Z_0-9"))]] - reservedkeywordsInstance ;
         const auto parameter_def = type >> id;
         const auto parameter_list_def = -(parameter % ',');
         const auto expression_par_def = ('(' >> expression) > ')';
@@ -94,12 +106,12 @@ namespace grammar {
         const auto binop_exp_def = expression_base >> (operator_parser > expression);
         
         const auto var_assign_def = (id >> '=' >> expression) > ";";
-        const auto while_statement_def = reserved("while") > expression > block;
+        const auto while_statement_def = x3::lit("while") > expression > block;
 
         const auto statement_expression_def = expression >> ';';
         const auto statement_def = var_assign| while_statement | statement_expression | print_statement | return_statement;
-        const auto print_statement_def = reserved("print") > '(' > expression > ')' > ';';
-        const auto return_statement_def = reserved("return") > expression > ';';
+        const auto print_statement_def = x3::lit("print") > '(' > expression > ')' > ';';
+        const auto return_statement_def = x3::lit("return") > expression > ';';
 
         const auto block_line_def = statement | decl;
         const auto block_def = '{' > *block_line > '}';

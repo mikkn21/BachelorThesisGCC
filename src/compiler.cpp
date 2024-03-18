@@ -55,7 +55,6 @@ namespace grammar::compiler {
             std::cout << "AST:\n" << obj->ast;
         }
 
-        
         if (options.stopAfter == StopAfterParser ) {
             return obj;
         }
@@ -77,5 +76,6 @@ namespace grammar::compiler {
 
         return obj;
     }
+
 
 } // namespace grammar::compiler

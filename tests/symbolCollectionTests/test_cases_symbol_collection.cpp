@@ -29,3 +29,7 @@ BOOST_AUTO_TEST_CASE(FuncAlreadyInScopeFail) {testSymbolCollectionString("int f(
 BOOST_AUTO_TEST_CASE(VarAlreadyInScopeFail) {testSymbolCollectionString("int x = 3; int x = 4;", TestingOutcome::FAILED);}
 BOOST_AUTO_TEST_CASE(VarNotDeclaredInScopeFail) {testSymbolCollectionString("int f() { int x = 3; return 0;} int g(){int y = 1 + x; return 0;}", TestingOutcome::FAILED);}
 BOOST_AUTO_TEST_CASE(VarNotInitializedYetFail) {testSymbolCollectionString("int x = 0; int y = 5 + x;", TestingOutcome::SUCCESS);}
+
+
+
+BOOST_AUTO_TEST_CASE(test) {testSymbolCollectionFile("../tests/symbolCollectionTests/test.chad", TestingOutcome::SUCCESS);}

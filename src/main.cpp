@@ -1,6 +1,7 @@
 #include <iostream>
 #include <ostream>
 #include <boost/program_options.hpp>
+#include "error/base_error.hpp"
 
 #include "compiler.hpp"
 
@@ -59,6 +60,12 @@ int main(int argc, char* argv[]) {
         }
     } catch (exception &e) {
         cerr << "Error: " << e.what() << endl;
+        return 1;
+    } catch (BaseError &e) {
+        cerr << "Error: " << e.what() << endl;
+        return 1;
+    } catch (...) {
+        cerr << "Unknown error" << endl;
         return 1;
     }
     return 0;
