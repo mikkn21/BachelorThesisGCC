@@ -1,0 +1,8 @@
+int f() {
+    z = y + x;
+    
+    int y = x + 3; 
+    int x = 3; 
+
+    return 0;
+}

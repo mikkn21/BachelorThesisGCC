@@ -37,7 +37,18 @@ void test_parse(std::string input, TestingOutcome testing_outcome, Compiler comp
         std::string ast1_string = temp.str();
         BOOST_CHECK_MESSAGE(testing_outcome == TestingOutcome::PARSE_FAILED, "\nAST:\n" << ast1_string << "\n" <<  e.what() << "\n");
         return;
+    } catch (const BaseError &e) {   
+        BOOST_CHECK_MESSAGE(false, "\n--- An unknown error derived from Baseerror was encountered in the test.\n" << e.what());
+        return;
+    } catch (exception &e) {
+        BOOST_CHECK_MESSAGE(false, "\n--- An unknown error type was encountered in the test.\n" << e.what());
+        return;
+    } catch (...) {
+        BOOST_CHECK_MESSAGE(false, "\n--- Caught exception/error we did not recognize.\n");
+        return;
     }
+
+
     std::ostringstream temp1;
     temp1 << ast1;
     std::string ast1_string = temp1.str();
@@ -51,7 +62,18 @@ void test_parse(std::string input, TestingOutcome testing_outcome, Compiler comp
         std::string ast2_string = temp.str();
         BOOST_CHECK_MESSAGE(testing_outcome == TestingOutcome::PARSE2_FAILED, "\nAST:\n" << ast1_string << "\n" << "AST:\n" << ast2_string << "\n" << e.what() << "\n");
         return;
+    } catch (const BaseError &e) {   
+        BOOST_CHECK_MESSAGE(false, "\n--- An unknown error derived from Baseerror was encountered in the test.\n" << e.what());
+        return;
+    } catch (exception &e) {
+        BOOST_CHECK_MESSAGE(false, "\n--- An unknown error type was encountered in the test.\n" << e.what());
+        return;
+    } catch (...) {
+        BOOST_CHECK_MESSAGE(false, "\n--- Caught exception/error we did not recognize.\n");
+        return;
     }
+
+
     std::ostringstream temp2;
     temp2 << ast2;
     std::string ast2_string = temp2.str();

@@ -11,6 +11,7 @@
 
 class FuncSymbol;
 class VarSymbol;
+class SymbolTable;
 
 namespace x3 = boost::spirit::x3;
 
@@ -34,6 +35,8 @@ namespace grammar
         struct Id : LocationInfo {
             std::string id;
             std::variant<std::monostate, VarSymbol*, FuncSymbol*> sym = std::monostate{}; // monostate tells us this can be empty since we can't use nullptr
+            SymbolTable *scope = nullptr;
+            
         public:
             friend std::ostream& operator<<(std::ostream& os, const Id &exp);
         };

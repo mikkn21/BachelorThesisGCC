@@ -11,6 +11,8 @@
 
 using namespace std;
 
+int nextUID = 0;
+
 struct print_visitor {
     std::ostream& os;
     print_visitor(std::ostream& os) : os(os) {}
@@ -49,6 +51,7 @@ FuncSymbol::FuncSymbol(FuncDecl *funcDecl, SymbolTable *scope) : symTab(scope){
 }
 
 VarSymbol::VarSymbol(VarDecl *varDecl) : varDecl(varDecl) {
+    uid = nextUID++;
     type = convertType(varDecl->type);
 }
 
@@ -56,9 +59,11 @@ FuncSymbol::~FuncSymbol() {
     delete(symTab);
 }
 
-SymbolTable::SymbolTable() { }
+// Outer-most scope
+SymbolTable::SymbolTable() : depth(0) { }
 
-SymbolTable::SymbolTable(SymbolTable *parentScope) : parentScope(parentScope) { }
+// One of the inner scopes
+SymbolTable::SymbolTable(SymbolTable *parentScope) : parentScope(parentScope), depth(parentScope->depth + 1) { }
 
 SymbolTable::~SymbolTable(){
     for (const auto &i : entries){

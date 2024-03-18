@@ -1,16 +1,12 @@
-#include <iostream>
 #include <boost/variant.hpp>
 #include "../ast.hpp"
 #include "../visitor.hpp"
 #include "semantics_error.hpp"
 #include "symbol_table.hpp"
 #include "symbol_collection.hpp"
-#include <set>
 #include <string>
 #include <variant>
-#include <unordered_map>
 #include <boost/spirit/home/x3.hpp>
-#include <stdexcept> 
 #include "../parser/parser.hpp"
 
 class SymbolCollectionVisitor : public Visitor {
@@ -28,6 +24,9 @@ public:
             throw SemanticsError("Identifier is a reserved keyword");
         }
 
+
+        id.scope = currentSymbolTable;
+
         Symbol *sym = currentSymbolTable->find(id.id);
         if (sym != nullptr) {
             if (auto varSym = dynamic_cast<VarSymbol *>(sym)) {
@@ -35,7 +34,7 @@ public:
             } else if (auto funcSym = dynamic_cast<FuncSymbol *>(sym)) {
                 id.sym = funcSym;
             } else {
-                throw SemanticsError(id.id + " not initialzed yet");
+                throw SemanticsError(id.id + " not initialzed at this point");
             }
         } else {
             throw SemanticsError(id.id + " not declared in scope");
