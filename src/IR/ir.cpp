@@ -1,147 +1,109 @@
-#include <vector>
-#include <variant>
-#include <string>
-#include <vector>
-#include <variant>
-#include <string>
-#include <optional>
-//#include "ir.hpp"
-#include "../ast.hpp"
-#include "../visitor.hpp"
-#include <set>
-#include <list>
-
-enum class Op {
-    MOV,
-    PUSH,
-    POP,
-    CALL,
-    RET,
-    CMP,
-    JMP,
-    JE,
-    JNE,
-    JL,
-    JLE,
-    JG,
-    JGE,
-    ADD,
-    SUB,
-    MUL,
-    DIV,
-    LABEL,
-    PROCEDURE,
-};
+#include "ir.hpp"
 
 
-struct DIR {}; // DIRECT MEMORY ACCESS
-struct IND {}; // INDIRECT MEMORY ACCESS
-struct IRL { // INDIRECT RELATIVE MEMORY ACCESS
-    long offset; // We are compiling to x86_64, so we can use 64-bit offsets
-    IRL(long offset) : offset(offset) {}
-};
+IRL::IRL(long offset) : offset(offset) {}
+ImmediateValue::ImmediateValue(int v) : value(v) {}
+GenericRegister::GenericRegister(size_t i) : id(i) {}
+Label::Label(const string& l) : label(l) {}
+Arg::Arg(TargetType target, MemAccessType access_type) : target(target), access_type(access_type) {}
 
-using MemAccessType = std::variant<DIR, IND, IRL>;
+Instruction::Instruction(Op op, optional<string> comment)
+    : operation(op), comment(comment) {}
 
-struct ImmediateValue {
-public:
-    int value;
+Instruction::Instruction(Op op, Arg arg1, optional<string> comment)
+    : operation(op), comment(comment) { args.reserve(1); args.push_back(arg1); }
 
-    ImmediateValue(int v) : value(v) {}
-};
+Instruction::Instruction(Op op, Arg arg1, Arg arg2, optional<string> comment)
+    : operation(op), comment(comment) { args.reserve(2); args.push_back(arg1); args.push_back(arg2); }
 
-struct Register {
-public:
-    size_t id;
-
-    Register(size_t i) : id(i) {}
-};
-
-enum class SpecialRegister {
-    RBP, RSP, RAX, RSL,
-};
-
-struct Label {
-public:
-    std::string label;
-
-    Label(const std::string& l) : label(l) {}
-};
-
-enum class Procedure {
-    CALLE_SAVE,
-    CALLE_RESTORE,
-    CALLER_SAVE,
-    CALLER_RESTORE,
-    PRINT,
-};
-
-using TargetType = std::variant<ImmediateValue, SpecialRegister, Register, Label, Procedure>;
-struct Arg {
-public:
-    TargetType target;
-    MemAccessType access_type;
-
-    Arg(TargetType target, MemAccessType access_type) : target(target), access_type(access_type) {}
-};
-
-using M = MemAccessType;
-//using Ins = std::variant<arg0,arg1,arg2>;
-struct Instruction {
-    Op operation;
-    std::vector<Arg> args;
-    std::optional<std::string> comment;
-
-    // Constructors for convenience
-    Instruction(Op op, std::optional<std::string> comment = std::nullopt)
-        : operation(op), comment(comment) {}
-
-    Instruction(Op op, Arg arg1, std::optional<std::string> comment = std::nullopt)
-        : operation(op), comment(comment) { args.reserve(1); args.push_back(arg1); }
-
-    Instruction(Op op, Arg arg1, Arg arg2, std::optional<std::string> comment = std::nullopt)
-        : operation(op), comment(comment) { args.reserve(2); args.push_back(arg1); args.push_back(arg2); }
-};
-
-
-class IRVisitor : public Visitor {
-    size_t register_counter = 0;
-    // function container
-    // a function name cannot start with an integer in front, so by giving it a unique id in front, we can garantuee the function name is unique
-    std::vector<std::string> function_container;
-
-    int new_register() {return register_counter++; }
-
-public:
-    IRVisitor() : Visitor() { }
-
-    // there should be no need for preVisit for var_decl
-    void postVisit(VarDecl &var_decl) {
-        // int c = (2+2)
+ostream& operator<<(ostream& os, const Arg arg) {
+    if (holds_alternative<ImmediateValue>(arg.target)) {
+        os << "$" << get<ImmediateValue>(arg.target).value;
+    } else if (holds_alternative<Register>(arg.target)) {
+        if (holds_alternative<IND>(arg.access_type)) {
+            os << "(" << get<Register>(arg.target) << ")";
+        } else if (holds_alternative<IRL>(arg.access_type)) {
+            os << get<IRL>(arg.access_type).offset << "(" << get<Register>(arg.target) << ")";
+        } else if (holds_alternative<DIR>(arg.access_type)) {
+            os << get<Register>(arg.target);
+        } else {
+            throw IRError("Unexpected access_type");
+        }
+    } else if (holds_alternative<GenericRegister>(arg.target)) {
+        os << "Generic Register(" << get<GenericRegister>(arg.target).id << ")";
+    } else if (holds_alternative<Label>(arg.target)) {
+        os << "Label: " << get<Label>(arg.target).label;
+    } else if (holds_alternative<Procedure>(arg.target)) {
+        os << "Procedure" << get<Procedure>(arg.target);
     }
-
-    void preVisit(Id &id) {
-        // give it unique register id
-        // add it to the symbol table for id
-    }
-
-    void preVisit(Expression &exp) {
-            
-    }
-};
-
-struct IR {
-    std::vector<Instruction> instructions;
-};
-
-IR intermediate_code_generation(Prog &prog) {
-    auto visitor = IRVisitor();
-    auto traveler = TreeTraveler(visitor);
-    traveler(prog);
-    return IR{}; 
+    return os;
 }
 
 
-Instruction addInstruction = Instruction(Op::ADD, Arg(ImmediateValue(5), IND()), Arg(SpecialRegister::RAX, DIR()));
-// Instruction jmpInstruction = Instruction(Op::JMP, Arg(Label("ds"), MemAccessType::DIR));
-// Instruction addInstruction = Instruction(Op::ADD, Arg(Register(5), M::IND), Arg(SpecialRegister::RAX, MemAccessType::DIR));
+ostream& operator<<(ostream& os, const Instruction &instruction) {
+    os << instruction.operation;
+    if (instruction.args.size() == 1) {
+        os << " " << instruction.args[0];
+    } else if (instruction.args.size() == 2) {
+        os << " " << instruction.args[0] << ", " << instruction.args[1];
+    }
+    return os << (instruction.comment ? "\t# " + instruction.comment.value() : "");
+}
+
+ostream& operator<<(ostream& os, const Op op) {
+    switch (op) {
+        case Op::MOVQ:          os << "movq";       break;
+        case Op::PUSH:          os << "push";       break;
+        case Op::POP:           os << "pop";        break;
+        case Op::CALL:          os << "call";       break;
+        case Op::RET:           os << "ret";        break;
+        case Op::CMPQ:          os << "cmpq";       break;
+        case Op::JMP:           os << "jmp";        break;
+        case Op::JE:            os << "je";         break;
+        case Op::JNE:           os << "jne";        break;
+        case Op::JL:            os << "jl";         break;
+        case Op::JLE:           os << "jle";        break;
+        case Op::JG:            os << "jg";         break;
+        case Op::JGE:           os << "jge";        break;
+        case Op::ADDQ:          os << "addq";       break;
+        case Op::SUBQ:          os << "subq";       break;
+        case Op::MULQ:          os << "mulq";       break;
+        case Op::DIVQ:          os << "divq";       break;
+        case Op::LABEL:         os << "label";      break;
+        case Op::PROCEDURE:     os << "procedure";  break;
+        default:                os << "Unknown";    break;
+    }
+    return os;
+}
+
+ostream& operator<<(ostream& os, const Register sp) {
+    switch (sp) {
+        case Register::RAX:      os << "%rax";       break;
+        case Register::RBP:      os << "%rbp";       break;
+        case Register::RSP:      os << "%rsp";       break;
+        case Register::RSL:      os << "%rsl";       break;
+        default:                        os << "Unknown";    break;
+    }
+    return os;
+}
+
+ostream& operator<<(ostream& os, const Procedure procedure){
+    switch (procedure) {
+        case Procedure::CALLEE_RESTORE:     os << "CALLEE_RESTORE";     break;
+        case Procedure::CALLEE_SAVE:        os << "CALLEE_SAVE";        break;
+        case Procedure::CALLER_RESTORE:     os << "CALLER_RESTORE";     break;
+        case Procedure::CALLER_SAVE:        os << "CALLER_SAVE";        break;
+        case Procedure::PRINT:              os << "PRINT";              break;
+        default:                            os << "Unknown";            break;
+    }
+    return os;
+}
+
+
+ostream& operator<<(ostream& os, const IR ir) {
+    for (auto instruction : ir) {
+        os << instruction << endl;
+    }
+    return os;
+}
+
