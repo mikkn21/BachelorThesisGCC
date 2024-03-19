@@ -54,6 +54,7 @@ namespace grammar {
         const x3::rule<class statement, Statement> statement = "statement";
         const x3::rule<class print_statement, PrintStatement> print_statement = "print_statement";
         const x3::rule<class return_statement, ReturnStatement> return_statement = "return_statement";
+        const x3::rule<class var_expression, VarExpression> var_expression =  "var_expression";
 
 
         struct reservedkeywords : x3::symbols<std::string> {
@@ -82,9 +83,10 @@ namespace grammar {
         const auto parameter_def = type >> id;
         const auto parameter_list_def = -(parameter % ',');
         const auto expression_par_def = ('(' >> expression) > ')';
-        const auto expression_base = expression_par | int_ | bool_ | id;
+        const auto expression_base = expression_par | int_ | bool_ | var_expression;
         const auto expression_def = binop_exp | expression_base;
         const auto binop_exp_def = expression_base >> (operator_parser > expression);
+        const auto var_expression_def = id;
         
         const auto var_assign_def = (id >> '=' >> expression) > ";";
         const auto while_statement_def = x3::lit("while") > expression > block;
@@ -130,7 +132,8 @@ namespace grammar {
             statement_expression,
             statement,
             print_statement,
-            return_statement
+            return_statement,
+            var_expression
         )
 
         grammar::ast::Prog parse(std::string_view src)

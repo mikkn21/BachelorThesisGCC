@@ -18,36 +18,47 @@ public:
 
     SymbolCollectionVisitor(SymbolTable *symTab) : Visitor(), currentSymbolTable(symTab) { }
 
-
     void preVisit(Id &id) override {
         id.scope = currentSymbolTable;
-        Symbol *sym = currentSymbolTable->find(id.id);
+    }
+
+    void preVisit(VarAssign &varAssign) override {
+        Symbol *sym = currentSymbolTable->find(varAssign.id.id);
+        if (sym == nullptr) {
+            throw SemanticsError(varAssign.id.id + " not declared in scope");
+        }
+        varAssign.id.sym = sym;
+    }
+
+    void preVisit(VarExpression &exp) override {
+        Symbol *sym = currentSymbolTable->find(exp.id.id);
         if (sym != nullptr) {
             if (auto varSym = dynamic_cast<VarSymbol *>(sym)) {
-                id.sym = varSym;
-            } else if (auto funcSym = dynamic_cast<FuncSymbol *>(sym)) {
-                id.sym = funcSym;
+                exp.id.sym = varSym;
             } else {
-                throw SemanticsError(id.id + " not initialzed at this point");
+                throw SemanticsError("Unknown symbol type was encountered");
             }
         } else {
-            throw SemanticsError(id.id + " not declared in scope");
+            throw SemanticsError(exp.id.id + " not declared in scope");
         }
     }
 
-    void preVisit(VarDecl &varDecl) override {
-        if (currentSymbolTable->find(varDecl.id.id)) {
-            throw SemanticsError("Variable already declared in scope");
+    void postVisit(VarDecl &varDecl) override {
+        // We use postVisit, instead of preVisit, because then a VarExpression is visited first,
+        // making sure that in the case of int x = x, then "x" in the right-hand side, is resolved in the parent scopes.
+        if (currentSymbolTable->findLocal(varDecl.id.id)) {
+            throw SemanticsError(varDecl.id.id + " already declared in scope");
         }
 
         VarSymbol *variantSymbol = new VarSymbol(&varDecl);
         currentSymbolTable->insert(varDecl.id.id, variantSymbol);
-        varDecl.sym = variantSymbol; // Mikkel addded this line I think it is correct?
+        varDecl.sym = variantSymbol;
+        varDecl.id.sym = variantSymbol;
     }
 
     void preVisit(FuncDecl &funcDecl) override {
-        if (currentSymbolTable->find(funcDecl.id.id)) {
-            throw  SemanticsError("Function already declared in scope");
+        if (currentSymbolTable->findLocal(funcDecl.id.id)) {
+            throw SemanticsError(funcDecl.id.id + " already declared in scope");
         }
 
         SymbolTable *newSymbolTable = new SymbolTable(currentSymbolTable);
@@ -55,15 +66,13 @@ public:
 
         currentSymbolTable->insert(funcDecl.id.id, funcSymbol);
         funcDecl.sym = funcSymbol;
+        funcDecl.id.sym = funcSymbol;
         currentSymbolTable = newSymbolTable; // Note that no object is changed, only pointers.
     }
 
     void postVisit(FuncDecl &funcDecl) override {
         currentSymbolTable = currentSymbolTable->parentScope;
     }
-
-
-
 
 };
 

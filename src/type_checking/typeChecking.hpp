@@ -9,7 +9,7 @@
         using BaseError::BaseError;
     };
 
-    Prog typeChecker(Prog &prog);
+    Prog typeChecker(Prog &prog, SymbolTable *globalScope);
 
 
 #endif //TYPE_CHECK_HPP

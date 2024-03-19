@@ -27,6 +27,12 @@ public:
     virtual void preRhsVisit(BinopExp &exp) { }
     virtual void postVisit(BinopExp &exp) { }
 
+    virtual void preVisit(VarExpression &exp) { }
+    virtual void postVisit(VarExpression &exp) { }
+
+    virtual void preVisit(FunctionCall &funcCall) { }
+    virtual void postVisit(FunctionCall &funcCall) { }
+
     virtual void preVisit(Id &id) { }
     virtual void postVisit(Id &id) { }
 

@@ -67,8 +67,8 @@ public:
     ~SymbolTable();
 
     void insert(string key, Symbol* symbol);
-    Symbol *findLocal(string key);
-    Symbol *find(string key);
+    Symbol *findLocal(string key) const;
+    Symbol *find(string key) const;
 };
 
 #endif

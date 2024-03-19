@@ -1,0 +1,9 @@
+int main() {
+    int x = 2;
+    int f() {
+        x = 4;
+        int x = x; 
+        return x;
+    }
+    return 0;
+}
