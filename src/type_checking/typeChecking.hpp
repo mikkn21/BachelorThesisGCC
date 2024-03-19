@@ -1,7 +1,7 @@
 #ifndef TYPE_CHECK_HPP
 #define TYPE_CHECK_HPP
 
-#include "../error/base_error.hpp"
+#include "../error/compiler_error.hpp"
 #include "../ast.hpp"
 
     class TypeCheckError: public CompilerError {
@@ -9,7 +9,7 @@
         using CompilerError::CompilerError;
     };
 
-    Prog typeChecker(Prog &prog);
+    Prog typeChecker(Prog &prog, SymbolTable *globalScope);
 
 
 #endif //TYPE_CHECK_HPP

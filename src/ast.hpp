@@ -1,16 +1,14 @@
 #ifndef MGRAMMAR_AST_HPP
 #define MGRAMMAR_AST_HPP 
 
-// #include "semantics/symbol_table.hpp" // this breaks everything
 #include <boost/fusion/include/io.hpp>
 #include <boost/fusion/include/adapt_struct.hpp>
 #include <boost/spirit/home/x3/support/ast/variant.hpp>
-#include <variant>
 #include <vector>
-#include <memory>
 
 class FuncSymbol;
 class VarSymbol;
+class Symbol;
 class SymbolTable;
 
 namespace x3 = boost::spirit::x3;
@@ -34,11 +32,19 @@ namespace grammar
 
         struct Id : LocationInfo {
             std::string id;
-            std::variant<std::monostate, VarSymbol*, FuncSymbol*> sym = std::monostate{}; // monostate tells us this can be empty since we can't use nullptr
+            // std::variant<std::monostate, VarSymbol*, FuncSymbol*> sym = std::monostate{}; // monostate tells us this can be empty since we can't use nullptr
+            Symbol *sym = nullptr;
             SymbolTable *scope = nullptr;
             
         public:
             friend std::ostream& operator<<(std::ostream& os, const Id &exp);
+        };
+
+        struct VarExpression : LocationInfo {
+            Id id;
+            
+        public:
+            friend std::ostream& operator<<(std::ostream& os, const VarExpression &exp);
         };
 
         struct PrimitiveType : LocationInfo {
@@ -47,10 +53,18 @@ namespace grammar
             friend std::ostream& operator<<(std::ostream& os, const PrimitiveType &exp); 
         };
 
-        struct Expression : public x3::variant<int, x3::forward_ast<BinopExp>, bool, Id, x3::forward_ast<ExpressionPar>>, LocationInfo {
+        struct Expression : public x3::variant<int, x3::forward_ast<BinopExp>, bool, VarExpression, x3::forward_ast<ExpressionPar>>, LocationInfo {
             using base_type::base_type;   
             using base_type::operator=;
         public:
+            Expression(const Expression& other) : base_type(other), LocationInfo(other) {}
+               
+            Expression& operator=(const Expression& other) {
+                base_type::operator=(other);
+                LocationInfo::operator=(other);
+                return *this;
+            }
+           
             friend std::ostream& operator<<(std::ostream& os, const Expression &exp);
         };
 
@@ -104,6 +118,13 @@ namespace grammar
             using base_type::base_type;  
             using base_type::operator=;
         public:
+            Statement(const Statement& other) : base_type(other), LocationInfo(other) {}
+               
+            Statement& operator=(const Statement& other) {
+                base_type::operator=(other);
+                LocationInfo::operator=(other);
+                return *this;
+            }
             friend std::ostream& operator<<(std::ostream& os, const Statement &exp);
         };
 
@@ -111,6 +132,14 @@ namespace grammar
             using base_type::base_type;   
             using base_type::operator=;
         public:
+            BlockLine(const BlockLine& other) : base_type(other), LocationInfo(other) {}
+               
+            BlockLine& operator=(const BlockLine& other) {
+                base_type::operator=(other);
+                LocationInfo::operator=(other);
+                return *this;
+            }
+
             friend std::ostream& operator<<(std::ostream& os, const BlockLine &exp);
         };
 
@@ -124,6 +153,13 @@ namespace grammar
             using base_type::base_type;   
             using base_type::operator=;
         public:
+            Type(const Type& other) : base_type(other), LocationInfo(other) {}
+               
+            Type& operator=(const Type& other) {
+                base_type::operator=(other);
+                LocationInfo::operator=(other);
+                return *this;
+            }
             friend std::ostream& operator<<(std::ostream& os, const Type &exp);
         };
 
@@ -182,6 +218,14 @@ namespace grammar
             using base_type::base_type;  
             using base_type::operator=;
         public:
+            Decl(const Decl& other) : base_type(other), LocationInfo(other) {}
+               
+            Decl& operator=(const Decl& other) {
+                base_type::operator=(other);
+                LocationInfo::operator=(other);
+                return *this;
+            }
+
             friend std::ostream& operator<<(std::ostream& os, const Decl &exp);
         };        
 
@@ -208,6 +252,11 @@ BOOST_FUSION_ADAPT_STRUCT(
 BOOST_FUSION_ADAPT_STRUCT(
     PrintStatement,
     (Expression, exp)
+)
+
+BOOST_FUSION_ADAPT_STRUCT(
+    VarExpression,
+    (Id, id)
 )
 
 BOOST_FUSION_ADAPT_STRUCT(

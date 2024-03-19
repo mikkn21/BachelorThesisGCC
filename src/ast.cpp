@@ -32,6 +32,10 @@ namespace grammar
             return os << exp.lhs << " " << exp.op << " " << exp.rhs;
         }
 
+        std::ostream& operator<<(std::ostream& os, const VarExpression &id) {
+            return os << id.id;
+        }
+
 
         std::ostream& operator<<(std::ostream& os, const grammar::ast::Id &id) {
             return os << id.id;

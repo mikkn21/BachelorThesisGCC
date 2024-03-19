@@ -4,7 +4,7 @@
 #include "../../src/semantics/semantics_error.hpp"
 #include <string>
 #include "testing_symbol_collection_lib.hpp"
-#include "../../src/error/base_error.hpp"
+#include "../../src/error/compiler_error.hpp"
 
 
 std::string remove_whitespace(const std::string& str) {

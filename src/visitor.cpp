@@ -88,6 +88,13 @@ void TreeTraveler::operator()(Id &id) {
 }
 
 template <>
+void TreeTraveler::operator()(VarExpression &exp) {
+    visitor.preVisit(exp);
+    (*this)(exp.id);
+    visitor.postVisit(exp);
+}
+
+template <>
 void TreeTraveler::operator()(ExpressionPar &expPar) {
     visitor.preVisit(expPar);
     (*this)(expPar.exp);

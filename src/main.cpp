@@ -1,6 +1,7 @@
 #include <iostream>
 #include <ostream>
 #include <boost/program_options.hpp>
+#include "error/compiler_error.hpp"
 
 #include "compiler.hpp"
 
@@ -73,8 +74,14 @@ int main(int argc, char* argv[]) {
             cerr << "Error: An input source is required.\n";
             return 1;
         }
+    } catch (CompilerError &e) {
+        cerr << "Error: " << e.what() << endl;
+        return 1;
     } catch (exception &e) {
         cerr << "Error: " << e.what() << endl;
+        return 1;
+    } catch (...) {
+        cerr << "Unknown error" << endl;
         return 1;
     }
     return 0;

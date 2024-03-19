@@ -4,7 +4,7 @@
 #include <string>
 #include "../ast.hpp"
 #include <boost/spirit/home/x3.hpp>
-#include "../error/base_error.hpp"
+#include "../error/compiler_error.hpp"
 
 
 namespace grammar {

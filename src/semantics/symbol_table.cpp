@@ -75,7 +75,7 @@ void SymbolTable::insert(string key, Symbol *symbol) {
     entries.emplace(key, symbol); 
 }
 
-Symbol *SymbolTable::findLocal(string key) {
+Symbol *SymbolTable::findLocal(string key) const {
     auto x = entries.find(key);
     if (x == entries.end()) {
         return nullptr;
@@ -85,7 +85,7 @@ Symbol *SymbolTable::findLocal(string key) {
     }
 }
 
-Symbol *SymbolTable::find(string key) {
+Symbol *SymbolTable::find(string key) const {
     auto x = entries.find(key);
     if (x == entries.end()) {
         if (parentScope == nullptr) {

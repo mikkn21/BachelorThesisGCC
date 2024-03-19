@@ -63,13 +63,12 @@ namespace grammar::compiler {
 
         unique_ptr<SymbolTable> globalScope = make_unique<SymbolTable>();
         symbol_collection(obj->ast, globalScope.get());
-        obj->setGlobalScope(std::move(globalScope));
 
         if (options.stopAfter == StopAfterSymbolCollection ) {
             return obj;
         }
 
-        obj->ast = typeChecker(obj->ast);
+        obj->ast = typeChecker(obj->ast, globalScope.get());
 
         if (options.stopAfter == StopAfterTypeCheck ) {
             return obj;
@@ -94,7 +93,10 @@ namespace grammar::compiler {
 
         emit(obj->ir);        
 
+        obj->setGlobalScope(std::move(globalScope));
+
         return obj;
     }
+
 
 } // namespace grammar::compiler
