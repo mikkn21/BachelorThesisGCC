@@ -10,7 +10,9 @@
 #include "type_checking/typeChecking.hpp"
 #include "semantics/symbol_collection.hpp"
 #include "semantics/symbol_table.hpp"
-
+#include "IR/register_allocation.hpp"
+#include "IR/code_generation.hpp"
+#include "IR/emit.hpp"
 
 
 namespace grammar::compiler {
@@ -63,14 +65,33 @@ namespace grammar::compiler {
         symbol_collection(obj->ast, globalScope.get());
 
         if (options.stopAfter == StopAfterSymbolCollection ) {
-             return obj;
+            return obj;
         }
 
         obj->ast = typeChecker(obj->ast, globalScope.get());
 
         if (options.stopAfter == StopAfterTypeCheck ) {
-             return obj;
+            return obj;
         }
+        obj->ir = intermediate_code_generation(obj->ast); 
+
+        if (options.printCodeGeneration){
+            std::cout << "CodeGen:\n" << obj->ir << std::endl;
+        }
+        if (options.stopAfter == StopAfterCodeGen){
+            return obj;
+        }
+        obj->ir = register_allocation(obj->ir); 
+
+        if (options.stopAfter == StopAfterRegAlloc){
+            return obj;
+        }
+
+        if (options.printRegisterAllocation){
+            std::cout << "RegisterAllocation:\n" << obj->ir << std::endl;
+        }
+
+        emit(obj->ir);        
 
         obj->setGlobalScope(std::move(globalScope));
 

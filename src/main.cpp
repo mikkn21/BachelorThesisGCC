@@ -19,8 +19,12 @@ int main(int argc, char* argv[]) {
             ("parse-only,P", po::bool_switch(), "Stop after parsing") 
             ("symbol-collection-only,S", po::bool_switch(), "Stop after symbol collection") 
             ("type-check-only,T", po::bool_switch(), "Stop after type checking") 
+            ("code-generation-only,C", po::bool_switch(), "Stop after code generation")
+            ("register-allocation-only,R", po::bool_switch(), "Stop after register allocation")
             ("print-ast,p", po::bool_switch(), "Print the generated AST")
             ("print-input,i", po::bool_switch(), "Print the input before parsing")
+            ("print-code-generation,c", po::bool_switch(), "Print the Intermediate code after the code generation phase")
+            ("print-register-allocation,r", po::bool_switch(), "Print the Intermediate code after the register allocation phase")
             ("input-file", po::value<string>(), "Input file to compile"); // this is to necessary
         po::positional_options_description p;
         // Here we say that we expect 1 non-posestional argument namely the file
@@ -45,11 +49,23 @@ int main(int argc, char* argv[]) {
         if (vm["type-check-only"].as<bool>()) { 
             options.stopAfter = StopAfterTypeCheck;
         }
+        if (vm["code-generation-only"].as<bool>()) { 
+            options.stopAfter = StopAfterCodeGen;
+        }
+        if (vm["register-allocation-only"].as<bool>()) { 
+            options.stopAfter = StopAfterRegAlloc;
+        }
         if (vm["print-ast"].as<bool>()) {
             options.printAst = true;
         }
         if (vm["print-input"].as<bool>()) {
             options.printInput = true;
+        }
+        if (vm["print-code-generation"].as<bool>()) {
+            options.printCodeGeneration = true;
+        }
+        if (vm["print-register-allocation"].as<bool>()) {
+            options.printRegisterAllocation = true;
         }
         if (vm.count("input-file")) {
             string_view filename = vm["input-file"].as<string>();

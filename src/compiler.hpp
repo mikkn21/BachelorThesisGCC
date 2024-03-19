@@ -6,6 +6,8 @@
 #include <optional>
 #include <memory>
 #include <string_view>
+#include "IR/ir.hpp"
+
 
 namespace grammar::compiler {
 
@@ -13,12 +15,12 @@ using namespace std;
 
 struct CompilerReturnObj {
 private:
-     unique_ptr<SymbolTable> globalScope;
+    unique_ptr<SymbolTable> globalScope;
 
 public:
     ast::Prog ast; 
     // Other options not implemented 
-    // IR 
+    IR ir;
     // Essembly
 
     void setGlobalScope(unique_ptr<SymbolTable> globalScope) {
@@ -29,7 +31,9 @@ public:
 enum StopAfter {
     StopAfterParser,
     StopAfterTypeCheck,
-    StopAfterSymbolCollection
+    StopAfterSymbolCollection,
+    StopAfterCodeGen,
+    StopAfterRegAlloc
 };
 
 class CompilerOptions {
@@ -37,7 +41,8 @@ public:
     std::optional<StopAfter> stopAfter;
     bool printAst = false ;
     bool printInput = false;
-
+    bool printCodeGeneration = false;
+    bool printRegisterAllocation = false;
 };
 
 std::string getFileContent(std::string_view input);

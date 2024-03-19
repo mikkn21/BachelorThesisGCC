@@ -4,9 +4,9 @@
 #include "../error/base_error.hpp"
 #include "../ast.hpp"
 
-    class TypeCheckError: public BaseError {
+    class TypeCheckError: public CompilerError {
     public:
-        using BaseError::BaseError;
+        using CompilerError::CompilerError;
     };
 
     Prog typeChecker(Prog &prog, SymbolTable *globalScope);

@@ -37,7 +37,7 @@ void test_parse(std::string input, TestingOutcome testing_outcome, Compiler comp
         std::string ast1_string = temp.str();
         BOOST_CHECK_MESSAGE(testing_outcome == TestingOutcome::PARSE_FAILED, "\nAST:\n" << ast1_string << "\n" <<  e.what() << "\n");
         return;
-    } catch (const BaseError &e) {   
+    } catch (const CompilerError &e) {   
         BOOST_CHECK_MESSAGE(false, "\n--- An unknown error derived from Baseerror was encountered in the test.\n" << e.what());
         return;
     } catch (exception &e) {
@@ -62,7 +62,7 @@ void test_parse(std::string input, TestingOutcome testing_outcome, Compiler comp
         std::string ast2_string = temp.str();
         BOOST_CHECK_MESSAGE(testing_outcome == TestingOutcome::PARSE2_FAILED, "\nAST:\n" << ast1_string << "\n" << "AST:\n" << ast2_string << "\n" << e.what() << "\n");
         return;
-    } catch (const BaseError &e) {   
+    } catch (const CompilerError &e) {   
         BOOST_CHECK_MESSAGE(false, "\n--- An unknown error derived from Baseerror was encountered in the test.\n" << e.what());
         return;
     } catch (exception &e) {
