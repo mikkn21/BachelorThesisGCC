@@ -46,7 +46,7 @@ namespace grammar::compiler {
     // compile from a string
     std::unique_ptr<CompilerReturnObj> compileFromString(std::string_view input, const CompilerOptions &options) {
         if (options.printInput) {
-            std::cout << "Input: \n" << input;
+            std::cout << "Input:\n" << input << endl << endl; // extra endl, so the read file is printed pretty
         }
 
         auto obj = std::make_unique<CompilerReturnObj>();
@@ -54,7 +54,7 @@ namespace grammar::compiler {
         
         // print ast tree if option is enabled
         if (options.printAst) {
-            std::cout << "AST:\n" << obj->ast;
+            std::cout << "AST:\n" << obj->ast << endl;
         }
 
         if (options.stopAfter == StopAfterParser ) {

@@ -1,2 +1,7 @@
-int c = 5;
-int x = 1;
+
+int main() {
+    int c = 5;
+    int x = 1;
+    print(2);
+    return 0;
+}
