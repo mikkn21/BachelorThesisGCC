@@ -20,13 +20,7 @@ public:
 
 
     void preVisit(Id &id) override {
-        if (grammar::parser::isReserved(id.id)) {
-            throw SemanticsError("Identifier is a reserved keyword");
-        }
-
-
         id.scope = currentSymbolTable;
-
         Symbol *sym = currentSymbolTable->find(id.id);
         if (sym != nullptr) {
             if (auto varSym = dynamic_cast<VarSymbol *>(sym)) {

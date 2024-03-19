@@ -1,4 +1,5 @@
-int whileiamcool() {
+int Fwhile() {
+     int iff = 2;
      return 0;
 }
 
