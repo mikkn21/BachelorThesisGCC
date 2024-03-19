@@ -15,9 +15,9 @@ namespace grammar {
     grammar::ast::Prog parse(std::string_view src);
     extern const x3::rule<class prog, ast::Prog> prog;
 
-    class SyntaxError : public BaseError {
+    class SyntaxError : public CompilerError {
     public:
-        using BaseError::BaseError;
+        using CompilerError::CompilerError;
     };
     
     bool isReserved(const std::string &keyword);
