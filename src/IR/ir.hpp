@@ -10,7 +10,7 @@
 #include "../semantics/symbol_table.hpp"
 #include <stack>
 #include <iostream>
-#include "../error/base_error.hpp"
+#include "../error/compiler_error.hpp"
 
 using namespace std;
 

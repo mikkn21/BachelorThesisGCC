@@ -1,7 +1,7 @@
 #include <iostream>
 #include <ostream>
 #include <boost/program_options.hpp>
-#include "error/base_error.hpp"
+#include "error/compiler_error.hpp"
 
 #include "compiler.hpp"
 
@@ -74,10 +74,10 @@ int main(int argc, char* argv[]) {
             cerr << "Error: An input source is required.\n";
             return 1;
         }
-    } catch (exception &e) {
+    } catch (CompilerError &e) {
         cerr << "Error: " << e.what() << endl;
         return 1;
-    } catch (BaseError &e) {
+    } catch (exception &e) {
         cerr << "Error: " << e.what() << endl;
         return 1;
     } catch (...) {

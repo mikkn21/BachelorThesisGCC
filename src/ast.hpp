@@ -4,9 +4,7 @@
 #include <boost/fusion/include/io.hpp>
 #include <boost/fusion/include/adapt_struct.hpp>
 #include <boost/spirit/home/x3/support/ast/variant.hpp>
-#include <variant>
 #include <vector>
-#include <memory>
 
 class FuncSymbol;
 class VarSymbol;

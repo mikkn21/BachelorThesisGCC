@@ -2,17 +2,11 @@
 #ifndef MGRAMMAR_SEMANTICS_ERROR_HPP
 #define MGRAMMAR_SEMANTICS_ERROR_HPP 
 
-#include "../ast.hpp"
+#include "../error/compiler_error.hpp"
 
-class SemanticsError : public std::exception {
-private:
-    std::string message;
+class SemanticsError : public CompilerError {
 public:
-    SemanticsError(const std::string& msg) : message(msg) {}
-
-    virtual const char* what() const noexcept override {
-        return message.c_str();
-    }
+    using CompilerError::CompilerError;
 };
 
 #endif

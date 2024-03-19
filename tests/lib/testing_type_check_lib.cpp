@@ -31,7 +31,7 @@ void testTypeChecking(std::string input, TestingOutcome testing_outcome, Compile
     } catch (const TypeCheckError &e) {   
         BOOST_CHECK_MESSAGE(testing_outcome == TestingOutcome::FAILED, "\n"  <<  e.what() << "\n");
         return;
-    } catch (const BaseError &e) {   
+    } catch (const CompilerError &e) {   
         BOOST_CHECK_MESSAGE(false, "\n--- An unknown error derived from Baseerror was encountered in the test.\n" << e.what());
         return;
     } catch (exception &e) {
