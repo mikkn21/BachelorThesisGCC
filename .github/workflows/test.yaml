@@ -19,14 +19,12 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install libboost-all-dev
-
     - name: Build
       run: |
         mkdir build
         cd build
         cmake ..
         make -j 2
-
     - name: Run Tests with CTest
       run: |
         cd build

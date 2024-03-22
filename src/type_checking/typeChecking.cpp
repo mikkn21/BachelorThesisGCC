@@ -19,12 +19,54 @@ class TypeChecker : public Visitor {
     // The stack of types
     stack<string> typeStack = stack<string>();    
 
+    const SymbolTable *globalScope;
+
+public:
+    TypeChecker(SymbolTable *globalScope) : globalScope(globalScope) {}
+
+private:
+
+    // Check that there is a main function and it adheres to the rules of our main function
+    void preVisit(Prog &prog) override {
+        Symbol *mainSymbol = globalScope->findLocal("main");
+        if (mainSymbol == nullptr) {
+            throw TypeCheckError("main function not declared");
+        }
+
+        if (auto mainFunc = dynamic_cast<FuncSymbol *>(mainSymbol)) {
+            if (mainFunc->returnType != IntType) {
+                throw TypeCheckError("main function must return an int");
+            }
+            if (mainFunc->parameters.size() != 0) {
+                throw TypeCheckError("main function is not allowed to have any parameters");
+            }
+        } else {
+            throw TypeCheckError("main is not a function");
+        }
+    }
+
     void postVisit(Prog &prog) override {
         assert(typeStack.size() == 0);
     }
 
     void postVisit(StatementExpression &exp) override {
         typeStack.pop();
+    }
+
+    void preVisit(FunctionCall &funcCall) override {
+        Symbol *sym = funcCall.id.scope->find(funcCall.id.id);
+        if (sym != nullptr) {
+            if (dynamic_cast<VarSymbol *>(sym)) {
+                throw TypeCheckError(funcCall.id.id + " variable attempted to be used as a function");
+            } else if (auto funcSym = dynamic_cast<FuncSymbol *>(sym)) {
+                funcCall.id.sym = funcSym;
+                typeStack.push(funcSym->returnType == IntType ? "int" : "bool");
+            } else {
+                throw TypeCheckError("Unknown symbol type was encountered");
+            }
+        } else {
+            throw TypeCheckError(funcCall.id.id + " not declared in scope");
+        }
     }
     
     void postVisit(VarAssign &varassign) override {
@@ -43,10 +85,10 @@ class TypeChecker : public Visitor {
     void postVisit(VarDecl &vardecl) override {  
         //id  
         auto t1 = pop(typeStack);
-        // cout << "Debug: postVisit VarDecl t1: " << t1 << endl;
+        cout << "Debug: postVisit VarDecl t1: " << t1 << endl;
         // exp resault
         auto t2 = pop(typeStack);
-        // cout << "Debug: postVisit VarDecl t2: " << t2 << endl;
+        cout << "Debug: postVisit VarDecl t2: " << t2 << endl;
         if (t1 != t2) {
             // cout << "Types do not mathch" << endl;
             throw TypeCheckError("Type does not match expression");
@@ -65,9 +107,13 @@ class TypeChecker : public Visitor {
 
 
     void postVisit(Id &id) override {
+        cout << "Debug: in id: " << id.id << endl;
+        if (id.sym == nullptr) {
+            throw TypeCheckError("Symbol not found");
+        }
 
-        if (auto *varSymbolPtr = std::get_if<VarSymbol*>(&id.sym)) {
-            VarSymbol* varSymbol = *varSymbolPtr; 
+        if (auto varSymbol = dynamic_cast<VarSymbol *>(id.sym)) {
+            cout << "Debug: id is varsymbol" << endl;
             typeStack.push(varSymbol->type == 0 ? "int" : "bool");
         }     
     }
@@ -78,6 +124,7 @@ class TypeChecker : public Visitor {
 
     void postVisit(ReturnStatement &rtn) override {
         auto t1 = pop(typeStack);
+        cout << "Debug: postVisit ReturnStatement t1: " << t1 << endl;
        
         string t2;
         if (func->returnType == IntType) {
@@ -90,6 +137,8 @@ class TypeChecker : public Visitor {
             throw TypeCheckError("Return type of func not recognised");
         }
 
+        cout << "Debug: postVisit ReturnStatement t2: " << t2 << endl;
+
         if (t1 != t2) {
             throw TypeCheckError("Return type " + t2 + " does not match function return type " + t1);
         }
@@ -99,6 +148,7 @@ class TypeChecker : public Visitor {
 
     void preVisit(FuncDecl &funcDecl) override {
         func = funcDecl.sym;
+        cout << "Debug: preVisit FuncDecl" << endl;
     }
 
     void postVisit(FuncDecl &funcDecl) override {
@@ -106,10 +156,12 @@ class TypeChecker : public Visitor {
             throw TypeCheckError("Function " + funcDecl.id.id + " does not always return");
         }
         func = func->symTab->parentScope->creator;
+        cout << "Debug: postVisit FuncDecl" << endl;
     }
 
     void postVisit(int &value) override {
       typeStack.push("int");
+      cout << "Debug: postVisit int" << endl;
     }
 
     void postVisit(bool &value) override {
@@ -145,8 +197,6 @@ class TypeChecker : public Visitor {
         }
     }
 
-private:
-
     template<typename T>
     T pop(stack<T>& myStack) {
         if (myStack.empty()) {
@@ -159,8 +209,8 @@ private:
 }; 
 
 
-Prog typeChecker(Prog &prog) {
-    auto visitor = TypeChecker();
+Prog typeChecker(Prog &prog, SymbolTable *globalScope) {
+    auto visitor = TypeChecker(globalScope);
     auto traveler = TreeTraveler(visitor);
     traveler(prog);
     return prog;

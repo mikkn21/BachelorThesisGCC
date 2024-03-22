@@ -123,6 +123,26 @@ BOOST_AUTO_TEST_CASE(ReturnMultiLinesTrue) {test_parse_string("int f () { int x 
 BOOST_AUTO_TEST_CASE(ReturnVarTrue) {test_parse_string("int f () { int x = 2; x = 4; return x; }", TestingOutcome::SUCCESS); }
 
 
+//  "if", "else", "while", "return", "print"
+// Using reserved keywords for funcdecl
+BOOST_AUTO_TEST_CASE(ReservedIfFuncFailF) {test_parse_string("int if() { return 0;}", TestingOutcome::PARSE_FAILED);}
+BOOST_AUTO_TEST_CASE(ReservedElseFuncFailF) {test_parse_string("int else() { return 0;}", TestingOutcome::PARSE_FAILED);}
+BOOST_AUTO_TEST_CASE(ReservedWhileFuncFailF) {test_parse_string("int while() { return 0;}", TestingOutcome::PARSE_FAILED);}
+BOOST_AUTO_TEST_CASE(ReservedReturnFuncFailF) {test_parse_string("int return() { return 0;}", TestingOutcome::PARSE_FAILED);}
+BOOST_AUTO_TEST_CASE(ReservedPrintFuncFailF) {test_parse_string("int print() { return 0;}", TestingOutcome::PARSE_FAILED);}
+
+// Using reserved keywords for vardecl
+BOOST_AUTO_TEST_CASE(ReservedIfVarFailF) {test_parse_string("int if = 3;", TestingOutcome::PARSE_FAILED);}
+BOOST_AUTO_TEST_CASE(ReservedElseVarFailF) {test_parse_string("int else = 3;", TestingOutcome::PARSE_FAILED);}
+BOOST_AUTO_TEST_CASE(ReservedWhileVarFailF) {test_parse_string("int while = 3;", TestingOutcome::PARSE_FAILED);}
+BOOST_AUTO_TEST_CASE(ReservedReturnVarFailF) {test_parse_string("int return = 3;", TestingOutcome::PARSE_FAILED);}
+BOOST_AUTO_TEST_CASE(ReservedPrintVarFailF) {test_parse_string("int print = 3;", TestingOutcome::PARSE_FAILED);}
+
+// Test using primitive types as variable names
+BOOST_AUTO_TEST_CASE(PrimitiveTypeVarFailF) {test_parse_string("int int = 3;", TestingOutcome::PARSE_FAILED);}
+BOOST_AUTO_TEST_CASE(PrimitiveTypeVarFailF2) {test_parse_string("bool bool = true;", TestingOutcome::PARSE_FAILED);}
+
+
 // Testing files
 BOOST_AUTO_TEST_CASE(simple_file) {test_parse_file("../tests/parserTests/simple.chad", TestingOutcome::SUCCESS);}
 BOOST_AUTO_TEST_CASE(prog1) {test_parse_file("../tests/parserTests/prog1.chad", TestingOutcome::SUCCESS);}

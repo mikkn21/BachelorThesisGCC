@@ -1,10 +1,9 @@
 #include <boost/spirit/home/x3.hpp>
 #include <boost/spirit/include/support_line_pos_iterator.hpp>
-#include <set>
 #include <sys/resource.h>
 #include "../ast.hpp"
 #include "parser.hpp"
-#include <unordered_set>
+
 
 
 
@@ -55,28 +54,22 @@ namespace grammar {
         const x3::rule<class statement, Statement> statement = "statement";
         const x3::rule<class print_statement, PrintStatement> print_statement = "print_statement";
         const x3::rule<class return_statement, ReturnStatement> return_statement = "return_statement";
+        const x3::rule<class var_expression, VarExpression> var_expression =  "var_expression";
 
 
-       // Reserved keywords
-       // NOTE: Unordered set is used for O(1) lookup time
-       // Looking at GodBolt it generates half the assembly code compared to a normal set
-       const unordered_set<string> reservedKeywords = {
-            "if", "else", "while", "return", "print"
-        };
-
-        auto reserved(const std::string &keyword) {
-            if (reservedKeywords.find(keyword) != reservedKeywords.end()) {
-                return x3::lit(keyword);
+        struct reservedkeywords : x3::symbols<std::string> {
+            reservedkeywords() {
+                add("if", "if")
+                    ("else", "else")
+                    ("while", "while")
+                    ("return", "return")
+                    ("int", "int")
+                    ("bool", "bool")
+                    ("print", "print"); 
             }
-            throw SyntaxError("Keyword not found in reserved keywords");
+        } reservedkeywordsInstance; 
 
-        }
-
-        bool isReserved(const std::string &keyword) {
-            return reservedKeywords.find(keyword) != reservedKeywords.end();
-        }
-
-
+   
         // Define a parser for operators
         const auto operator_parser =
             x3::string("==") | x3::string("!=") | x3::string("<=") | x3::string(">=") |
@@ -86,21 +79,22 @@ namespace grammar {
         // Useable
         const auto primitive_type_def = x3::string("int") | x3::string("bool");
         const auto type_def = primitive_type;  // | array_type;
-        const auto id_def = x3::raw[ x3::lexeme[(x3::char_("a-zA-Z_") >> *x3::char_("a-zA-Z_0-9"))]];
+        const auto id_def = x3::raw[ x3::lexeme[(x3::char_("a-zA-Z_") >> *x3::char_("a-zA-Z_0-9"))]] - (reservedkeywordsInstance >> !x3::alnum) ;
         const auto parameter_def = type >> id;
         const auto parameter_list_def = -(parameter % ',');
         const auto expression_par_def = ('(' >> expression) > ')';
-        const auto expression_base = expression_par | int_ | bool_ | id;
+        const auto expression_base = expression_par | int_ | bool_ | var_expression;
         const auto expression_def = binop_exp | expression_base;
         const auto binop_exp_def = expression_base >> (operator_parser > expression);
+        const auto var_expression_def = id;
         
         const auto var_assign_def = (id >> '=' >> expression) > ";";
-        const auto while_statement_def = reserved("while") > expression > block;
+        const auto while_statement_def = x3::lit("while") > expression > block;
 
         const auto statement_expression_def = expression >> ';';
         const auto statement_def = var_assign| while_statement | statement_expression | print_statement | return_statement;
-        const auto print_statement_def = reserved("print") > '(' > expression > ')' > ';';
-        const auto return_statement_def = reserved("return") > expression > ';';
+        const auto print_statement_def = x3::lit("print") > '(' > expression > ')' > ';';
+        const auto return_statement_def = x3::lit("return") > expression > ';';
 
         const auto block_line_def = statement | decl;
         const auto block_def = '{' > *block_line > '}';
@@ -138,7 +132,8 @@ namespace grammar {
             statement_expression,
             statement,
             print_statement,
-            return_statement
+            return_statement,
+            var_expression
         )
 
         grammar::ast::Prog parse(std::string_view src)
