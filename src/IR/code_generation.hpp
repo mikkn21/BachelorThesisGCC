@@ -10,9 +10,10 @@ public:
 
     IRVisitor();
 
-    void preVisit(Prog &prog) override;
+    void preVisit(FuncDecl &func_decl) override;
     void postVisit(VarDecl &var_decl) override;
     void preVisit(int &i) override;
+    void postVisit(PrintStatement &print) override;
 
 private:
     size_t register_counter;

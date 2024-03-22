@@ -2,24 +2,36 @@
 
 IRVisitor::IRVisitor() : Visitor(), register_counter(0) {}
 
-void IRVisitor::preVisit(Prog &prog) {
-    // add main prologue
-    // add main epilogue
+void IRVisitor::preVisit(FuncDecl &func_decl) {
+    vector<VarSymbol*> var_decls = func_decl.sym->symTab->get_var_symbols();
+    cout << var_decls.size() << endl;
+    for (int i = 0; i < var_decls.size(); i++) {
+        code.push_back(Instruction(Op::PUSH, Arg(ImmediateValue(0), DIR())));
+        var_decls[i]->local_id = i+1;
+        printf("id: %d\n", i);
+    }
 }
 
 void IRVisitor::postVisit(VarDecl &var_decl) {
     AstValue value = pop(temp_storage);
     if (holds_alternative<int>(value)) {
-        code.push_back(Instruction(Op::MOVQ, Arg(ImmediateValue(get<int>(value)), DIR()), Arg(GenericRegister(var_decl.sym->uid), DIR()), "int variable"));
+        code.push_back(Instruction(Op::MOVQ, Arg(ImmediateValue(get<int>(value)), DIR()), Arg(GenericRegister(var_decl.sym->local_id), DIR())));
     } else if (holds_alternative<bool>(value)) {
         bool bool_value = get<bool>(value);
         int int_value = bool_value ? 1 : 0;
-        code.push_back(Instruction(Op::MOVQ, Arg(ImmediateValue(int_value), DIR()), Arg(GenericRegister(var_decl.sym->uid), DIR())));
+        code.push_back(Instruction(Op::MOVQ, Arg(ImmediateValue(int_value), DIR()), Arg(GenericRegister(var_decl.sym->local_id), DIR())));
     }
 }
 
 void IRVisitor::preVisit(int &i) {
     temp_storage.push(i);
+}
+
+void IRVisitor::postVisit(PrintStatement &print) {
+    AstValue value = pop(temp_storage);
+    if (holds_alternative<int>(value)) { 
+        code.push_back(Instruction(Op::PROCEDURE, Arg(Procedure::PRINT, DIR()), Arg(ImmediateValue(get<int>(value)), DIR())));
+    }
 }
 
 int IRVisitor::new_register() { return register_counter++; }

@@ -43,7 +43,7 @@ public:
     ~VarSymbol() override { }
     SymbolType type;
     VarDecl *varDecl;
-    int uid;
+    long local_id;
 };
 
 // add class symbol and type symbol for aliasing, future implementation
@@ -69,6 +69,7 @@ public:
     void insert(string key, Symbol* symbol);
     Symbol *findLocal(string key) const;
     Symbol *find(string key) const;
+    vector<VarSymbol*> get_var_symbols();
 };
 
 #endif

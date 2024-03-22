@@ -8,10 +8,9 @@
 #include "semantics_error.hpp"
 #include <memory>
 #include <iostream>
+#include <typeinfo>
 
 using namespace std;
-
-int nextUID = 0;
 
 struct print_visitor {
     std::ostream& os;
@@ -51,7 +50,6 @@ FuncSymbol::FuncSymbol(FuncDecl *funcDecl, SymbolTable *scope) : symTab(scope){
 }
 
 VarSymbol::VarSymbol(VarDecl *varDecl) : varDecl(varDecl) {
-    uid = nextUID++;
     type = convertType(varDecl->type);
 }
 
@@ -99,3 +97,16 @@ Symbol *SymbolTable::find(string key) const {
     }
 }
 
+vector<VarSymbol*> SymbolTable::get_var_symbols() {
+    vector<VarSymbol*> var_symbols;
+    for (auto var : entries) {
+        printf("hej 1\n");
+        printf("second: %s\n", typeid(var.second).name());
+        printf("varsymbol: %s\n", typeid(VarSymbol).name());
+        auto var_casted = dynamic_cast<VarSymbol*>(var.second);
+        if (var_casted == nullptr) {
+            var_symbols.push_back(static_cast<VarSymbol*>(var_casted));
+        }
+    }
+    return var_symbols;
+}

@@ -71,7 +71,6 @@ private:
     
     void postVisit(VarAssign &varassign) override {
         // id 
-        // cout << "Debug: Entering postVisit VarAssign" << endl;
         auto t1 = pop(typeStack);
         // exp resault
         auto t2 = pop(typeStack);
@@ -85,10 +84,8 @@ private:
     void postVisit(VarDecl &vardecl) override {  
         //id  
         auto t1 = pop(typeStack);
-        cout << "Debug: postVisit VarDecl t1: " << t1 << endl;
         // exp resault
         auto t2 = pop(typeStack);
-        cout << "Debug: postVisit VarDecl t2: " << t2 << endl;
         if (t1 != t2) {
             // cout << "Types do not mathch" << endl;
             throw TypeCheckError("Type does not match expression");
@@ -97,7 +94,6 @@ private:
 
     void preBlockVisit(WhileStatement &whileStatement) override {
         // exp
-        // cout << "Debug: Entering preBlockVisit WhileStatement" << endl;
         auto t1 = pop(typeStack);
 
         if (t1 != "bool") {
@@ -107,13 +103,11 @@ private:
 
 
     void postVisit(Id &id) override {
-        cout << "Debug: in id: " << id.id << endl;
         if (id.sym == nullptr) {
             throw TypeCheckError("Symbol not found");
         }
 
         if (auto varSymbol = dynamic_cast<VarSymbol *>(id.sym)) {
-            cout << "Debug: id is varsymbol" << endl;
             typeStack.push(varSymbol->type == 0 ? "int" : "bool");
         }     
     }
@@ -124,7 +118,6 @@ private:
 
     void postVisit(ReturnStatement &rtn) override {
         auto t1 = pop(typeStack);
-        cout << "Debug: postVisit ReturnStatement t1: " << t1 << endl;
        
         string t2;
         if (func->returnType == IntType) {
@@ -137,8 +130,6 @@ private:
             throw TypeCheckError("Return type of func not recognised");
         }
 
-        cout << "Debug: postVisit ReturnStatement t2: " << t2 << endl;
-
         if (t1 != t2) {
             throw TypeCheckError("Return type " + t2 + " does not match function return type " + t1);
         }
@@ -146,9 +137,12 @@ private:
         hasFuncReturned = true;
     }
 
+    void postVisit(PrintStatement &print) override {
+        typeStack.pop();
+    }
+
     void preVisit(FuncDecl &funcDecl) override {
         func = funcDecl.sym;
-        cout << "Debug: preVisit FuncDecl" << endl;
     }
 
     void postVisit(FuncDecl &funcDecl) override {
@@ -156,12 +150,10 @@ private:
             throw TypeCheckError("Function " + funcDecl.id.id + " does not always return");
         }
         func = func->symTab->parentScope->creator;
-        cout << "Debug: postVisit FuncDecl" << endl;
     }
 
     void postVisit(int &value) override {
       typeStack.push("int");
-      cout << "Debug: postVisit int" << endl;
     }
 
     void postVisit(bool &value) override {

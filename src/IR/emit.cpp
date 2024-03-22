@@ -5,17 +5,17 @@
 #include "emit.hpp"
 
 string printIMM(int number) {
-    string s = "leaq format(%rip), %rdi\n" 
-    "movq $" + std::to_string(number) + ", %rsi\n"
-    "xorq %rax, %rax\n"
-    "call printf@plt";
+    string s = "\tleaq format(%rip), %rdi\n" 
+    "\tmovq $" + std::to_string(number) + ", %rsi\n"
+    "\txorq %rax, %rax\n"
+    "\tcall printf\n";
     return s;
 }
 
 string procedure(Instruction instruction) {
     if (holds_alternative<Procedure>(instruction.args[0].target)) {
         switch (get<Procedure>(instruction.args[0].target)) {
-            case Procedure::PRINT: 
+            case Procedure::PRINT:
                 if (holds_alternative<ImmediateValue>(instruction.args[1].target)) {
                     return printIMM(get<ImmediateValue>(instruction.args[1].target).value);
                 } else if (holds_alternative<Register>(instruction.args[1].target)) {
@@ -28,13 +28,16 @@ string procedure(Instruction instruction) {
 }
 
 void emit_to_file(IR ir) {
+
     ofstream outputFile("chad.s");
     if (outputFile.is_open()) {
         outputFile << ".data" << endl;
-        outputFile << "format: .asciz \"%d\n\"\n" << endl;
-        outputFile << ".globl _start" << endl;
-        outputFile << "\n_start:" << endl;
+        outputFile << "format: .asciz \"%d\\n\"\n" << endl;
+        outputFile << ".text" << endl;
+        outputFile << ".globl main" << endl;
+        outputFile << "\nmain:" << endl;
         for (const Instruction& instruction : ir) {
+            cout << instruction.operation << endl;
             switch (instruction.operation) {
                 case Op::PROCEDURE:
                     outputFile << procedure(instruction);
@@ -43,9 +46,9 @@ void emit_to_file(IR ir) {
                     outputFile << "\t" << instruction << endl;
             }
         }
-        outputFile << "movq $60, %rax" << endl;
-        outputFile << "movq $0, %rdi" << endl;
-        outputFile << "syscall" << endl;
+        outputFile << "\tmovq $60, %rax" << endl;
+        outputFile << "\tmovq $0, %rdi" << endl;
+        outputFile << "\tsyscall" << endl;
         outputFile.close();
     } else {
         throw EmitError("Could not open/create output file");

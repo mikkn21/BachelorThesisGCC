@@ -3,7 +3,8 @@
 Instruction mov_translate(Instruction instruction) {
     if (holds_alternative<ImmediateValue>(instruction.args[0].target)) {
         if (holds_alternative<GenericRegister>(instruction.args[1].target)) {
-            return Instruction(Op::MOVQ, instruction.args[0], Arg(Register::RBP, IRL((get<GenericRegister>(instruction.args[1].target).id+1)*(-8))), instruction.comment);
+            cout << get<GenericRegister>(instruction.args[1].target).id << endl;
+            return Instruction(Op::MOVQ, instruction.args[0], Arg(Register::RBP, IRL((get<GenericRegister>(instruction.args[1].target).id)*(-8))), instruction.comment);
         } else if (holds_alternative<Register>(instruction.args[1].target)) {
             //pass
             throw IRError("Not implemented yet");
@@ -17,7 +18,9 @@ Instruction procedure_translate(Instruction instruction) {
     switch (get<Procedure>(instruction.args[0].target)) {
         case Procedure::PRINT:    
             if (holds_alternative<GenericRegister>(instruction.args[1].target)){
-                return Instruction(Op::PROCEDURE, instruction.args[0], Arg(Register::RBP, IRL((get<GenericRegister>(instruction.args[1].target).id+1)*(-8))), instruction.comment);
+                return Instruction(Op::PROCEDURE, instruction.args[0], Arg(Register::RBP, IRL((get<GenericRegister>(instruction.args[1].target).id)*(-8))), instruction.comment);
+            } else if (holds_alternative<ImmediateValue>(instruction.args[1].target)) {
+                return instruction;
             } else {
                 throw IRError("Invalid Print Instruction found");
             }

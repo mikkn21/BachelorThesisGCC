@@ -1,7 +1,6 @@
 
 int main() {
-    int c = 5;
-    int x = 1;
+    int x = 2;
     print(2);
     return 0;
 }
