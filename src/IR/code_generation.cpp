@@ -4,11 +4,11 @@ IRVisitor::IRVisitor() : Visitor(), register_counter(0) {}
 
 void IRVisitor::preVisit(FuncDecl &func_decl) {
     vector<VarSymbol*> var_decls = func_decl.sym->symTab->get_var_symbols();
-    cout << var_decls.size() << endl;
+    //cout << var_decls.size() << endl;
     for (int i = 0; i < var_decls.size(); i++) {
         code.push_back(Instruction(Op::PUSH, Arg(ImmediateValue(0), DIR())));
         var_decls[i]->local_id = i+1;
-        printf("id: %d\n", i);
+        //printf("id: %d\n", i);
     }
 }
 

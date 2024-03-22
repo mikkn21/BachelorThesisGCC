@@ -3,7 +3,7 @@
 Instruction mov_translate(Instruction instruction) {
     if (holds_alternative<ImmediateValue>(instruction.args[0].target)) {
         if (holds_alternative<GenericRegister>(instruction.args[1].target)) {
-            cout << get<GenericRegister>(instruction.args[1].target).id << endl;
+            //cout << get<GenericRegister>(instruction.args[1].target).id << endl;
             return Instruction(Op::MOVQ, instruction.args[0], Arg(Register::RBP, IRL((get<GenericRegister>(instruction.args[1].target).id)*(-8))), instruction.comment);
         } else if (holds_alternative<Register>(instruction.args[1].target)) {
             //pass
