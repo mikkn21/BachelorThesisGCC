@@ -1,0 +1,31 @@
+name: Test
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build_and_test:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Setup Boost
+      run: |
+        sudo apt-get update
+        sudo apt-get install libboost-all-dev
+    - name: Build
+      run: |
+        mkdir build
+        cd build
+        cmake ..
+        make -j 2
+    - name: Run Tests with CTest
+      run: |
+        cd build
+        ctest --output-on-failure
