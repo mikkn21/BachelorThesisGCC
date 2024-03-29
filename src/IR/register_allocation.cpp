@@ -41,6 +41,7 @@ IR register_allocation(IR old_ir) {
             ir.push_back(procedure_translate(instruction));
             break;
         default:
+            ir.push_back(instruction);
             break;
         }
     }
