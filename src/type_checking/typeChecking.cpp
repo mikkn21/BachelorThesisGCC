@@ -30,18 +30,18 @@ private:
     void preVisit(Prog &prog) override {
         Symbol *mainSymbol = globalScope->findLocal("main");
         if (mainSymbol == nullptr) {
-            throw TypeCheckError("main function not declared");
+            throw TypeCheckError("main function not declared", prog);
         }
 
         if (auto mainFunc = dynamic_cast<FuncSymbol *>(mainSymbol)) {
             if (mainFunc->returnType != IntType) {
-                throw TypeCheckError("main function must return an int");
+                throw TypeCheckError("main function must return an int", prog);
             }
             if (mainFunc->parameters.size() != 0) {
-                throw TypeCheckError("main function is not allowed to have any parameters");
+                throw TypeCheckError("main function is not allowed to have any parameters", prog);
             }
         } else {
-            throw TypeCheckError("main is not a function");
+            throw TypeCheckError("main is not a function", prog);
         }
     }
 
@@ -57,15 +57,15 @@ private:
         Symbol *sym = funcCall.id.scope->find(funcCall.id.id);
         if (sym != nullptr) {
             if (dynamic_cast<VarSymbol *>(sym)) {
-                throw TypeCheckError(funcCall.id.id + " variable attempted to be used as a function");
+                throw TypeCheckError(funcCall.id.id + " variable attempted to be used as a function", funcCall);
             } else if (auto funcSym = dynamic_cast<FuncSymbol *>(sym)) {
                 funcCall.id.sym = funcSym;
                 typeStack.push(funcSym->returnType == IntType ? "int" : "bool");
             } else {
-                throw TypeCheckError("Unknown symbol type was encountered");
+                throw TypeCheckError("Unknown symbol type was encountered", funcCall);
             }
         } else {
-            throw TypeCheckError(funcCall.id.id + " not declared in scope");
+            throw TypeCheckError(funcCall.id.id + " not declared in scope", funcCall);
         }
     }
     
@@ -76,7 +76,7 @@ private:
         auto t2 = pop(typeStack);
 
         if (t1 != t2) {
-             throw TypeCheckError("Variable type do not match type of evaluated expression");
+             throw TypeCheckError("Variable type do not match type of evaluated expression", varassign);
         }
     }
 
@@ -88,7 +88,7 @@ private:
         auto t2 = pop(typeStack);
         if (t1 != t2) {
             // cout << "Types do not mathch" << endl;
-            throw TypeCheckError("Type does not match expression");
+            throw TypeCheckError("Type does not match expression", vardecl);
         }
     } 
 
@@ -97,14 +97,14 @@ private:
         auto t1 = pop(typeStack);
 
         if (t1 != "bool") {
-            throw TypeCheckError("Expression in while statement is not a bool");
+            throw TypeCheckError("Expression in while statement is not a bool", whileStatement);
         }
     }
 
 
     void postVisit(Id &id) override {
         if (id.sym == nullptr) {
-            throw TypeCheckError("Symbol not found");
+            throw TypeCheckError("Symbol not found", id);
         }
 
         if (auto varSymbol = dynamic_cast<VarSymbol *>(id.sym)) {
@@ -127,11 +127,11 @@ private:
             t2 = "bool";
         }
         else {
-            throw TypeCheckError("Return type of func not recognised");
+            throw TypeCheckError("Return type of func not recognised", rtn);
         }
 
         if (t1 != t2) {
-            throw TypeCheckError("Return type " + t2 + " does not match function return type " + t1);
+            throw TypeCheckError("Return type " + t2 + " does not match function return type " + t1, rtn);
         }
 
         hasFuncReturned = true;
@@ -147,7 +147,7 @@ private:
 
     void postVisit(FuncDecl &funcDecl) override {
         if (!hasFuncReturned) {
-            throw TypeCheckError("Function " + funcDecl.id.id + " does not always return");
+            throw TypeCheckError("Function " + funcDecl.id.id + " does not always return", funcDecl);
         }
         func = func->symTab->parentScope->creator;
     }
@@ -168,18 +168,18 @@ private:
         auto t2 = pop(typeStack); // rhs
     
         if (t1 != t2) {
-            throw TypeCheckError("Type of lefthand side does not match Type of righthand side");
+            throw TypeCheckError("Type of lefthand side does not match Type of righthand side", binop);
         }
         
         auto const op = binop.op;
     
         if (t1 == "bool") {
             if (op != "&" && op != "|") {
-                throw TypeCheckError(op + " does not support bools");
+                throw TypeCheckError(op + " does not support bools", binop);
             }
         } // Not a bool
         else if (op == "&" || op == "|") {
-            throw TypeCheckError(op + " is only supported on bools");
+            throw TypeCheckError(op + " is only supported on bools", binop);
         }
 
         if (op == "==" || op == "!=" || op == "<"  || op == ">"  || op == "<=" || op == ">=") {

@@ -37,7 +37,7 @@ void emit_to_file(IR ir) {
         outputFile << ".globl main" << endl;
         outputFile << "\nmain:" << endl;
         for (const Instruction& instruction : ir) {
-            cout << instruction.operation << endl;
+            // cout << instruction.operation << endl;
             switch (instruction.operation) {
                 case Op::PROCEDURE:
                     outputFile << procedure(instruction);

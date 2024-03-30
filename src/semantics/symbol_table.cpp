@@ -23,7 +23,7 @@ struct print_visitor {
 };
 
 struct TypeConverterVisitor : boost::static_visitor<SymbolType> {
-    SymbolType operator()(const PrimitiveType &t) {
+    SymbolType operator()(PrimitiveType &t) { // I removed the const keyword here, is it a problem? - sofus
         auto const type = t.type;
         if (type == "int") {
             return IntType;
@@ -32,7 +32,7 @@ struct TypeConverterVisitor : boost::static_visitor<SymbolType> {
             return BoolType;
         }
 
-        throw SemanticsError("Unknown primitive type");
+        throw SemanticsError("Unknown primitive type", t);
     }
 };
 

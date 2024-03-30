@@ -14,6 +14,7 @@ public:
     void postVisit(VarDecl &var_decl) override;
     void preVisit(int &i) override;
     void postVisit(PrintStatement &print) override;
+    // void postVisit(VarExpression &var_expr) override;
 
 private:
     size_t register_counter;

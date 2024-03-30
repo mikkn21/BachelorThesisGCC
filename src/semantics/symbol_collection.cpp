@@ -25,7 +25,7 @@ public:
     void preVisit(VarAssign &varAssign) override {
         Symbol *sym = currentSymbolTable->find(varAssign.id.id);
         if (sym == nullptr) {
-            throw SemanticsError(varAssign.id.id + " not declared in scope");
+            throw SemanticsError(varAssign.id.id + " not declared in scope", varAssign);
         }
         varAssign.id.sym = sym;
     }
@@ -36,10 +36,10 @@ public:
             if (auto varSym = dynamic_cast<VarSymbol *>(sym)) {
                 exp.id.sym = varSym;
             } else {
-                throw SemanticsError("Unknown symbol type was encountered");
+                throw SemanticsError("Unknown symbol type was encountered", exp);
             }
         } else {
-            throw SemanticsError(exp.id.id + " not declared in scope");
+            throw SemanticsError(exp.id.id + " not declared in scope", exp);
         }
     }
 
@@ -47,7 +47,7 @@ public:
         // We use postVisit, instead of preVisit, because then a VarExpression is visited first,
         // making sure that in the case of int x = x, then "x" in the right-hand side, is resolved in the parent scopes.
         if (currentSymbolTable->findLocal(varDecl.id.id)) {
-            throw SemanticsError(varDecl.id.id + " already declared in scope");
+            throw SemanticsError(varDecl.id.id + " already declared in scope", varDecl);
         }
 
         VarSymbol *variantSymbol = new VarSymbol(&varDecl);
@@ -58,7 +58,7 @@ public:
 
     void preVisit(FuncDecl &funcDecl) override {
         if (currentSymbolTable->findLocal(funcDecl.id.id)) {
-            throw SemanticsError(funcDecl.id.id + " already declared in scope");
+            throw SemanticsError(funcDecl.id.id + " already declared in scope", funcDecl);
         }
 
         SymbolTable *newSymbolTable = new SymbolTable(currentSymbolTable);

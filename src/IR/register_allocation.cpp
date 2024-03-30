@@ -6,7 +6,6 @@ Instruction mov_translate(Instruction instruction) {
             //cout << get<GenericRegister>(instruction.args[1].target).id << endl;
             return Instruction(Op::MOVQ, instruction.args[0], Arg(Register::RBP, IRL((get<GenericRegister>(instruction.args[1].target).id)*(-8))), instruction.comment);
         } else if (holds_alternative<Register>(instruction.args[1].target)) {
-            //pass
             throw IRError("Not implemented yet");
         } else {
             throw IRError("Invalid move instruction found");
@@ -27,8 +26,8 @@ Instruction procedure_translate(Instruction instruction) {
             break;
     }
 }
-// int x = 5
-// print(x)
+
+
 IR register_allocation(IR old_ir) {
     IR ir;
     for (auto &instruction : old_ir) {

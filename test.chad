@@ -1,6 +1,7 @@
 
 int main() {
     int x = 2;
+    bool y = 4;
     print(2);
     return 0;
 }
