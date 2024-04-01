@@ -2,11 +2,17 @@
 int main() {
     int x = 10;
     int y = 3;
+    bool z = true;
+    bool v = false;
     print(x+y);
     print(x-y);
     print(x*y);
     print(x/y);
     print(x%y);
+    print(z);
+    print(v);
+    print(v&z);
+    print(v|z);
 
     return 0;
 }

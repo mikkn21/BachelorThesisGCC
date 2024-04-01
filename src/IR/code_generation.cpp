@@ -59,8 +59,6 @@ void IRVisitor::postVisit(BinopExp &binop_exp) {
         code.push_back(Instruction(Op::MOVQ, Arg(get<GenericRegister>(lhs), DIR()), Arg(Register::R8, DIR())));
     }
 
-    // above is meant to be left side
-
     if (holds_alternative<int>(rhs)) {
         code.push_back(Instruction(Op::MOVQ, Arg(ImmediateValue(get<int>(rhs)), DIR()), Arg(Register::R9, DIR())));
     } else if (holds_alternative<bool>(rhs)) {
@@ -70,7 +68,6 @@ void IRVisitor::postVisit(BinopExp &binop_exp) {
     } else if (holds_alternative<GenericRegister>(rhs)) {
         code.push_back(Instruction(Op::MOVQ, Arg(get<GenericRegister>(rhs), DIR()), Arg(Register::R9, DIR())));
     }
-
 
     GenericRegister result = GenericRegister(++binop_exp.scope->registerCounter);
     if (binop_exp.op == "+") {
@@ -90,6 +87,12 @@ void IRVisitor::postVisit(BinopExp &binop_exp) {
         code.push_back(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(Register::RAX, DIR())));
         code.push_back(Instruction(Op::IDIVQ, Arg(Register::R9, DIR())));
         code.push_back(Instruction(Op::MOVQ, Arg(Register::RDX, DIR()), Arg(result, DIR())));
+    } else if (binop_exp.op == "&") {
+        code.push_back(Instruction(Op::ANDQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR())));
+        code.push_back(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(result, DIR())));
+    } else if (binop_exp.op == "|") {
+        code.push_back(Instruction(Op::ORQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR())));
+        code.push_back(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(result, DIR())));
     }
 
     temp_storage.push(result);  

@@ -73,6 +73,8 @@ ostream& operator<<(ostream& os, const Op op) {
         case Op::IDIVQ:          os << "idivq";       break;
         case Op::LABEL:         os << "label";      break;
         case Op::PROCEDURE:     os << "procedure";  break;
+        case Op::ANDQ:           os << "andq";       break;
+        case Op::ORQ:           os << "orq";       break;
         default:                os << "Unknown";    break;
     }
     return os;
