@@ -78,6 +78,7 @@ namespace grammar
             Expression lhs;
             std::string op;
             Expression rhs;
+            SymbolTable *scope = nullptr;
         public: 
             friend std::ostream& operator<<(std::ostream& os, const BinopExp &exp);
         };

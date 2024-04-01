@@ -69,8 +69,8 @@ ostream& operator<<(ostream& os, const Op op) {
         case Op::JGE:           os << "jge";        break;
         case Op::ADDQ:          os << "addq";       break;
         case Op::SUBQ:          os << "subq";       break;
-        case Op::MULQ:          os << "mulq";       break;
-        case Op::DIVQ:          os << "divq";       break;
+        case Op::IMULQ:          os << "imulq";       break;
+        case Op::IDIVQ:          os << "idivq";       break;
         case Op::LABEL:         os << "label";      break;
         case Op::PROCEDURE:     os << "procedure";  break;
         default:                os << "Unknown";    break;
@@ -81,10 +81,22 @@ ostream& operator<<(ostream& os, const Op op) {
 ostream& operator<<(ostream& os, const Register sp) {
     switch (sp) {
         case Register::RAX:      os << "%rax";       break;
+        case Register::RBX:      os << "%rbx";       break;
         case Register::RBP:      os << "%rbp";       break;
         case Register::RSP:      os << "%rsp";       break;
-        case Register::RSL:      os << "%rsl";       break;
-        default:                        os << "Unknown";    break;
+        case Register::RDI:      os << "%rdi";       break;
+        case Register::RSI:      os << "%rsi";       break;
+        case Register::RDX:      os << "%rdx";       break;
+        case Register::RCX:      os << "%rcx";       break;
+        case Register::R8:       os << "%r8";        break;
+        case Register::R9:       os << "%r9";        break;
+        case Register::R10:      os << "%r10";       break;
+        case Register::R11:      os << "%r11";       break;
+        case Register::R12:      os << "%r12";       break;
+        case Register::R13:      os << "%r13";       break;
+        case Register::R14:      os << "%r14";       break;
+        case Register::R15:      os << "%r15";       break;
+        default:                 os << "Unknown";    break;
     }
     return os;
 }

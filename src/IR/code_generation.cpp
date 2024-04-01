@@ -1,17 +1,19 @@
 #include "code_generation.hpp"
-
-IRVisitor::IRVisitor() : Visitor(), register_counter(0) {}
+#include "string"
+IRVisitor::IRVisitor() : Visitor() {}
 
 void IRVisitor::preVisit(FuncDecl &func_decl) {
+    // caller save registers
     vector<VarSymbol*> var_decls = func_decl.sym->symTab->get_var_symbols();
-    // cout << var_decls.size() << endl;
     for (int i = 0; i < var_decls.size(); i++) {
         code.push_back(Instruction(Op::PUSH, Arg(ImmediateValue(0), DIR())));
-        var_decls[i]->local_id = i+1;
-        // printf("id: %d\n", i+1);
-    
     }
 }
+
+void IRVisitor::postVisit(FuncDecl &func_decl) {
+    // caller restore registers
+}
+
 
 void IRVisitor::postVisit(VarDecl &var_decl) {
     AstValue value = pop(temp_storage);
@@ -32,11 +34,61 @@ void IRVisitor::preVisit(bool &b) {
     temp_storage.push(b);
 }
 
-// TODO: how to access symbol table from here?
 void IRVisitor::postVisit(VarExpression &var_expr) {
     VarSymbol *var_symbol = static_cast<VarSymbol*>(var_expr.id.sym);
     temp_storage.push(var_symbol->local_id);
 }
+
+void IRVisitor::postVisit(BinopExp &binop_exp) {
+    // future optimization: calculate immediate values immediately to optimize program.
+    
+    code.push_back(Instruction(Op::PUSH, Arg(Register::R8, DIR())));
+    code.push_back(Instruction(Op::PUSH, Arg(Register::R9, DIR())));
+
+
+    AstValue rhs = pop(temp_storage);
+    AstValue lhs = pop(temp_storage);
+
+    if (holds_alternative<int>(lhs)) {
+        code.push_back(Instruction(Op::MOVQ, Arg(ImmediateValue(get<int>(lhs)), DIR()), Arg(Register::R8, DIR())));
+    } else if (holds_alternative<bool>(lhs)) {
+        bool bool_value = get<bool>(lhs);
+        int int_value = bool_value ? 1 : 0;
+        code.push_back(Instruction(Op::MOVQ, Arg(ImmediateValue(int_value), DIR()), Arg(Register::R8, DIR())));
+    } else if (holds_alternative<GenericRegister>(lhs)) {
+        code.push_back(Instruction(Op::MOVQ, Arg(get<GenericRegister>(lhs), DIR()), Arg(Register::R8, DIR())));
+    }
+
+    // above is meant to be left side
+
+    if (holds_alternative<int>(rhs)) {
+        code.push_back(Instruction(Op::MOVQ, Arg(ImmediateValue(get<int>(rhs)), DIR()), Arg(Register::R9, DIR())));
+    } else if (holds_alternative<bool>(rhs)) {
+        bool bool_value = get<bool>(rhs);
+        int int_value = bool_value ? 1 : 0;
+        code.push_back(Instruction(Op::MOVQ, Arg(ImmediateValue(int_value), DIR()), Arg(Register::R9, DIR())));
+    } else if (holds_alternative<GenericRegister>(rhs)) {
+        code.push_back(Instruction(Op::MOVQ, Arg(get<GenericRegister>(rhs), DIR()), Arg(Register::R9, DIR())));
+    }
+
+
+
+    if (binop_exp.op == "+") {
+        code.push_back(Instruction(Op::ADDQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR())));
+    } else if (binop_exp.op == "-") {
+        code.push_back(Instruction(Op::SUBQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR())));
+    } else if (binop_exp.op == "*") {
+        code.push_back(Instruction(Op::IMULQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR())));
+    } 
+
+    GenericRegister result = GenericRegister(++binop_exp.scope->registerCounter);
+    code.push_back(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(result, DIR())));
+
+    temp_storage.push(result);  
+    code.push_back(Instruction(Op::POP, Arg(Register::R9, DIR())));
+    code.push_back(Instruction(Op::POP, Arg(Register::R8, DIR())));
+}
+
 
 void IRVisitor::postVisit(PrintStatement &print) {
     AstValue value = pop(temp_storage);
@@ -51,8 +103,6 @@ void IRVisitor::postVisit(PrintStatement &print) {
     }
 }
 
-
-int IRVisitor::new_register() { return register_counter++; }
 
 template<typename T>
 T IRVisitor::pop(stack<T>& myStack) {

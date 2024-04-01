@@ -11,14 +11,16 @@ public:
     IRVisitor();
 
     void preVisit(FuncDecl &func_decl) override;
+    void postVisit(FuncDecl &func_decl) override;
+
     void postVisit(VarDecl &var_decl) override;
     void preVisit(int &i) override;
     void preVisit(bool &b) override;
     void postVisit(PrintStatement &print) override;
     void postVisit(VarExpression &var_expr) override;
+    void postVisit(BinopExp &binop_exp) override;
 
 private:
-    size_t register_counter;
     std::vector<std::string> function_container;
     std::stack<AstValue> temp_storage;
 

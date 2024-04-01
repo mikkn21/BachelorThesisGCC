@@ -69,7 +69,12 @@ SymbolTable::~SymbolTable(){
     }
 }
 
-void SymbolTable::insert(string key, Symbol *symbol) {
+void SymbolTable::insert(string key, VarSymbol* symbol) {
+    symbol->local_id = ++registerCounter;
+    entries.emplace(key, symbol); 
+}
+
+void SymbolTable::insert(string key, FuncSymbol *symbol) {
     entries.emplace(key, symbol); 
 }
 

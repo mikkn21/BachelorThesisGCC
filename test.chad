@@ -1,7 +1,10 @@
 
 int main() {
-    bool x = false;
+    int x = 2;
     int y = 4;
-    print(true);
+    print(x+y);
+    print(x-y);
+    print(x*y);
+
     return 0;
 }
