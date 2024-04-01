@@ -18,6 +18,7 @@ class TypeChecker : public Visitor {
 
     // The stack of types
     stack<SymbolType> typeStack = stack<SymbolType>();    
+    vector<SymbolType> FuncCallArgs = vector<SymbolType>();
 
     const SymbolTable *globalScope;
 
@@ -60,6 +61,10 @@ private:
                 throw TypeCheckError(funcCall.id.id + " variable attempted to be used as a function", funcCall);
             } else if (auto funcSym = dynamic_cast<FuncSymbol *>(sym)) {
                 funcCall.id.sym = funcSym;
+
+                if (funcCall.argument_list.arguments.size() != funcSym->parameters.size()) {
+                    throw TypeCheckError("Function call does not have the correct number of arguments", funcCall);
+                }
 
                 // Parameters
                 for(int i = funcSym->parameters.size() - 1; i >= 0; i--) {
