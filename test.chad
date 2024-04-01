@@ -1,7 +1,7 @@
 
 int main() {
-    int x = 2;
-    bool y = 4;
-    print(2);
+    bool x = false;
+    int y = 4;
+    print(true);
     return 0;
 }

@@ -4,9 +4,17 @@
 #include <string>
 #include "emit.hpp"
 
-string printIMM(int number) {
+string print_immediate_value(int number) {
     string s = "\tleaq format(%rip), %rdi\n" 
     "\tmovq $" + std::to_string(number) + ", %rsi\n"
+    "\txorq %rax, %rax\n"
+    "\tcall printf\n";
+    return s;
+}
+
+string print_stack_value(long offset) {
+    string s = "\tleaq format(%rip), %rdi\n" 
+    "\tmovq " + std::to_string(offset) + "(%rbp), %rsi\n"
     "\txorq %rax, %rax\n"
     "\tcall printf\n";
     return s;
@@ -17,9 +25,10 @@ string procedure(Instruction instruction) {
         switch (get<Procedure>(instruction.args[0].target)) {
             case Procedure::PRINT:
                 if (holds_alternative<ImmediateValue>(instruction.args[1].target)) {
-                    return printIMM(get<ImmediateValue>(instruction.args[1].target).value);
+                    return print_immediate_value(get<ImmediateValue>(instruction.args[1].target).value);
                 } else if (holds_alternative<Register>(instruction.args[1].target)) {
-                    throw IRError("not implemented yet");
+
+                    return print_stack_value(get<IRL>(instruction.args[1].access_type).offset);
                 }
         }
     } else {

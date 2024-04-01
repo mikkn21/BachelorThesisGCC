@@ -2,7 +2,7 @@
 
 using namespace std;
 
-using AstValue = std::variant<int, bool>;
+using AstValue = std::variant<int, bool, GenericRegister>;
 
 class IRVisitor : public Visitor {
 public:
@@ -13,8 +13,9 @@ public:
     void preVisit(FuncDecl &func_decl) override;
     void postVisit(VarDecl &var_decl) override;
     void preVisit(int &i) override;
+    void preVisit(bool &b) override;
     void postVisit(PrintStatement &print) override;
-    // void postVisit(VarExpression &var_expr) override;
+    void postVisit(VarExpression &var_expr) override;
 
 private:
     size_t register_counter;

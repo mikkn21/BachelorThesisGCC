@@ -29,12 +29,12 @@ using MemAccessType = std::variant<DIR, IND, IRL>;
 
 struct ImmediateValue {
     int value;
-    ImmediateValue(int v);
+    ImmediateValue(int value);
 };
 
 struct GenericRegister {
-    size_t id;
-    GenericRegister(size_t i);
+    long local_id;
+    GenericRegister(long local_id);
 };
 
 enum class Register {
@@ -43,7 +43,7 @@ enum class Register {
 
 struct Label {
     std::string label;
-    Label(const std::string& l);
+    Label(const std::string& label);
 };
 
 enum class Procedure {

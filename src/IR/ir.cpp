@@ -3,7 +3,7 @@
 
 IRL::IRL(long offset) : offset(offset) {}
 ImmediateValue::ImmediateValue(int v) : value(v) {}
-GenericRegister::GenericRegister(size_t i) : id(i) {}
+GenericRegister::GenericRegister(long i) : local_id(i) {}
 Label::Label(const string& l) : label(l) {}
 Arg::Arg(TargetType target, MemAccessType access_type) : target(target), access_type(access_type) {}
 
@@ -15,6 +15,8 @@ Instruction::Instruction(Op op, Arg arg1, optional<string> comment)
 
 Instruction::Instruction(Op op, Arg arg1, Arg arg2, optional<string> comment)
     : operation(op), comment(comment) { args.reserve(2); args.push_back(arg1); args.push_back(arg2); }
+
+
 
 ostream& operator<<(ostream& os, const Arg arg) {
     if (holds_alternative<ImmediateValue>(arg.target)) {
@@ -30,7 +32,7 @@ ostream& operator<<(ostream& os, const Arg arg) {
             throw IRError("Unexpected access_type");
         }
     } else if (holds_alternative<GenericRegister>(arg.target)) {
-        os << "Generic Register(" << get<GenericRegister>(arg.target).id << ")";
+        os << "Generic Register(" << get<GenericRegister>(arg.target).local_id << ")";
     } else if (holds_alternative<Label>(arg.target)) {
         os << "Label: " << get<Label>(arg.target).label;
     } else if (holds_alternative<Procedure>(arg.target)) {

@@ -27,15 +27,27 @@ void IRVisitor::postVisit(VarDecl &var_decl) {
 void IRVisitor::preVisit(int &i) {
     temp_storage.push(i);
 }
+
+void IRVisitor::preVisit(bool &b) {
+    temp_storage.push(b);
+}
+
 // TODO: how to access symbol table from here?
-// void IRVisitor::postVisit(VarExpression &var_expr) {
-//     code.push_back(Instruction(Op::MOVQ, Arg(GenericRegister(var_expr.id), DIR()), Arg(GenericRegister(new_register()), DIR()));
-// }
+void IRVisitor::postVisit(VarExpression &var_expr) {
+    VarSymbol *var_symbol = static_cast<VarSymbol*>(var_expr.id.sym);
+    temp_storage.push(var_symbol->local_id);
+}
 
 void IRVisitor::postVisit(PrintStatement &print) {
     AstValue value = pop(temp_storage);
     if (holds_alternative<int>(value)) { 
         code.push_back(Instruction(Op::PROCEDURE, Arg(Procedure::PRINT, DIR()), Arg(ImmediateValue(get<int>(value)), DIR())));
+    } else if (holds_alternative<bool>(value)) {
+        bool bool_value = get<bool>(value);
+        int int_value = bool_value ? 1 : 0;
+        code.push_back(Instruction(Op::PROCEDURE, Arg(Procedure::PRINT, DIR()), Arg(ImmediateValue(int_value), DIR())));
+    } else if (holds_alternative<GenericRegister>(value)) {
+        code.push_back(Instruction(Op::PROCEDURE, Arg(Procedure::PRINT, DIR()), Arg(GenericRegister(get<GenericRegister>(value).local_id), DIR())));
     }
 }
 
