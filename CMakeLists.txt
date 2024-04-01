@@ -16,26 +16,27 @@ set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lm")
 # For clangd syntax help
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# For clangd syntax help
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
 # Find Boost unit_test and program options
 find_package(Boost REQUIRED COMPONENTS unit_test_framework program_options)
 include_directories(${Boost_INCLUDE_DIRS})
 
 file(GLOB_RECURSE SRCS "src/*.cpp")
 
+# Compile options
+add_compile_options(-Wno-unused-parameter -Wunused-label)
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    add_compile_options(-Wno-unneeded-internal-declaration)
+endif()
+
 set(LIB giga_lib)
 set(SRCS_NOT_MAIN ${SRCS})
 list(FILTER SRCS_NOT_MAIN EXCLUDE REGEX "main\\.cpp$")
 add_library(${LIB} STATIC ${SRCS_NOT_MAIN})
-target_compile_options(${LIB} PRIVATE -Wno-unused-parameter -Wno-unneeded-internal-declaration -Wunused-label)
 
 set(TARGET giga)
 
 add_executable(${TARGET} ${SRCS})
 target_link_libraries(${TARGET} ${Boost_LIBRARIES})
-target_compile_options(${TARGET} PRIVATE -Wno-unused-parameter -Wno-unneeded-internal-declaration -Wunused-label)
 
 # Add a new target for tests
 enable_testing()
@@ -58,7 +59,6 @@ foreach(TEST_SRC ${TEST_SRCS})
     # Add an executable target for the test file
     add_executable(${TEST_NAME} ${TEST_SRC})
     target_link_libraries(${TEST_NAME} ${Boost_LIBRARIES} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${LIB} ${TEST_LIB})
-    # target_compile_options(${TEST_NAME} PRIVATE -Wno-unused-parameter)
 
     # Set the output directory for the test executable
     set_target_properties(${TEST_NAME} PROPERTIES
