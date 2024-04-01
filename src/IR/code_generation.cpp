@@ -72,17 +72,25 @@ void IRVisitor::postVisit(BinopExp &binop_exp) {
     }
 
 
-
+    GenericRegister result = GenericRegister(++binop_exp.scope->registerCounter);
     if (binop_exp.op == "+") {
         code.push_back(Instruction(Op::ADDQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR())));
+        code.push_back(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(result, DIR())));
     } else if (binop_exp.op == "-") {
         code.push_back(Instruction(Op::SUBQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR())));
+        code.push_back(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(result, DIR())));
     } else if (binop_exp.op == "*") {
         code.push_back(Instruction(Op::IMULQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR())));
-    } 
-
-    GenericRegister result = GenericRegister(++binop_exp.scope->registerCounter);
-    code.push_back(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(result, DIR())));
+        code.push_back(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(result, DIR())));
+    } else if (binop_exp.op == "/") {
+        code.push_back(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(Register::RAX, DIR())));
+        code.push_back(Instruction(Op::IDIVQ, Arg(Register::R9, DIR())));
+        code.push_back(Instruction(Op::MOVQ, Arg(Register::RAX, DIR()), Arg(result, DIR())));
+    } else if (binop_exp.op == "%") {
+        code.push_back(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(Register::RAX, DIR())));
+        code.push_back(Instruction(Op::IDIVQ, Arg(Register::R9, DIR())));
+        code.push_back(Instruction(Op::MOVQ, Arg(Register::RDX, DIR()), Arg(result, DIR())));
+    }
 
     temp_storage.push(result);  
     code.push_back(Instruction(Op::POP, Arg(Register::R9, DIR())));

@@ -45,6 +45,8 @@ void emit_to_file(IR ir) {
         outputFile << ".text" << endl;
         outputFile << ".globl main" << endl;
         outputFile << "\nmain:" << endl;
+        outputFile << "\tpushq %rbp" << endl;
+        outputFile << "\tmovq %rsp, %rbp" << endl;
         for (const Instruction& instruction : ir) {
             // cout << instruction.operation << endl;
             switch (instruction.operation) {
