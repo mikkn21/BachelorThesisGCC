@@ -23,19 +23,66 @@ struct print_visitor {
     }
 };
 
+struct SymbolTypeEqualityVisitor {
+    template <typename T, typename E>
+    bool operator()(const T &t, const E &e) {
+        return false;
+    }
+
+    template <typename T>
+    bool operator()(const T &t1, const T &t2) {
+        return t1 == t2;
+    }
+};
+
+struct SymbolTypeToStringVisitor {
+    template <typename T>
+    string operator()(const T &t) {
+        return t.toString();
+    }
+};
+
 struct TypeConverterVisitor : boost::static_visitor<SymbolType> {
     SymbolType operator()(const PrimitiveType &t) {
         auto const type = t.type;
         if (type == "int") {
-            return IntType;
+            return IntType();
         }
         else if (type == "bool"){
-            return BoolType;
+            return BoolType();
         }
 
-        throw SemanticsError("Unknown primitive type");
+        throw SemanticsError("Unknown primitive type", t);
     }
 };
+
+bool SymbolType::operator==(const SymbolType &other) const {
+    return visit(SymbolTypeEqualityVisitor{}, *this, other);
+}
+
+bool SymbolType::operator!=(const SymbolType &other) const {
+    return !(*this == other);
+}
+
+bool BoolType::operator==(const BoolType &other) const {
+    return true;
+}
+
+bool IntType::operator==(const IntType &other) const {
+    return true;
+}
+
+string BoolType::toString() const {
+    return "bool";
+}
+
+string IntType::toString() const {
+    return "int";
+}
+
+string SymbolType::toString() const {
+    return visit(SymbolTypeToStringVisitor{}, *this);
+}
 
 SymbolType convertType(Type type) {
     auto visitor = TypeConverterVisitor{};
@@ -44,7 +91,12 @@ SymbolType convertType(Type type) {
 
 FuncSymbol::FuncSymbol(FuncDecl *funcDecl, SymbolTable *scope) : symTab(scope){ 
     for (auto i : funcDecl->parameter_list.parameter){
-        parameters.push_back(convertType(i.type));
+        try {
+            auto decl = boost::get<VarDecl>(i);
+            parameters.push_back(convertType(decl.type));
+        } catch (boost::bad_get& e) {
+            throw SemanticsError("Expected VarDecl in parameter list", *funcDecl);
+        }
     }
     returnType = convertType(funcDecl->type);
     scope->creator = this;
@@ -54,6 +106,7 @@ VarSymbol::VarSymbol(VarDecl *varDecl) : varDecl(varDecl) {
     uid = nextUID++;
     type = convertType(varDecl->type);
 }
+
 
 FuncSymbol::~FuncSymbol() {
     delete(symTab);

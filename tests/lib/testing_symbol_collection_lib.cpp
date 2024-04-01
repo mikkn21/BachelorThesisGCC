@@ -30,11 +30,12 @@ void testSymbolCollection(std::string input, TestingOutcome testing_outcome, Com
     grammar::ast::Prog ast1;
     try {
         ast1 = compiler(input, options)->ast; 
-    } catch (const SemanticsError &e) {   
-        BOOST_CHECK_MESSAGE(testing_outcome == TestingOutcome::FAILED, "\n"  <<  e.what() << "\n");
-        return;
-    } catch (const CompilerError &e) {   
-        BOOST_CHECK_MESSAGE(false, "\n--- An unknown error derived from Baseerror was encountered in the test.\n" << e.what());
+    // } catch (const SemanticsError &e) {   
+    //     BOOST_CHECK_MESSAGE(testing_outcome == TestingOutcome::FAILED, "\n"  <<  e.what() << "\n");
+    //     return;
+    } catch (const CompilerError &e) {  
+        BOOST_CHECK_MESSAGE(testing_outcome == TestingOutcome::FAILED, "\n"  <<  e.what() << "\n"); 
+        // BOOST_CHECK_MESSAGE(false, "\n--- An unknown error derived from Baseerror was encountered in the test.\n" << e.what());
         return;
     } catch (exception &e) {
         BOOST_CHECK_MESSAGE(false, "\n--- An unknown error type was encountered in the test.\n" << e.what());

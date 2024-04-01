@@ -148,3 +148,8 @@ BOOST_AUTO_TEST_CASE(simple_file) {test_parse_file("../tests/parserTests/simple.
 BOOST_AUTO_TEST_CASE(prog1) {test_parse_file("../tests/parserTests/prog1.chad", TestingOutcome::SUCCESS);}
 BOOST_AUTO_TEST_CASE(prog2) {test_parse_file("../tests/parserTests/prog2.chad", TestingOutcome::SUCCESS);}
 
+// Testing 
+BOOST_AUTO_TEST_CASE(TestFuncCallBeforeFunc) {test_parse_file("../tests/parserTests/funcCall.chad", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(TestFuncCallAfterFunc) {test_parse_file("../tests/parserTests/funcCall2.chad", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(TestFuncCallComplex) {test_parse_file("../tests/parserTests/funcCallComplex.chad", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(TestFuncCallWeird) {test_parse_file("../tests/parserTests/funcCallfuncParam.chad", TestingOutcome::SUCCESS);}

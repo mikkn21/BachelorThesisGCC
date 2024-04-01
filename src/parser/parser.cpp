@@ -5,8 +5,6 @@
 #include "parser.hpp"
 
 
-
-
 using namespace std;
 
 namespace grammar {
@@ -38,6 +36,10 @@ namespace grammar {
         const x3::rule<class block, Block> block = "block";
         const x3::rule<class type, Type> type = "type";
         const x3::rule<class var_decl, VarDecl> var_decl = "var_decl";
+
+        const x3::rule<class var_decl_assign, VarDeclAssign> var_decl_assign = "var_decl_assign";
+        const x3::rule<class var_decl_statement, VarDeclStatement> var_decl_statement = "var_decl_statement";
+    
         const x3::rule<class parameter, Parameter> parameter = "parameter";
         const x3::rule<class parameter_list, ParameterList> parameter_list = "parameter_list";
         const x3::rule<class func_decl, FuncDecl> func_decl = "func_decl";
@@ -65,6 +67,8 @@ namespace grammar {
                     ("return", "return")
                     ("int", "int")
                     ("bool", "bool")
+                    ("true", "true")
+                    ("false", "false")
                     ("print", "print"); 
             }
         } reservedkeywordsInstance; 
@@ -75,15 +79,15 @@ namespace grammar {
             x3::string("==") | x3::string("!=") | x3::string("<=") | x3::string(">=") |
             x3::string("+") | x3::string("-") | x3::string("*") | x3::string("/") |
             x3::string("%") | x3::string("<") | x3::string(">") | x3::string("&") | x3::string("|");
-
+        
         // Useable
         const auto primitive_type_def = x3::string("int") | x3::string("bool");
         const auto type_def = primitive_type;  // | array_type;
         const auto id_def = x3::raw[ x3::lexeme[(x3::char_("a-zA-Z_") >> *x3::char_("a-zA-Z_0-9"))]] - (reservedkeywordsInstance >> !x3::alnum) ;
-        const auto parameter_def = type >> id;
+        const auto parameter_def = var_decl; // don't know if this is an issue since vardecl is declared later
         const auto parameter_list_def = -(parameter % ',');
         const auto expression_par_def = ('(' >> expression) > ')';
-        const auto expression_base = expression_par | int_ | bool_ | var_expression;
+        const auto expression_base = expression_par | function_call | var_expression | int_ | bool_;
         const auto expression_def = binop_exp | expression_base;
         const auto binop_exp_def = expression_base >> (operator_parser > expression);
         const auto var_expression_def = id;
@@ -91,8 +95,7 @@ namespace grammar {
         const auto var_assign_def = (id >> '=' >> expression) > ";";
         const auto while_statement_def = x3::lit("while") > expression > block;
 
-        const auto statement_expression_def = expression >> ';';
-        const auto statement_def = var_assign| while_statement | statement_expression | print_statement | return_statement;
+      
         const auto print_statement_def = x3::lit("print") > '(' > expression > ')' > ';';
         const auto return_statement_def = x3::lit("return") > expression > ';';
 
@@ -100,14 +103,22 @@ namespace grammar {
         const auto block_def = '{' > *block_line > '}';
 
         const auto func_decl_def = type >> id >> ('(' > parameter_list > ')' > block);
-        const auto var_decl_def = type >> id >> ('=' > expression > ';');
-        const auto decl_def = var_decl | func_decl;
+        const auto var_decl_def = type >> id;
+        const auto var_decl_assign_def = var_decl >> ( '=' > expression > ';');
+        const auto var_decl_statement_def = var_decl >> ';';
+
+        const auto statement_expression_def = expression >> ';';
+        const auto statement_def = var_assign | var_decl_statement | var_decl_assign | while_statement | statement_expression | print_statement | return_statement;
+        
+        // const auto decl_def = var_decl | func_decl;
+        const auto decl_def = var_decl_assign | var_decl_statement | func_decl;
         const auto prog_def = *decl;
+
+        const auto function_call_def = (id >> '('>> argument_list) > ')';
+        const auto argument_list_def = -(expression % ',');
 
         // Not useable, TODO
         const auto array_type_def = type >> x3::lit("[]");
-        const auto function_call_def = (id >> '('>> argument_list) > ')';
-        const auto argument_list_def = -(expression % ',');
 
         BOOST_SPIRIT_DEFINE(
             binop_exp,
@@ -133,7 +144,9 @@ namespace grammar {
             statement,
             print_statement,
             return_statement,
-            var_expression
+            var_expression,
+            var_decl_statement,
+            var_decl_assign
         )
 
         grammar::ast::Prog parse(std::string_view src)

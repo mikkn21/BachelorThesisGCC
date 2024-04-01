@@ -1,5 +1,6 @@
 
 #include "visitor.hpp"
+#include "ast.hpp"
 //#include "error/compiler_error.hpp"
 #include <variant>
 #include <boost/spirit/home/x3/support/ast/variant.hpp>
@@ -49,7 +50,23 @@ void TreeTraveler::operator()(BlockLine &blockLine) {
 
 template <>
 void TreeTraveler::operator()(Type &type) {
+    visitor.preVisit(type);
     apply_visitor(*this, type);
+    visitor.postVisit(type);
+}
+
+template <>
+void TreeTraveler::operator()(VarDeclStatement &decl) {
+    visitor.preVisit(decl);
+    apply_visitor(*this, decl);
+    visitor.postVisit(decl);
+}
+
+template <>
+void TreeTraveler::operator()(Parameter &parameter) {
+    visitor.preVisit(parameter);
+    apply_visitor(*this, parameter);
+    visitor.postVisit(parameter);
 }
 
 // Types
@@ -99,6 +116,24 @@ void TreeTraveler::operator()(ExpressionPar &expPar) {
     visitor.preVisit(expPar);
     (*this)(expPar.exp);
     visitor.postVisit(expPar);
+}
+
+template <>
+void TreeTraveler::operator()(ArgumentList &argList) {
+    visitor.preVisit(argList);
+    for (auto &arg : argList.arguments) {
+        (*this)(arg);
+    }
+    visitor.postVisit(argList);
+}
+
+template <>
+void TreeTraveler::operator()(FunctionCall &funcCall) {
+    visitor.preVisit(funcCall);
+    (*this)(funcCall.id);
+    visitor.preArgumentListVisit(funcCall);
+    (*this)(funcCall.argument_list);
+    visitor.postVisit(funcCall);
 }
 
 // Statements
@@ -151,12 +186,21 @@ void TreeTraveler::operator()(Block &block) {
 }
 
 template <>
-void TreeTraveler::operator()(Parameter &parameter) {
-    visitor.preVisit(parameter);
-    (*this)(parameter.type);
-    visitor.preIdVisit(parameter);
-    (*this)(parameter.id);
-    visitor.postVisit(parameter);
+void TreeTraveler::operator()(VarDecl &decl) {
+    visitor.preVisit(decl);
+    (*this)(decl.type);
+    visitor.preIdVisit(decl);
+    (*this)(decl.id);
+    visitor.postVisit(decl);
+}
+
+template <>
+void TreeTraveler::operator()(VarDeclAssign &decl) {
+    visitor.preVisit(decl);
+    (*this)(decl.decl);
+    visitor.preExpVisit(decl);
+    (*this)(decl.exp);
+    visitor.postVisit(decl);
 }
 
 template <>
@@ -166,17 +210,6 @@ void TreeTraveler::operator()(ParameterList &parameterList) {
         (*this)(parameter);
     }
     visitor.postVisit(parameterList);
-}
-
-template <>
-void TreeTraveler::operator()(VarDecl &decl) {
-    visitor.preVisit(decl);
-    (*this)(decl.type);
-    visitor.preIdVisit(decl);
-    (*this)(decl.id);
-    visitor.preExpVisit(decl);
-    (*this)(decl.exp);
-    visitor.postVisit(decl);
 }
 
 template <>

@@ -72,4 +72,35 @@ BOOST_AUTO_TEST_CASE(TypeCheckMainReturnTypeNotInt) {testTypeCheckString("bool m
 BOOST_AUTO_TEST_CASE(TypeCheckMainReturnTypeNotInt2) {testTypeCheckString("bool main() {return 0;  }", TestingOutcome::FAILED);}
 BOOST_AUTO_TEST_CASE(TypeCheckMainWithParameters) {testTypeCheckString("int main(int x, int y) {return 0;  }", TestingOutcome::FAILED);}
 
+// Test var decl statement
+BOOST_AUTO_TEST_CASE(VarDeclStatementTest) {testTypeCheckString("int main() {int x; x = 2; return 0;}", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(VarDeclStatementTest1) {testTypeCheckString("int main() {int x; return x;}", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(VarDeclStatementTest2) {testTypeCheckString("int main() {bool x; return x;}", TestingOutcome::FAILED);}
+BOOST_AUTO_TEST_CASE(VarDeclStatementTest3) {testTypeCheckString("int main() {int x; bool y = x; return 0;}", TestingOutcome::FAILED);}
+
+// Parameterscm
+BOOST_AUTO_TEST_CASE(Parameter) {testTypeCheckString("int main() {int f(int x) { return x; } return 0;}", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(TwoParameters) {testTypeCheckString("int main() {int f(int x, int y) { return x; } return 0;}", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(ParameterWrongType) {testTypeCheckString("int main() {int f(bool x) { int y = x; return 0; } return 0;}", TestingOutcome::FAILED);}
+BOOST_AUTO_TEST_CASE(ParameterWrongTypeInReturn) {testTypeCheckString("int main() {int f(bool x) { return x; } return 0;}", TestingOutcome::FAILED);}
+
+// Arguments
+BOOST_AUTO_TEST_CASE(Argument) {testTypeCheckString("int main() {int f(int x) { return 0; } f(2); return 0;}", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(ArgumentWrong) {testTypeCheckString("int main() {int f(int x) { return 0; } f(true); return 0;}", TestingOutcome::FAILED);}
+BOOST_AUTO_TEST_CASE(TwoArguments) {testTypeCheckString("int main() {int f(int x, int y) { return 0; } f(2, 2); return 0;}", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(TwoArgumentsWrong1) {testTypeCheckString("int main() {int f(int x, int y) { return 0; } f(2, true); return 0;}", TestingOutcome::FAILED);}
+BOOST_AUTO_TEST_CASE(TwoArgumentsWrong2) {testTypeCheckString("int main() {int f(int x, int y) { return 0; } f(true, 2); return 0;}", TestingOutcome::FAILED);}
+BOOST_AUTO_TEST_CASE(TwoArgumentsWrong3) {testTypeCheckString("int main() {int f(int x, int y) { return 0; } f(false, true); return 0;}", TestingOutcome::FAILED);}
+BOOST_AUTO_TEST_CASE(TwoArgumentsDifferentTypes) {testTypeCheckString("int main() {int f(int x, bool y) { return 0; } f(2, true); return 0;}", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(TwoArgumentsDifferentTypesWrong1) {testTypeCheckString("int main() {int f(int x, bool y) { return 0; } f(true, 2); return 0;}", TestingOutcome::FAILED);}
+BOOST_AUTO_TEST_CASE(TwoArgumentsDifferentTypesWrong2) {testTypeCheckString("int main() {int f(int x, bool y) { return 0; } f(2, 2); return 0;}", TestingOutcome::FAILED);}
+BOOST_AUTO_TEST_CASE(TwoArgumentsDifferentTypesWrong3) {testTypeCheckString("int main() {int f(int x, bool y) { return 0; } f(true, true); return 0;}", TestingOutcome::FAILED);}
+
+
+BOOST_AUTO_TEST_CASE(VarDeclaredAfterUsed) {testTypeCheckString("int main() {int f(int x){ return x; } int y = f(x); int x = 2; return 0;}", TestingOutcome::FAILED);}
+BOOST_AUTO_TEST_CASE(FuncCalledBeforeDeclared) {testTypeCheckString("int main() {int y = f(4); int f(int x){ return x; } return 0;}", TestingOutcome::SUCCESS);}
+
+
+
 BOOST_AUTO_TEST_CASE(DeclareNotInitYet) {testTypeCheckFile("../tests/typeTests/shadow.chad", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(ParameterFunctionCall) {testTypeCheckFile("../tests/typeTests/functionParam.chad", TestingOutcome::SUCCESS);}

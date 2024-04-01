@@ -28,6 +28,9 @@ namespace grammar
         struct BinopExp;
         struct Block;
         struct ExpressionPar;
+        struct FunctionCall;
+        struct VarDeclAssign;
+        struct VarDeclStatement;
 
 
         struct Id : LocationInfo {
@@ -53,7 +56,7 @@ namespace grammar
             friend std::ostream& operator<<(std::ostream& os, const PrimitiveType &exp); 
         };
 
-        struct Expression : public x3::variant<int, x3::forward_ast<BinopExp>, bool, VarExpression, x3::forward_ast<ExpressionPar>>, LocationInfo {
+        struct Expression : public x3::variant<int, x3::forward_ast<BinopExp>, bool, VarExpression, x3::forward_ast<ExpressionPar>, x3::forward_ast<FunctionCall>>, LocationInfo {
             using base_type::base_type;   
             using base_type::operator=;
         public:
@@ -114,7 +117,7 @@ namespace grammar
             friend std::ostream& operator<<(std::ostream& os, const StatementExpression &exp);
         };
 
-        struct Statement : public x3::variant<VarAssign, WhileStatement,StatementExpression, PrintStatement, ReturnStatement>, LocationInfo {
+        struct Statement : public x3::variant<VarAssign, x3::forward_ast<VarDeclAssign>, x3::forward_ast<VarDeclStatement>, WhileStatement,StatementExpression, PrintStatement, ReturnStatement>, LocationInfo {
             using base_type::base_type;  
             using base_type::operator=;
         public:
@@ -163,19 +166,46 @@ namespace grammar
             friend std::ostream& operator<<(std::ostream& os, const Type &exp);
         };
 
-        struct VarDecl : LocationInfo {
+        struct VarDecl : public LocationInfo {
             Type type;
             Id id;
-            Expression exp;
             VarSymbol *sym = nullptr;
         public:
             friend std::ostream& operator<<(std::ostream& os, const VarDecl &exp);
         };
 
-        struct Parameter : LocationInfo {
-            Type type;
-            Id id; 
-        public:
+        struct VarDeclAssign : public LocationInfo {
+            VarDecl decl;
+            Expression exp;
+            friend std::ostream& operator<<(std::ostream& os, const VarDeclAssign &exp);
+        };
+
+        struct VarDeclStatement : public x3::variant<VarDecl> , LocationInfo {
+            using base_type::base_type;  
+            using base_type::operator=;
+
+            VarDeclStatement(const VarDeclStatement& other) : base_type(other), LocationInfo(other) {}
+               
+            VarDeclStatement& operator=(const VarDeclStatement& other) {
+                base_type::operator=(other);
+                LocationInfo::operator=(other);
+                return *this;
+            }
+            friend std::ostream& operator<<(std::ostream& os, const VarDeclStatement &exp);
+        };
+
+        // this is a variant because later it needs to be extended to include optional parameters
+        struct Parameter : public x3::variant<VarDecl>, LocationInfo {
+            using base_type::base_type;  
+            using base_type::operator=;
+
+            Parameter(const Parameter& other) : base_type(other), LocationInfo(other) {}
+               
+            Parameter& operator=(const Parameter& other) {
+                base_type::operator=(other);
+                LocationInfo::operator=(other);
+                return *this;
+            }
             friend std::ostream& operator<<(std::ostream& os, const Parameter &exp);
         };        
 
@@ -188,14 +218,16 @@ namespace grammar
 
         struct ArgumentList : LocationInfo {
             std::vector<Expression> arguments;
+            friend std::ostream& operator<<(std::ostream& os, const ArgumentList &argument);
         };
 
         struct FunctionCall : LocationInfo {
             Id id; 
             ArgumentList argument_list;
+            friend std::ostream& operator<<(std::ostream& os, const FunctionCall &funcCall);
         };
 
-        struct FuncDecl : LocationInfo { 
+        struct FuncDecl : public LocationInfo { 
             FuncDecl();
             ~FuncDecl();
 
@@ -214,7 +246,7 @@ namespace grammar
             friend std::ostream& operator<<(std::ostream& os, const ArrayType &exp);
         };
 
-        struct Decl : public x3::variant<VarDecl, FuncDecl/*, ClassDecl*/>, LocationInfo { 
+        struct Decl : public x3::variant<VarDeclAssign, VarDeclStatement, FuncDecl/*, ClassDecl*/>, LocationInfo { 
             using base_type::base_type;  
             using base_type::operator=;
         public:
@@ -258,6 +290,7 @@ BOOST_FUSION_ADAPT_STRUCT(
     VarExpression,
     (Id, id)
 )
+
 
 BOOST_FUSION_ADAPT_STRUCT(
     ReturnStatement,
@@ -305,14 +338,14 @@ BOOST_FUSION_ADAPT_STRUCT(
     VarDecl,
     (Type, type)
     (Id, id)
-    (Expression, exp) // Assuming exp is an int for simplicity
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
-    Parameter,
-    (Type, type)
-    (Id, id)
+    VarDeclAssign,
+    (VarDecl, decl)
+    (Expression, exp)
 )
+
 
 BOOST_FUSION_ADAPT_STRUCT(
     ParameterList,

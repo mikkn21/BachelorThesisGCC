@@ -36,6 +36,23 @@ namespace grammar
             return os << id.id;
         }
 
+        std::ostream& operator<<(std::ostream& os, const FunctionCall &funcCall) {
+            return os << funcCall.id << "(" << funcCall.argument_list << ")";
+        }
+
+        std::ostream& operator<<(std::ostream& os, const ArgumentList &argument) {
+            if (argument.arguments.empty()) {
+                return os;
+            }
+
+            const auto arguments = argument.arguments;
+            os << arguments[0];
+            for (unsigned long i = 1; i < arguments.size(); i++) {
+                os << ", ";
+                os << arguments[i];
+            }
+            return os;
+        }
 
         std::ostream& operator<<(std::ostream& os, const grammar::ast::Id &id) {
             return os << id.id;
@@ -86,11 +103,21 @@ namespace grammar
         }
 
         std::ostream& operator<<(std::ostream& os, const grammar::ast::VarDecl &decl) {
-            return os << decl.type << " " << decl.id << " = " << decl.exp << ";\n";
+            return os << decl.type << " " << decl.id;
+        }
+
+        std::ostream& operator<<(std::ostream& os, const grammar::ast::VarDeclAssign &decl) {
+            return os << decl.decl << " = " << decl.exp << ";\n";
+        }
+
+        std::ostream& operator<<(std::ostream& os, const grammar::ast::VarDeclStatement &decl) {
+            boost::apply_visitor(print_visitor(os), decl);
+            return os << ";\n";
         }
 
         std::ostream& operator<<(std::ostream& os, const grammar::ast::Parameter &parameter) {
-            return os << parameter.type << " " << parameter.id;
+            boost::apply_visitor(print_visitor(os), parameter);
+            return os;
         }
 
         std::ostream& operator<<(std::ostream& os, const grammar::ast::ParameterList &input) {

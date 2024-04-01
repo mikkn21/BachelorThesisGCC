@@ -17,6 +17,9 @@ public:
     virtual void preVisit(PrimitiveType &type) { }
     virtual void postVisit(PrimitiveType &type) { }
 
+    virtual void preVisit(Type &type) { }
+    virtual void postVisit(Type &type) { }
+
     virtual void preVisit(int &value) { }
     virtual void postVisit(int &value) { }
 
@@ -31,7 +34,11 @@ public:
     virtual void postVisit(VarExpression &exp) { }
 
     virtual void preVisit(FunctionCall &funcCall) { }
+    virtual void preArgumentListVisit(FunctionCall &funcCall) { }
     virtual void postVisit(FunctionCall &funcCall) { }
+
+    virtual void preVisit(ArgumentList &exp) { }
+    virtual void postVisit(ArgumentList &exp) { }
 
     virtual void preVisit(Id &id) { }
     virtual void postVisit(Id &id) { }
@@ -54,7 +61,6 @@ public:
     virtual void postVisit(Block &block) { }
 
     virtual void preVisit(Parameter &parameter) { }
-    virtual void preIdVisit(Parameter &parameter) { }
     virtual void postVisit(Parameter &parameter) { }
 
     virtual void preVisit(ParameterList &list) { }
@@ -62,8 +68,14 @@ public:
 
     virtual void preVisit(VarDecl &decl) { }
     virtual void preIdVisit(VarDecl &decl) { }
-    virtual void preExpVisit(VarDecl &decl) { }
     virtual void postVisit(VarDecl &decl) { }
+
+    virtual void preVisit(VarDeclAssign &decl) { }
+    virtual void preExpVisit(VarDeclAssign &decl) { }
+    virtual void postVisit(VarDeclAssign &decl) { }
+
+    virtual void preVisit(VarDeclStatement &decl) { }
+    virtual void postVisit(VarDeclStatement &decl) { }
 
     virtual void preVisit(FuncDecl &decl) { }
     virtual void preIdVisit(FuncDecl &decl) { }

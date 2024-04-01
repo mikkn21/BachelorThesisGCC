@@ -12,12 +12,36 @@
 
 using namespace std;
 
-enum SymbolType {
-    IntType,
-    BoolType
+
+// struct ClassType {
+//     string name; 
+// };
+
+struct SymbolType;
+
+struct IntType {
+    bool operator==(const IntType &other) const;
+    string toString() const;
+};
+
+struct BoolType {
+    bool operator==(const BoolType &other) const;
+    string toString() const;
+};
+
+struct SymbolType : public std::variant<IntType, BoolType /*, ArrayType, TypeAlias, ClassType*/> {
+    // IntType,
+    // BoolType
     //ArrayType
     //Class, future implementation
+    using std::variant<IntType, BoolType>::variant;
+    using std::variant<IntType, BoolType>::operator=;
+    bool operator==(const SymbolType &other) const;
+    bool operator!=(const SymbolType &other) const;
+    string toString() const;
 };
+
+
 
 SymbolType convertType(Type type);
 
@@ -70,5 +94,6 @@ public:
     Symbol *findLocal(string key) const;
     Symbol *find(string key) const;
 };
+
 
 #endif
