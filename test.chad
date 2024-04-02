@@ -1,19 +1,9 @@
 
 int main() {
     int x = 10;
-    int y = 3;
-    bool v = false;
-    bool z = true;
-    int o = 9;
-    print(x+y);
-    print(x-y);
-    print(x*y);
-    print(x/y);
-    print(x%y);
-    print(z);
-    print(v);
-    print(v&z);
-    print(v|z);
+    int y = 11;
+    print(y!=x);
+
 
 
 

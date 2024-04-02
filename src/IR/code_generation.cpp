@@ -7,14 +7,17 @@ void IRVisitor::preVisit(FuncDecl &func_decl) {
     code.push_back(Instruction(Op::PUSHQ, Arg(Register::RBP, DIR())));
     code.push_back(Instruction(Op::MOVQ, Arg(Register::RSP, DIR()), Arg(Register::RBP, DIR())));
     vector<VarSymbol*> var_decls = func_decl.sym->symTab->get_var_symbols();
-    code.push_back(Instruction(Op::SUBQ, Arg(ImmediateValue(8 * var_decls.size()), DIR()), Arg(Register::RSP, DIR())));
+    // code.push_back(Instruction(Op::SUBQ, Arg(ImmediateValue(8 * var_decls.size()), DIR()), Arg(Register::RSP, DIR())));
     for (int i = 0; i < var_decls.size(); i++) {
         code.push_back(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR())));
     }
 }
 
+
+
 void IRVisitor::postVisit(FuncDecl &func_decl) {
-    // caller restore registers
+    code.push_back(Instruction(Op::MOVQ, Arg(Register::RBP, DIR()), Arg(Register::RSP, DIR())));
+    code.push_back(Instruction(Op::POPQ, Arg(Register::RBP, DIR())));
 }
 
 
@@ -26,6 +29,11 @@ void IRVisitor::postVisit(VarDecl &var_decl) {
         bool bool_value = get<bool>(value);
         int int_value = bool_value ? 1 : 0;
         code.push_back(Instruction(Op::MOVQ, Arg(ImmediateValue(int_value), DIR()), Arg(GenericRegister(var_decl.sym->local_id), DIR())));
+    } else if (holds_alternative<GenericRegister>(value)) {
+        code.push_back(Instruction(Op::PUSHQ, Arg(Register::R8, DIR())));
+        code.push_back(Instruction(Op::MOVQ, Arg(get<GenericRegister>(value), DIR()), Arg(Register::R8, DIR())));
+        code.push_back(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(GenericRegister(var_decl.sym->local_id), DIR())));
+        code.push_back(Instruction(Op::POPQ, Arg(Register::R8, DIR())));
     }
 }
 
@@ -44,7 +52,7 @@ void IRVisitor::postVisit(VarExpression &var_expr) {
 
 void IRVisitor::postVisit(BinopExp &binop_exp) {
     // future optimization: calculate immediate values immediately to optimize program.
-    
+    code.push_back(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR())));    
     code.push_back(Instruction(Op::PUSHQ, Arg(Register::R8, DIR())));
     code.push_back(Instruction(Op::PUSHQ, Arg(Register::R9, DIR())));
 
@@ -88,6 +96,7 @@ void IRVisitor::postVisit(BinopExp &binop_exp) {
     } else if (binop_exp.op == "/") {
         code.push_back(Instruction(Op::PUSHQ, Arg(Register::RAX, DIR())));
         code.push_back(Instruction(Op::PUSHQ, Arg(Register::RDX, DIR())));
+        code.push_back(Instruction(Op::XORQ, Arg(Register::RDX, DIR()), Arg(Register::RDX, DIR())));
         code.push_back(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(Register::RAX, DIR())));
         code.push_back(Instruction(Op::IDIVQ, Arg(Register::R9, DIR())));
         code.push_back(Instruction(Op::MOVQ, Arg(Register::RAX, DIR()), Arg(result, DIR())));
@@ -96,6 +105,7 @@ void IRVisitor::postVisit(BinopExp &binop_exp) {
     } else if (binop_exp.op == "%") {
         code.push_back(Instruction(Op::PUSHQ, Arg(Register::RAX, DIR())));
         code.push_back(Instruction(Op::PUSHQ, Arg(Register::RDX, DIR())));
+        code.push_back(Instruction(Op::XORQ, Arg(Register::RDX, DIR()), Arg(Register::RDX, DIR())));
         code.push_back(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(Register::RAX, DIR())));
         code.push_back(Instruction(Op::IDIVQ, Arg(Register::R9, DIR())));
         code.push_back(Instruction(Op::MOVQ, Arg(Register::RDX, DIR()), Arg(result, DIR())));
@@ -107,6 +117,48 @@ void IRVisitor::postVisit(BinopExp &binop_exp) {
     } else if (binop_exp.op == "|") {
         code.push_back(Instruction(Op::ORQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR())));
         code.push_back(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(result, DIR())));
+    } else if (binop_exp.op == "<") {
+        code.push_back(Instruction(Op::PUSHQ, Arg(Register::R10, DIR())));
+        code.push_back(Instruction(Op::XORQ, Arg(Register::R10, DIR()), Arg(Register::R10, DIR())));
+        code.push_back(Instruction(Op::CMPQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR())));
+        code.push_back(Instruction(Op::SETL, Arg(Register::R10B, DIR())));
+        code.push_back(Instruction(Op::MOVQ, Arg(Register::R10, DIR()), Arg(result, DIR())));
+        code.push_back(Instruction(Op::POPQ, Arg(Register::R10, DIR())));
+    } else if (binop_exp.op == ">") {
+        code.push_back(Instruction(Op::PUSHQ, Arg(Register::R10, DIR())));
+        code.push_back(Instruction(Op::XORQ, Arg(Register::R10, DIR()), Arg(Register::R10, DIR())));
+        code.push_back(Instruction(Op::CMPQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR())));
+        code.push_back(Instruction(Op::SETG, Arg(Register::R10B, DIR())));
+        code.push_back(Instruction(Op::MOVQ, Arg(Register::R10, DIR()), Arg(result, DIR())));
+        code.push_back(Instruction(Op::POPQ, Arg(Register::R10, DIR())));
+    } else if (binop_exp.op == "==") {
+        code.push_back(Instruction(Op::PUSHQ, Arg(Register::R10, DIR())));
+        code.push_back(Instruction(Op::XORQ, Arg(Register::R10, DIR()), Arg(Register::R10, DIR())));
+        code.push_back(Instruction(Op::CMPQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR())));
+        code.push_back(Instruction(Op::SETE, Arg(Register::R10B, DIR())));
+        code.push_back(Instruction(Op::MOVQ, Arg(Register::R10, DIR()), Arg(result, DIR())));
+        code.push_back(Instruction(Op::POPQ, Arg(Register::R10, DIR())));
+    } else if (binop_exp.op == "!=") {
+        code.push_back(Instruction(Op::PUSHQ, Arg(Register::R10, DIR())));
+        code.push_back(Instruction(Op::XORQ, Arg(Register::R10, DIR()), Arg(Register::R10, DIR())));
+        code.push_back(Instruction(Op::CMPQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR())));
+        code.push_back(Instruction(Op::SETNE, Arg(Register::R10B, DIR())));
+        code.push_back(Instruction(Op::MOVQ, Arg(Register::R10, DIR()), Arg(result, DIR())));
+        code.push_back(Instruction(Op::POPQ, Arg(Register::R10, DIR())));
+    } else if (binop_exp.op == "<=") {
+        code.push_back(Instruction(Op::PUSHQ, Arg(Register::R10, DIR())));
+        code.push_back(Instruction(Op::XORQ, Arg(Register::R10, DIR()), Arg(Register::R10, DIR())));
+        code.push_back(Instruction(Op::CMPQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR())));
+        code.push_back(Instruction(Op::SETLE, Arg(Register::R10B, DIR())));
+        code.push_back(Instruction(Op::MOVQ, Arg(Register::R10, DIR()), Arg(result, DIR())));
+        code.push_back(Instruction(Op::POPQ, Arg(Register::R10, DIR())));
+    } else if (binop_exp.op == ">=") {
+        code.push_back(Instruction(Op::PUSHQ, Arg(Register::R10, DIR())));
+        code.push_back(Instruction(Op::XORQ, Arg(Register::R10, DIR()), Arg(Register::R10, DIR())));
+        code.push_back(Instruction(Op::CMPQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR())));
+        code.push_back(Instruction(Op::SETGE, Arg(Register::R10B, DIR())));
+        code.push_back(Instruction(Op::MOVQ, Arg(Register::R10, DIR()), Arg(result, DIR())));
+        code.push_back(Instruction(Op::POPQ, Arg(Register::R10, DIR())));
     }
 
     temp_storage.push(result);  

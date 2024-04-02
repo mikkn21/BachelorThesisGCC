@@ -34,7 +34,7 @@ ostream& operator<<(ostream& os, const Arg arg) {
     } else if (holds_alternative<GenericRegister>(arg.target)) {
         os << "Generic Register(" << get<GenericRegister>(arg.target).local_id << ")";
     } else if (holds_alternative<Label>(arg.target)) {
-        os << "Label: " << get<Label>(arg.target).label;
+        os << get<Label>(arg.target).label << ":";
     } else if (holds_alternative<Procedure>(arg.target)) {
         os << "Procedure" << get<Procedure>(arg.target);
     }
@@ -44,7 +44,9 @@ ostream& operator<<(ostream& os, const Arg arg) {
 
 ostream& operator<<(ostream& os, const Instruction &instruction) {
     os << instruction.operation;
-    if (instruction.args.size() == 1) {
+    if (instruction.operation == Op::LABEL) {
+        os << instruction.args[0];
+    } else if (instruction.args.size() == 1) {
         os << " " << instruction.args[0];
     } else if (instruction.args.size() == 2) {
         os << " " << instruction.args[0] << ", " << instruction.args[1];
@@ -71,13 +73,19 @@ ostream& operator<<(ostream& os, const Op op) {
         case Op::SUBQ:          os << "subq";       break;
         case Op::IMULQ:          os << "imulq";       break;
         case Op::IDIVQ:          os << "idivq";       break;
-        case Op::LABEL:         os << "label";      break;
+        case Op::LABEL:         os << "";      break;
         case Op::PROCEDURE:     os << "procedure";  break;
         case Op::ANDQ:           os << "andq";       break;
         case Op::ORQ:           os << "orq";       break;
         case Op::XORQ:          os << "xorq";       break;
         case Op::POPQ:          os << "popq";       break;
         case Op::PUSH:          os << "push";       break;
+        case Op::SETL:          os << "setl";       break;
+        case Op::SETG:          os << "setg";       break;
+        case Op::SETE:          os << "sete";       break;
+        case Op::SETNE:         os << "setne";       break;
+        case Op::SETLE:         os << "setle";       break;
+        case Op::SETGE:         os << "setge";       break;
         default:                os << "Unknown";    break;
     }
     return os;
@@ -94,8 +102,10 @@ ostream& operator<<(ostream& os, const Register sp) {
         case Register::RDX:      os << "%rdx";       break;
         case Register::RCX:      os << "%rcx";       break;
         case Register::R8:       os << "%r8";        break;
+        case Register::R8B:      os << "%r8b";       break;
         case Register::R9:       os << "%r9";        break;
         case Register::R10:      os << "%r10";       break;
+        case Register::R10B:     os << "%r10b";      break;
         case Register::R11:      os << "%r11";       break;
         case Register::R12:      os << "%r12";       break;
         case Register::R13:      os << "%r13";       break;

@@ -1,0 +1,23 @@
+int main() {
+    int x = 10;
+    int y = 3;
+    bool n = true;
+    bool m = false;
+    print(x+y);
+    print(x-y);
+    print(x*y);
+    print(x/y);
+    print(x%y);
+    print(n|m);
+    print(n&m);
+    print(x<y);
+    print(x>y);
+    print(x<=y);
+    print(x=>y);
+    print(x!=y);
+    print(x==y);
+    print(n!=m);
+    print(n==m);
+    
+    return 0;
+}

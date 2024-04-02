@@ -15,7 +15,7 @@
 using namespace std;
 
 enum class Op {
-   MOVQ, PUSH, POP, CALL, RET, CMPQ, JMP, JE, JNE, JL, JLE, JG, JGE, ADDQ, SUBQ, IMULQ, IDIVQ, LABEL, PROCEDURE, ANDQ, ORQ, XORQ, PUSHQ, POPQ,
+   MOVQ, PUSH, POP, CALL, RET, CMPQ, JMP, JE, JNE, JL, JLE, JG, JGE, ADDQ, SUBQ, IMULQ, IDIVQ, LABEL, PROCEDURE, ANDQ, ORQ, XORQ, PUSHQ, POPQ, SETL, SETG, SETLE, SETGE, SETE, SETNE
 };
 
 struct DIR {};
@@ -38,7 +38,7 @@ struct GenericRegister {
 };
 
 enum class Register {
-    RAX, RBX, RCX, RDX, RSI, RDI, R8, R9, R10, R11, R12, R13, R14, R15, RSP, RBP, 
+    RAX, RBX, RCX, RDX, RSI, RDI, R8, R8B, R9, R10, R10B, R11, R12, R13, R14, R15, RSP, RBP, 
 };
 
 struct Label {
