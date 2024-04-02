@@ -55,7 +55,7 @@ ostream& operator<<(ostream& os, const Instruction &instruction) {
 ostream& operator<<(ostream& os, const Op op) {
     switch (op) {
         case Op::MOVQ:          os << "movq";       break;
-        case Op::PUSH:          os << "push";       break;
+        case Op::PUSHQ:          os << "pushq";       break;
         case Op::POP:           os << "pop";        break;
         case Op::CALL:          os << "call";       break;
         case Op::RET:           os << "ret";        break;
@@ -75,6 +75,9 @@ ostream& operator<<(ostream& os, const Op op) {
         case Op::PROCEDURE:     os << "procedure";  break;
         case Op::ANDQ:           os << "andq";       break;
         case Op::ORQ:           os << "orq";       break;
+        case Op::XORQ:          os << "xorq";       break;
+        case Op::POPQ:          os << "popq";       break;
+        case Op::PUSH:          os << "push";       break;
         default:                os << "Unknown";    break;
     }
     return os;
