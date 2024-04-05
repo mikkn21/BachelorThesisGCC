@@ -1,20 +1,39 @@
 #include "code_generation.hpp"
+#include "string"
+IRVisitor::IRVisitor() : Visitor() {}
 
-IRVisitor::IRVisitor() : Visitor(), register_counter(0) {}
-
-void IRVisitor::preVisit(Prog &prog) {
-    // add main prologue
-    // add main epilogue
+void IRVisitor::preVisit(FuncDecl &func_decl) {
+    // caller save registers
+    code.push_back(Instruction(Op::PUSHQ, Arg(Register::RBP, DIR())));
+    code.push_back(Instruction(Op::MOVQ, Arg(Register::RSP, DIR()), Arg(Register::RBP, DIR())));
+    vector<VarSymbol*> var_decls = func_decl.sym->symTab->get_var_symbols();
+    // code.push_back(Instruction(Op::SUBQ, Arg(ImmediateValue(8 * var_decls.size()), DIR()), Arg(Register::RSP, DIR())));
+    for (int i = 0; i < var_decls.size(); i++) {
+        code.push_back(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR())));
+    }
 }
+
+
+
+void IRVisitor::postVisit(FuncDecl &func_decl) {
+    code.push_back(Instruction(Op::MOVQ, Arg(Register::RBP, DIR()), Arg(Register::RSP, DIR())));
+    code.push_back(Instruction(Op::POPQ, Arg(Register::RBP, DIR())));
+}
+
 
 void IRVisitor::postVisit(VarDecl &var_decl) {
     AstValue value = pop(temp_storage);
     if (holds_alternative<int>(value)) {
-        code.push_back(Instruction(Op::MOVQ, Arg(ImmediateValue(get<int>(value)), DIR()), Arg(GenericRegister(var_decl.sym->uid), DIR()), "int variable"));
+        code.push_back(Instruction(Op::MOVQ, Arg(ImmediateValue(get<int>(value)), DIR()), Arg(GenericRegister(var_decl.sym->local_id), DIR())));
     } else if (holds_alternative<bool>(value)) {
         bool bool_value = get<bool>(value);
         int int_value = bool_value ? 1 : 0;
-        code.push_back(Instruction(Op::MOVQ, Arg(ImmediateValue(int_value), DIR()), Arg(GenericRegister(var_decl.sym->uid), DIR())));
+        code.push_back(Instruction(Op::MOVQ, Arg(ImmediateValue(int_value), DIR()), Arg(GenericRegister(var_decl.sym->local_id), DIR())));
+    } else if (holds_alternative<GenericRegister>(value)) {
+        code.push_back(Instruction(Op::PUSHQ, Arg(Register::R8, DIR())));
+        code.push_back(Instruction(Op::MOVQ, Arg(get<GenericRegister>(value), DIR()), Arg(Register::R8, DIR())));
+        code.push_back(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(GenericRegister(var_decl.sym->local_id), DIR())));
+        code.push_back(Instruction(Op::POPQ, Arg(Register::R8, DIR())));
     }
 }
 
@@ -22,7 +41,145 @@ void IRVisitor::preVisit(int &i) {
     temp_storage.push(i);
 }
 
-int IRVisitor::new_register() { return register_counter++; }
+void IRVisitor::preVisit(bool &b) {
+    temp_storage.push(b);
+}
+
+void IRVisitor::postVisit(VarExpression &var_expr) {
+    VarSymbol *var_symbol = static_cast<VarSymbol*>(var_expr.id.sym);
+    temp_storage.push(var_symbol->local_id);
+}
+
+void IRVisitor::postVisit(BinopExp &binop_exp) {
+    // future optimization: calculate immediate values immediately to optimize program.
+    code.push_back(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR())));    
+    code.push_back(Instruction(Op::PUSHQ, Arg(Register::R8, DIR())));
+    code.push_back(Instruction(Op::PUSHQ, Arg(Register::R9, DIR())));
+
+
+    AstValue rhs = pop(temp_storage);
+    AstValue lhs = pop(temp_storage);
+
+    if (holds_alternative<int>(lhs)) {
+        code.push_back(Instruction(Op::MOVQ, Arg(ImmediateValue(get<int>(lhs)), DIR()), Arg(Register::R8, DIR())));
+    } else if (holds_alternative<bool>(lhs)) {
+        bool bool_value = get<bool>(lhs);
+        int int_value = bool_value ? 1 : 0;
+        code.push_back(Instruction(Op::MOVQ, Arg(ImmediateValue(int_value), DIR()), Arg(Register::R8, DIR())));
+    } else if (holds_alternative<GenericRegister>(lhs)) {
+        code.push_back(Instruction(Op::MOVQ, Arg(get<GenericRegister>(lhs), DIR()), Arg(Register::R8, DIR())));
+    }
+
+    if (holds_alternative<int>(rhs)) {
+        code.push_back(Instruction(Op::MOVQ, Arg(ImmediateValue(get<int>(rhs)), DIR()), Arg(Register::R9, DIR())));
+    } else if (holds_alternative<bool>(rhs)) {
+        bool bool_value = get<bool>(rhs);
+        int int_value = bool_value ? 1 : 0;
+        code.push_back(Instruction(Op::MOVQ, Arg(ImmediateValue(int_value), DIR()), Arg(Register::R9, DIR())));
+    } else if (holds_alternative<GenericRegister>(rhs)) {
+        code.push_back(Instruction(Op::MOVQ, Arg(get<GenericRegister>(rhs), DIR()), Arg(Register::R9, DIR())));
+    }
+
+    GenericRegister result = GenericRegister(++binop_exp.scope->registerCounter);
+    if (binop_exp.op == "+") {
+        code.push_back(Instruction(Op::ADDQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR())));
+        code.push_back(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(result, DIR())));
+    } else if (binop_exp.op == "-") {
+        code.push_back(Instruction(Op::SUBQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR())));
+        code.push_back(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(result, DIR())));
+    } else if (binop_exp.op == "*") {
+        code.push_back(Instruction(Op::PUSHQ, Arg(Register::RDX, DIR())));
+        code.push_back(Instruction(Op::XORQ, Arg(Register::RDX, DIR()), Arg(Register::RDX, DIR())));
+        code.push_back(Instruction(Op::IMULQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR())));
+        code.push_back(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(result, DIR())));
+        code.push_back(Instruction(Op::POPQ, Arg(Register::RDX, DIR())));
+    } else if (binop_exp.op == "/") {
+        code.push_back(Instruction(Op::PUSHQ, Arg(Register::RAX, DIR())));
+        code.push_back(Instruction(Op::PUSHQ, Arg(Register::RDX, DIR())));
+        code.push_back(Instruction(Op::XORQ, Arg(Register::RDX, DIR()), Arg(Register::RDX, DIR())));
+        code.push_back(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(Register::RAX, DIR())));
+        code.push_back(Instruction(Op::IDIVQ, Arg(Register::R9, DIR())));
+        code.push_back(Instruction(Op::MOVQ, Arg(Register::RAX, DIR()), Arg(result, DIR())));
+        code.push_back(Instruction(Op::POPQ, Arg(Register::RDX, DIR())));
+        code.push_back(Instruction(Op::POPQ, Arg(Register::RAX, DIR())));
+    } else if (binop_exp.op == "%") {
+        code.push_back(Instruction(Op::PUSHQ, Arg(Register::RAX, DIR())));
+        code.push_back(Instruction(Op::PUSHQ, Arg(Register::RDX, DIR())));
+        code.push_back(Instruction(Op::XORQ, Arg(Register::RDX, DIR()), Arg(Register::RDX, DIR())));
+        code.push_back(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(Register::RAX, DIR())));
+        code.push_back(Instruction(Op::IDIVQ, Arg(Register::R9, DIR())));
+        code.push_back(Instruction(Op::MOVQ, Arg(Register::RDX, DIR()), Arg(result, DIR())));
+        code.push_back(Instruction(Op::POPQ, Arg(Register::RDX, DIR())));
+        code.push_back(Instruction(Op::POPQ, Arg(Register::RAX, DIR())));
+    } else if (binop_exp.op == "&") {
+        code.push_back(Instruction(Op::ANDQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR())));
+        code.push_back(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(result, DIR())));
+    } else if (binop_exp.op == "|") {
+        code.push_back(Instruction(Op::ORQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR())));
+        code.push_back(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(result, DIR())));
+    } else if (binop_exp.op == "<") {
+        code.push_back(Instruction(Op::PUSHQ, Arg(Register::R10, DIR())));
+        code.push_back(Instruction(Op::XORQ, Arg(Register::R10, DIR()), Arg(Register::R10, DIR())));
+        code.push_back(Instruction(Op::CMPQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR())));
+        code.push_back(Instruction(Op::SETL, Arg(Register::R10B, DIR())));
+        code.push_back(Instruction(Op::MOVQ, Arg(Register::R10, DIR()), Arg(result, DIR())));
+        code.push_back(Instruction(Op::POPQ, Arg(Register::R10, DIR())));
+    } else if (binop_exp.op == ">") {
+        code.push_back(Instruction(Op::PUSHQ, Arg(Register::R10, DIR())));
+        code.push_back(Instruction(Op::XORQ, Arg(Register::R10, DIR()), Arg(Register::R10, DIR())));
+        code.push_back(Instruction(Op::CMPQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR())));
+        code.push_back(Instruction(Op::SETG, Arg(Register::R10B, DIR())));
+        code.push_back(Instruction(Op::MOVQ, Arg(Register::R10, DIR()), Arg(result, DIR())));
+        code.push_back(Instruction(Op::POPQ, Arg(Register::R10, DIR())));
+    } else if (binop_exp.op == "==") {
+        code.push_back(Instruction(Op::PUSHQ, Arg(Register::R10, DIR())));
+        code.push_back(Instruction(Op::XORQ, Arg(Register::R10, DIR()), Arg(Register::R10, DIR())));
+        code.push_back(Instruction(Op::CMPQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR())));
+        code.push_back(Instruction(Op::SETE, Arg(Register::R10B, DIR())));
+        code.push_back(Instruction(Op::MOVQ, Arg(Register::R10, DIR()), Arg(result, DIR())));
+        code.push_back(Instruction(Op::POPQ, Arg(Register::R10, DIR())));
+    } else if (binop_exp.op == "!=") {
+        code.push_back(Instruction(Op::PUSHQ, Arg(Register::R10, DIR())));
+        code.push_back(Instruction(Op::XORQ, Arg(Register::R10, DIR()), Arg(Register::R10, DIR())));
+        code.push_back(Instruction(Op::CMPQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR())));
+        code.push_back(Instruction(Op::SETNE, Arg(Register::R10B, DIR())));
+        code.push_back(Instruction(Op::MOVQ, Arg(Register::R10, DIR()), Arg(result, DIR())));
+        code.push_back(Instruction(Op::POPQ, Arg(Register::R10, DIR())));
+    } else if (binop_exp.op == "<=") {
+        code.push_back(Instruction(Op::PUSHQ, Arg(Register::R10, DIR())));
+        code.push_back(Instruction(Op::XORQ, Arg(Register::R10, DIR()), Arg(Register::R10, DIR())));
+        code.push_back(Instruction(Op::CMPQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR())));
+        code.push_back(Instruction(Op::SETLE, Arg(Register::R10B, DIR())));
+        code.push_back(Instruction(Op::MOVQ, Arg(Register::R10, DIR()), Arg(result, DIR())));
+        code.push_back(Instruction(Op::POPQ, Arg(Register::R10, DIR())));
+    } else if (binop_exp.op == ">=") {
+        code.push_back(Instruction(Op::PUSHQ, Arg(Register::R10, DIR())));
+        code.push_back(Instruction(Op::XORQ, Arg(Register::R10, DIR()), Arg(Register::R10, DIR())));
+        code.push_back(Instruction(Op::CMPQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR())));
+        code.push_back(Instruction(Op::SETGE, Arg(Register::R10B, DIR())));
+        code.push_back(Instruction(Op::MOVQ, Arg(Register::R10, DIR()), Arg(result, DIR())));
+        code.push_back(Instruction(Op::POPQ, Arg(Register::R10, DIR())));
+    }
+
+    temp_storage.push(result);  
+    code.push_back(Instruction(Op::POPQ, Arg(Register::R9, DIR())));
+    code.push_back(Instruction(Op::POPQ, Arg(Register::R8, DIR())));
+}
+
+
+void IRVisitor::postVisit(PrintStatement &print) {
+    AstValue value = pop(temp_storage);
+    if (holds_alternative<int>(value)) { 
+        code.push_back(Instruction(Op::PROCEDURE, Arg(Procedure::PRINT, DIR()), Arg(ImmediateValue(get<int>(value)), DIR())));
+    } else if (holds_alternative<bool>(value)) {
+        bool bool_value = get<bool>(value);
+        int int_value = bool_value ? 1 : 0;
+        code.push_back(Instruction(Op::PROCEDURE, Arg(Procedure::PRINT, DIR()), Arg(ImmediateValue(int_value), DIR())));
+    } else if (holds_alternative<GenericRegister>(value)) {
+        code.push_back(Instruction(Op::PROCEDURE, Arg(Procedure::PRINT, DIR()), Arg(GenericRegister(get<GenericRegister>(value).local_id), DIR())));
+    }
+}
+
 
 template<typename T>
 T IRVisitor::pop(stack<T>& myStack) {

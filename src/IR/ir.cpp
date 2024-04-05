@@ -3,7 +3,7 @@
 
 IRL::IRL(long offset) : offset(offset) {}
 ImmediateValue::ImmediateValue(int v) : value(v) {}
-GenericRegister::GenericRegister(size_t i) : id(i) {}
+GenericRegister::GenericRegister(long i) : local_id(i) {}
 Label::Label(const string& l) : label(l) {}
 Arg::Arg(TargetType target, MemAccessType access_type) : target(target), access_type(access_type) {}
 
@@ -15,6 +15,8 @@ Instruction::Instruction(Op op, Arg arg1, optional<string> comment)
 
 Instruction::Instruction(Op op, Arg arg1, Arg arg2, optional<string> comment)
     : operation(op), comment(comment) { args.reserve(2); args.push_back(arg1); args.push_back(arg2); }
+
+
 
 ostream& operator<<(ostream& os, const Arg arg) {
     if (holds_alternative<ImmediateValue>(arg.target)) {
@@ -30,9 +32,9 @@ ostream& operator<<(ostream& os, const Arg arg) {
             throw IRError("Unexpected access_type");
         }
     } else if (holds_alternative<GenericRegister>(arg.target)) {
-        os << "Generic Register(" << get<GenericRegister>(arg.target).id << ")";
+        os << "Generic Register(" << get<GenericRegister>(arg.target).local_id << ")";
     } else if (holds_alternative<Label>(arg.target)) {
-        os << "Label: " << get<Label>(arg.target).label;
+        os << get<Label>(arg.target).label << ":";
     } else if (holds_alternative<Procedure>(arg.target)) {
         os << "Procedure" << get<Procedure>(arg.target);
     }
@@ -42,7 +44,9 @@ ostream& operator<<(ostream& os, const Arg arg) {
 
 ostream& operator<<(ostream& os, const Instruction &instruction) {
     os << instruction.operation;
-    if (instruction.args.size() == 1) {
+    if (instruction.operation == Op::LABEL) {
+        os << instruction.args[0];
+    } else if (instruction.args.size() == 1) {
         os << " " << instruction.args[0];
     } else if (instruction.args.size() == 2) {
         os << " " << instruction.args[0] << ", " << instruction.args[1];
@@ -53,7 +57,7 @@ ostream& operator<<(ostream& os, const Instruction &instruction) {
 ostream& operator<<(ostream& os, const Op op) {
     switch (op) {
         case Op::MOVQ:          os << "movq";       break;
-        case Op::PUSH:          os << "push";       break;
+        case Op::PUSHQ:          os << "pushq";       break;
         case Op::POP:           os << "pop";        break;
         case Op::CALL:          os << "call";       break;
         case Op::RET:           os << "ret";        break;
@@ -67,10 +71,21 @@ ostream& operator<<(ostream& os, const Op op) {
         case Op::JGE:           os << "jge";        break;
         case Op::ADDQ:          os << "addq";       break;
         case Op::SUBQ:          os << "subq";       break;
-        case Op::MULQ:          os << "mulq";       break;
-        case Op::DIVQ:          os << "divq";       break;
-        case Op::LABEL:         os << "label";      break;
+        case Op::IMULQ:          os << "imulq";       break;
+        case Op::IDIVQ:          os << "idivq";       break;
+        case Op::LABEL:         os << "";      break;
         case Op::PROCEDURE:     os << "procedure";  break;
+        case Op::ANDQ:           os << "andq";       break;
+        case Op::ORQ:           os << "orq";       break;
+        case Op::XORQ:          os << "xorq";       break;
+        case Op::POPQ:          os << "popq";       break;
+        case Op::PUSH:          os << "push";       break;
+        case Op::SETL:          os << "setl";       break;
+        case Op::SETG:          os << "setg";       break;
+        case Op::SETE:          os << "sete";       break;
+        case Op::SETNE:         os << "setne";       break;
+        case Op::SETLE:         os << "setle";       break;
+        case Op::SETGE:         os << "setge";       break;
         default:                os << "Unknown";    break;
     }
     return os;
@@ -79,10 +94,24 @@ ostream& operator<<(ostream& os, const Op op) {
 ostream& operator<<(ostream& os, const Register sp) {
     switch (sp) {
         case Register::RAX:      os << "%rax";       break;
+        case Register::RBX:      os << "%rbx";       break;
         case Register::RBP:      os << "%rbp";       break;
         case Register::RSP:      os << "%rsp";       break;
-        case Register::RSL:      os << "%rsl";       break;
-        default:                        os << "Unknown";    break;
+        case Register::RDI:      os << "%rdi";       break;
+        case Register::RSI:      os << "%rsi";       break;
+        case Register::RDX:      os << "%rdx";       break;
+        case Register::RCX:      os << "%rcx";       break;
+        case Register::R8:       os << "%r8";        break;
+        case Register::R8B:      os << "%r8b";       break;
+        case Register::R9:       os << "%r9";        break;
+        case Register::R10:      os << "%r10";       break;
+        case Register::R10B:     os << "%r10b";      break;
+        case Register::R11:      os << "%r11";       break;
+        case Register::R12:      os << "%r12";       break;
+        case Register::R13:      os << "%r13";       break;
+        case Register::R14:      os << "%r14";       break;
+        case Register::R15:      os << "%r15";       break;
+        default:                 os << "Unknown";    break;
     }
     return os;
 }

@@ -8,10 +8,9 @@
 #include "semantics_error.hpp"
 #include <memory>
 #include <iostream>
+#include <typeinfo>
 
 using namespace std;
-
-int nextUID = 0;
 
 struct print_visitor {
     std::ostream& os;
@@ -43,7 +42,7 @@ struct SymbolTypeToStringVisitor {
 };
 
 struct TypeConverterVisitor : boost::static_visitor<SymbolType> {
-    SymbolType operator()(const PrimitiveType &t) {
+    SymbolType operator()(PrimitiveType &t) { // I removed the const keyword here, is it a problem? - sofus
         auto const type = t.type;
         if (type == "int") {
             return IntType();
@@ -103,7 +102,6 @@ FuncSymbol::FuncSymbol(FuncDecl *funcDecl, SymbolTable *scope) : symTab(scope){
 }
 
 VarSymbol::VarSymbol(VarDecl *varDecl) : varDecl(varDecl) {
-    uid = nextUID++;
     type = convertType(varDecl->type);
 }
 
@@ -124,7 +122,12 @@ SymbolTable::~SymbolTable(){
     }
 }
 
-void SymbolTable::insert(string key, Symbol *symbol) {
+void SymbolTable::insert(string key, VarSymbol* symbol) {
+    symbol->local_id = ++registerCounter;
+    entries.emplace(key, symbol); 
+}
+
+void SymbolTable::insert(string key, FuncSymbol *symbol) {
     entries.emplace(key, symbol); 
 }
 
@@ -152,3 +155,15 @@ Symbol *SymbolTable::find(string key) const {
     }
 }
 
+vector<VarSymbol*> SymbolTable::get_var_symbols() {
+    vector<VarSymbol*> var_symbols;
+    for (auto var : entries) {
+        auto var_casted = dynamic_cast<VarSymbol*>(var.second);
+        if (typeid(var_casted) == typeid(VarSymbol*)) {
+            var_symbols.push_back(var_casted);
+        } else {
+            cout << "something went wrong when casting symbol" << endl;
+        }
+    }
+    return var_symbols;
+}

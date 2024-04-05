@@ -1,0 +1,17 @@
+int main() {
+    print(1);
+    print(-1);
+    print(0);
+    print(true);
+    print(false);
+    print(9123923);
+    int x = 2;
+    print(x);
+    int y = -1;
+    print(y);
+    bool z = true;
+    print(z);
+    bool w = false;
+    print(w);
+    return 0;
+}

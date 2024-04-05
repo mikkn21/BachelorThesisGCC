@@ -1,2 +1,11 @@
-int c = 5;
-int x = 1;
+
+int main() {
+    int x = 10;
+    int y = 11;
+    print(y!=x);
+
+
+
+
+    return 0;
+}

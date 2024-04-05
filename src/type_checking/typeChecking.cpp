@@ -247,4 +247,3 @@ Prog typeChecker(Prog &prog, SymbolTable *globalScope) {
 
 
 
-

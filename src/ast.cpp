@@ -25,7 +25,7 @@ namespace grammar
         FuncDecl::~FuncDecl() = default;
         
         std::ostream& operator<<(std::ostream& os, const grammar::ast::LocationInfo &location_info) {
-            return os << '[' << location_info.line << ", " << location_info.column << ']';
+            return os << "[" << location_info.line << ", " << location_info.column << "]";
         };
         
         std::ostream& operator<<(std::ostream& os, const grammar::ast::BinopExps &exp) {

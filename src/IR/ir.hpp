@@ -15,7 +15,7 @@
 using namespace std;
 
 enum class Op {
-   MOVQ, PUSH, POP, CALL, RET, CMPQ, JMP, JE, JNE, JL, JLE, JG, JGE, ADDQ, SUBQ, MULQ, DIVQ, LABEL, PROCEDURE,
+   MOVQ, PUSH, POP, CALL, RET, CMPQ, JMP, JE, JNE, JL, JLE, JG, JGE, ADDQ, SUBQ, IMULQ, IDIVQ, LABEL, PROCEDURE, ANDQ, ORQ, XORQ, PUSHQ, POPQ, SETL, SETG, SETLE, SETGE, SETE, SETNE
 };
 
 struct DIR {};
@@ -29,21 +29,21 @@ using MemAccessType = std::variant<DIR, IND, IRL>;
 
 struct ImmediateValue {
     int value;
-    ImmediateValue(int v);
+    ImmediateValue(int value);
 };
 
 struct GenericRegister {
-    size_t id;
-    GenericRegister(size_t i);
+    long local_id;
+    GenericRegister(long local_id);
 };
 
 enum class Register {
-    RBP, RSP, RAX, RSL,
+    RAX, RBX, RCX, RDX, RSI, RDI, R8, R8B, R9, R10, R10B, R11, R12, R13, R14, R15, RSP, RBP, 
 };
 
 struct Label {
     std::string label;
-    Label(const std::string& l);
+    Label(const std::string& label);
 };
 
 enum class Procedure {

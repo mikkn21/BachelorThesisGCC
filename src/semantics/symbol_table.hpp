@@ -67,7 +67,7 @@ public:
     ~VarSymbol() override { }
     SymbolType type;
     VarDecl *varDecl;
-    int uid;
+    long local_id;
 };
 
 // add class symbol and type symbol for aliasing, future implementation
@@ -81,6 +81,7 @@ public:
     SymbolTable *parentScope = nullptr;
 
     int depth;
+    int registerCounter = 0;
 
     FuncSymbol *creator = nullptr;
 
@@ -90,9 +91,12 @@ public:
 
     ~SymbolTable();
 
-    void insert(string key, Symbol* symbol);
+    void insert(string key, FuncSymbol* symbol);
+    void insert(string key, VarSymbol* symbol);
+
     Symbol *findLocal(string key) const;
     Symbol *find(string key) const;
+    vector<VarSymbol*> get_var_symbols();
 };
 
 

@@ -1,0 +1,11 @@
+
+int main() {
+    int m = 5;
+    int b = 7;
+    int k = 4;
+    int j = 17;
+    int o = 9;
+    print(j+k+b+m);
+
+    return 0;
+}
