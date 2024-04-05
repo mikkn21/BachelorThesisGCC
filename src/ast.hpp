@@ -4,6 +4,7 @@
 #include <boost/fusion/include/io.hpp>
 #include <boost/fusion/include/adapt_struct.hpp>
 #include <boost/spirit/home/x3/support/ast/variant.hpp>
+#include <boost/spirit/home/x3.hpp>
 #include <vector>
 
 class FuncSymbol;
@@ -12,6 +13,8 @@ class Symbol;
 class SymbolTable;
 
 namespace x3 = boost::spirit::x3;
+
+
 
 namespace grammar 
 { 
@@ -25,9 +28,13 @@ namespace grammar
         };
 
         struct Decl;
-        struct BinopExp;
+        struct BinopExps;
         struct Block;
         struct ExpressionPar;
+        struct FunctionCall;
+        struct VarDeclAssign;
+        struct VarDeclStatement;
+        struct ConditionalStatement;
 
 
         struct Id : LocationInfo {
@@ -53,7 +60,7 @@ namespace grammar
             friend std::ostream& operator<<(std::ostream& os, const PrimitiveType &exp); 
         };
 
-        struct Expression : public x3::variant<int, x3::forward_ast<BinopExp>, bool, VarExpression, x3::forward_ast<ExpressionPar>>, LocationInfo {
+        struct Expression : public x3::variant<int, x3::forward_ast<BinopExps>, bool, VarExpression, x3::forward_ast<ExpressionPar>, x3::forward_ast<FunctionCall>>, LocationInfo {
             using base_type::base_type;   
             using base_type::operator=;
         public:
@@ -74,13 +81,18 @@ namespace grammar
             friend std::ostream& operator<<(std::ostream& os, const ExpressionPar &exp);
         };
 
-        struct BinopExp : LocationInfo { 
-            Expression lhs;
+        struct Rhs : LocationInfo {
             std::string op;
-            Expression rhs;
-            SymbolTable *scope = nullptr;
+            Expression exp;
         public: 
-            friend std::ostream& operator<<(std::ostream& os, const BinopExp &exp);
+            friend std::ostream& operator<<(std::ostream& os, const Rhs &exp);
+        };
+
+        struct BinopExps : LocationInfo { 
+            Expression lhs;
+            std::vector<Rhs> rhss;
+        public: 
+            friend std::ostream& operator<<(std::ostream& os, const BinopExps &exp);
         };
 
         struct PrintStatement : LocationInfo {
@@ -115,7 +127,7 @@ namespace grammar
             friend std::ostream& operator<<(std::ostream& os, const StatementExpression &exp);
         };
 
-        struct Statement : public x3::variant<VarAssign, WhileStatement,StatementExpression, PrintStatement, ReturnStatement>, LocationInfo {
+        struct Statement : public x3::variant<VarAssign, x3::forward_ast<VarDeclAssign>, x3::forward_ast<VarDeclStatement>, WhileStatement,StatementExpression, PrintStatement, ReturnStatement, x3::forward_ast<ConditionalStatement>>, LocationInfo {
             using base_type::base_type;  
             using base_type::operator=;
         public:
@@ -149,6 +161,28 @@ namespace grammar
         public:
             friend std::ostream& operator<<(std::ostream& os, const Block &exp);
         };
+        
+        struct IfStatement : public LocationInfo {
+            Expression exp;
+            Block block;
+        public:
+            friend std::ostream& operator<<(std::ostream& os, const IfStatement &exp);
+        };
+
+        struct ElseStatement : public LocationInfo {
+            Block block;
+        public:
+            friend std::ostream& operator<<(std::ostream& os, const ElseStatement &exp);
+        };
+
+        struct ConditionalStatement : public LocationInfo {
+            IfStatement ifStatement;
+            std::vector<IfStatement> elseIfs; 
+            // x3::variant<ElseStatement, x3::unused_type> conditionalElse;
+            boost::optional<ElseStatement> conditionalElse;
+        public:
+            friend std::ostream& operator<<(std::ostream& os, const ConditionalStatement &exp);
+        };
 
         struct Type : public x3::variant<PrimitiveType /*, ArrayType*/>, LocationInfo {
             using base_type::base_type;   
@@ -164,19 +198,46 @@ namespace grammar
             friend std::ostream& operator<<(std::ostream& os, const Type &exp);
         };
 
-        struct VarDecl : LocationInfo {
+        struct VarDecl : public LocationInfo {
             Type type;
             Id id;
-            Expression exp;
             VarSymbol *sym = nullptr;
         public:
             friend std::ostream& operator<<(std::ostream& os, const VarDecl &exp);
         };
 
-        struct Parameter : LocationInfo {
-            Type type;
-            Id id; 
-        public:
+        struct VarDeclAssign : public LocationInfo {
+            VarDecl decl;
+            Expression exp;
+            friend std::ostream& operator<<(std::ostream& os, const VarDeclAssign &exp);
+        };
+
+        struct VarDeclStatement : public x3::variant<VarDecl> , LocationInfo {
+            using base_type::base_type;  
+            using base_type::operator=;
+
+            VarDeclStatement(const VarDeclStatement& other) : base_type(other), LocationInfo(other) {}
+               
+            VarDeclStatement& operator=(const VarDeclStatement& other) {
+                base_type::operator=(other);
+                LocationInfo::operator=(other);
+                return *this;
+            }
+            friend std::ostream& operator<<(std::ostream& os, const VarDeclStatement &exp);
+        };
+
+        // this is a variant because later it needs to be extended to include optional parameters
+        struct Parameter : public x3::variant<VarDecl>, LocationInfo {
+            using base_type::base_type;  
+            using base_type::operator=;
+
+            Parameter(const Parameter& other) : base_type(other), LocationInfo(other) {}
+               
+            Parameter& operator=(const Parameter& other) {
+                base_type::operator=(other);
+                LocationInfo::operator=(other);
+                return *this;
+            }
             friend std::ostream& operator<<(std::ostream& os, const Parameter &exp);
         };        
 
@@ -189,14 +250,16 @@ namespace grammar
 
         struct ArgumentList : LocationInfo {
             std::vector<Expression> arguments;
+            friend std::ostream& operator<<(std::ostream& os, const ArgumentList &argument);
         };
 
         struct FunctionCall : LocationInfo {
             Id id; 
             ArgumentList argument_list;
+            friend std::ostream& operator<<(std::ostream& os, const FunctionCall &funcCall);
         };
 
-        struct FuncDecl : LocationInfo { 
+        struct FuncDecl : public LocationInfo { 
             FuncDecl();
             ~FuncDecl();
 
@@ -215,7 +278,7 @@ namespace grammar
             friend std::ostream& operator<<(std::ostream& os, const ArrayType &exp);
         };
 
-        struct Decl : public x3::variant<VarDecl, FuncDecl/*, ClassDecl*/>, LocationInfo { 
+        struct Decl : public x3::variant<VarDeclAssign, VarDeclStatement, FuncDecl/*, ClassDecl*/>, LocationInfo { 
             using base_type::base_type;  
             using base_type::operator=;
         public:
@@ -244,11 +307,17 @@ using namespace grammar::ast;
 
 
 BOOST_FUSION_ADAPT_STRUCT(
-    BinopExp,
-    (Expression, lhs)
-    (std::string, op)
-    (Expression, rhs)
+    BinopExps,
+    (Expression, lhs),
+    (std::vector<Rhs>, rhss)
 )
+
+BOOST_FUSION_ADAPT_STRUCT(
+    Rhs,
+    (std::string, op),
+    (Expression, exp)
+)
+
 
 BOOST_FUSION_ADAPT_STRUCT(
     PrintStatement,
@@ -259,6 +328,28 @@ BOOST_FUSION_ADAPT_STRUCT(
     VarExpression,
     (Id, id)
 )
+
+BOOST_FUSION_ADAPT_STRUCT(
+    IfStatement,
+    (Expression, exp),
+    (Block, block)
+)
+
+
+BOOST_FUSION_ADAPT_STRUCT(
+    ElseStatement,
+    (Block, block)
+)
+
+
+BOOST_FUSION_ADAPT_STRUCT(
+    ConditionalStatement,
+    (IfStatement, ifStatement),
+    (std::vector<IfStatement>, elseIfs), 
+    (boost::optional<ElseStatement>, conditionalElse)
+    // (x3::variant<ElseStatement, x3::unused_type>, conditionalElse)
+)
+
 
 BOOST_FUSION_ADAPT_STRUCT(
     ReturnStatement,
@@ -306,14 +397,14 @@ BOOST_FUSION_ADAPT_STRUCT(
     VarDecl,
     (Type, type)
     (Id, id)
-    (Expression, exp) // Assuming exp is an int for simplicity
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
-    Parameter,
-    (Type, type)
-    (Id, id)
+    VarDeclAssign,
+    (VarDecl, decl)
+    (Expression, exp)
 )
+
 
 BOOST_FUSION_ADAPT_STRUCT(
     ParameterList,

@@ -1,5 +1,6 @@
 #ifndef MY_ERROR_HPP
 #define MY_ERROR_HPP 
+#include <stdexcept>
 #include <string>
 #include "../ast.hpp"
 #include <sstream>

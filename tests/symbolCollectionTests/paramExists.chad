@@ -1,0 +1,8 @@
+int main () {
+
+    int f(int x) {
+        return x;
+    }
+
+    return 0;
+}

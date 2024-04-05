@@ -1,0 +1,23 @@
+int main() {
+
+    int g(int x) {
+        return x + 1;
+    }
+
+    int x = f(2, 4, g(5));
+
+    int f(int x, int y, int g) {
+        int x = 2; 
+        int y = x + y; 
+
+        int g(int x) {
+            return x - 1;
+        }
+
+        int z = g(x) + g(y) + g(g); 
+
+        return z;
+    }
+
+    return 0;
+}

@@ -1,9 +1,13 @@
+#include <exception>
 #include <iostream>
 #include <ostream>
 #include <boost/program_options.hpp>
+#include <stdexcept>
+#include "error/ast_error.hpp"
 #include "error/compiler_error.hpp"
 
 #include "compiler.hpp"
+#include "semantics/semantics_error.hpp"
 
 using namespace std;
 using namespace grammar::compiler;
@@ -75,10 +79,10 @@ int main(int argc, char* argv[]) {
             return 1;
         }
     } catch (CompilerError &e) {
-        cerr << "Error: " << e.what() << endl;
+        cerr  << e.what() << endl;
         return 1;
     } catch (exception &e) {
-        cerr << "Error: " << e.what() << endl;
+        cerr << e.what() << endl;
         return 1;
     } catch (...) {
         cerr << "Unknown error" << endl;
