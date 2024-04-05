@@ -4,19 +4,19 @@
 IRL::IRL(long offset) : offset(offset) {}
 ImmediateValue::ImmediateValue(int v) : value(v) {}
 GenericRegister::GenericRegister(size_t i) : id(i) {}
-Label::Label(const string& l) : label(l) {}
+Label::Label(const std::string& l) : label(l) {}
 Arg::Arg(TargetType target, MemAccessType access_type) : target(target), access_type(access_type) {}
 
-Instruction::Instruction(Op op, optional<string> comment)
+Instruction::Instruction(Op op, std::optional<std::string> comment)
     : operation(op), comment(comment) {}
 
-Instruction::Instruction(Op op, Arg arg1, optional<string> comment)
+Instruction::Instruction(Op op, Arg arg1, std::optional<std::string> comment)
     : operation(op), comment(comment) { args.reserve(1); args.push_back(arg1); }
 
-Instruction::Instruction(Op op, Arg arg1, Arg arg2, optional<string> comment)
+Instruction::Instruction(Op op, Arg arg1, Arg arg2, std::optional<std::string> comment)
     : operation(op), comment(comment) { args.reserve(2); args.push_back(arg1); args.push_back(arg2); }
 
-ostream& operator<<(ostream& os, const Arg arg) {
+std::ostream& operator<<(std::ostream& os, const Arg arg) {
     if (holds_alternative<ImmediateValue>(arg.target)) {
         os << "$" << get<ImmediateValue>(arg.target).value;
     } else if (holds_alternative<Register>(arg.target)) {
@@ -40,7 +40,7 @@ ostream& operator<<(ostream& os, const Arg arg) {
 }
 
 
-ostream& operator<<(ostream& os, const Instruction &instruction) {
+std::ostream& operator<<(std::ostream& os, const Instruction &instruction) {
     os << instruction.operation;
     if (instruction.args.size() == 1) {
         os << " " << instruction.args[0];
@@ -50,7 +50,7 @@ ostream& operator<<(ostream& os, const Instruction &instruction) {
     return os << (instruction.comment ? "\t# " + instruction.comment.value() : "");
 }
 
-ostream& operator<<(ostream& os, const Op op) {
+std::ostream& operator<<(std::ostream& os, const Op op) {
     switch (op) {
         case Op::MOVQ:          os << "movq";       break;
         case Op::PUSH:          os << "push";       break;
@@ -76,7 +76,7 @@ ostream& operator<<(ostream& os, const Op op) {
     return os;
 }
 
-ostream& operator<<(ostream& os, const Register sp) {
+std::ostream& operator<<(std::ostream& os, const Register sp) {
     switch (sp) {
         case Register::RAX:      os << "%rax";       break;
         case Register::RBP:      os << "%rbp";       break;
@@ -87,7 +87,7 @@ ostream& operator<<(ostream& os, const Register sp) {
     return os;
 }
 
-ostream& operator<<(ostream& os, const Procedure procedure){
+std::ostream& operator<<(std::ostream& os, const Procedure procedure){
     switch (procedure) {
         case Procedure::CALLEE_RESTORE:     os << "CALLEE_RESTORE";     break;
         case Procedure::CALLEE_SAVE:        os << "CALLEE_SAVE";        break;
@@ -100,9 +100,9 @@ ostream& operator<<(ostream& os, const Procedure procedure){
 }
 
 
-ostream& operator<<(ostream& os, const IR ir) {
+std::ostream& operator<<(std::ostream& os, const IR ir) {
     for (auto instruction : ir) {
-        os << instruction << endl;
+        os << instruction << std::endl;
     }
     return os;
 }

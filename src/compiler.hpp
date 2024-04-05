@@ -5,7 +5,11 @@
 #include <optional>
 #include <memory>
 #include <string_view>
-#include "IR/ir.hpp"
+
+// ALl 3 of these include IR.hpp (so we include it 3 times here)
+#include "IR/register_allocation.hpp"
+#include "IR/code_generation.hpp"
+#include "IR/emit.hpp"
 
 
 namespace grammar::compiler {

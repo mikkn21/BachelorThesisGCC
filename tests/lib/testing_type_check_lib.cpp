@@ -1,9 +1,6 @@
-#include "../../src/ast.hpp"
 #include "../../src/compiler.hpp"
-#include "../../src/type_checking/typeChecking.hpp"
-#include <string>
 #include "testing_type_check_lib.hpp"
-#include "../../src/parser/parser.hpp"
+
 
 std::string remove_whitespace(const std::string& str) {
     std::string result;

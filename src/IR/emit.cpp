@@ -1,13 +1,11 @@
-#include <iostream>
+
 #include <fstream>
-#include <vector>
-#include <string>
 #include "emit.hpp"
 
 void emit_to_file(IR ir) {
     std::ofstream outputFile("chad.s");
-    outputFile << ".globl _start" << endl;
-    outputFile << "\n_start:" << endl;
+    outputFile << ".globl _start" << std::endl;
+    outputFile << "\n_start:" << std::endl;
     if (outputFile.is_open()) {
         for (const Instruction& instruction : ir) {
             // MAKE SWITCH STATEMENT TO CHECK FOR PROCEDURES MAYBE?
@@ -20,5 +18,5 @@ void emit_to_file(IR ir) {
 }
 
 void emit(IR ir) {
-    emit_to_file(move(ir));
+    emit_to_file(std::move(ir));
 }

@@ -1,23 +1,20 @@
 #include <stack>
+#include <iostream>
 #include "typeChecking.hpp"
 #include "../visitor.hpp"
-
-
-#include <cassert>
-#include <iostream>
-
-
-
 #include "../semantics/symbol_table.hpp"
 
-using namespace std;
-using namespace grammar::ast;
+namespace ast = grammar::ast;
+
 
 class TypeChecker : public Visitor {
+    
 
     // the current function we are inside of
     FuncSymbol* func = nullptr;
     bool hasFuncReturned = false;
+
+    
    
     // The stack of types
     stack<SymbolType> typeStack = stack<SymbolType>();    
@@ -49,15 +46,16 @@ private:
         }
     }
 
-    void postVisit(Prog &prog) override {
+
+    void postVisit(ast::Prog &prog) override {
         assert(typeStack.size() == 0);
     }
 
-    void postVisit(StatementExpression &exp) override {
+    void postVisit(ast::StatementExpression &exp) override {
         typeStack.pop();
     }
 
-    void postVisit(FunctionCall &funcCall) override {
+    void postVisit(ast::FunctionCall &funcCall) override {
         Symbol *sym = funcCall.id.scope->find(funcCall.id.id);
         if (sym != nullptr) {
             if (dynamic_cast<VarSymbol *>(sym)) {
@@ -94,7 +92,7 @@ private:
         }
     }
     
-    void postVisit(VarAssign &varassign) override {
+    void postVisit(ast::VarAssign &varassign) override {
         // id 
         // cout << "Debug: Entering postVisit VarAssign" << endl;
         if (varassign.id.sym == nullptr) {
@@ -114,7 +112,7 @@ private:
     // Check that the expression in the if statement evaluates to a bool
     // Checks both if and else if (since they are both if nodes in the ast)
     // TODO: Check return statements? 
-    void postVisit(IfStatement &ifStatement) override {
+    void postVisit(ast::IfStatement &ifStatement) override {
         // exp
         auto t1 = pop(typeStack);
         
@@ -126,7 +124,7 @@ private:
     }
 
 
-    void postVisit(VarDeclAssign &vardecl) override {  
+    void postVisit(ast::VarDeclAssign &vardecl) override {  
         //id  
         auto t1 = vardecl.decl.sym->type;
         // cout << "Debug: postVisit VarDecl t1: " << t1 << endl;
@@ -139,7 +137,7 @@ private:
         }
     } 
 
-    void preBlockVisit(WhileStatement &whileStatement) override {
+    void preBlockVisit(ast::WhileStatement &whileStatement) override {
         // exp
         cout << "Debug: Entering preBlockVisit WhileStatement" << endl;
         auto t1 = pop(typeStack);
@@ -150,7 +148,7 @@ private:
     }
 
 
-    void preVisit(VarExpression &varExp) override {
+    void preVisit(ast::VarExpression &varExp) override {
         cout << "Debug: in id: " << varExp.id.id << endl;
         if (varExp.id.sym == nullptr) {
             throw TypeCheckError("Symbol not found", varExp);
@@ -159,11 +157,11 @@ private:
         typeStack.push(varSymbol->type);
     }
 
-    void preVisit(BlockLine &blockLine) override {
+    void preVisit(ast::BlockLine &blockLine) override {
         hasFuncReturned = false;
     }
 
-    void postVisit(ReturnStatement &rtn) override {
+    void postVisit(ast::ReturnStatement &rtn) override {
         auto t1 = pop(typeStack);
         // cout << "Debug: postVisit ReturnStatement t1: " << t1 << endl;
         auto t2 = func->returnType;
@@ -177,12 +175,12 @@ private:
         hasFuncReturned = true;
     }
 
-    void preVisit(FuncDecl &funcDecl) override {
+    void preVisit(ast::FuncDecl &funcDecl) override {
         func = funcDecl.sym;
         // cout << "Debug: preVisit FuncDecl" << endl;
     }
 
-    void postVisit(FuncDecl &funcDecl) override {
+    void postVisit(ast::FuncDecl &funcDecl) override {
         if (!hasFuncReturned) {
             throw TypeCheckError("Function " + funcDecl.id.id + " does not always return", funcDecl);
         }
@@ -198,7 +196,7 @@ private:
         typeStack.push(IntType());
     }
 
-    void postVisit(Rhs &rhs) override {
+    void postVisit(ast::Rhs &rhs) override {
         auto expType = pop(typeStack);
         auto lhsType = pop(typeStack);
         auto op = rhs.op;
@@ -236,7 +234,7 @@ private:
 }; 
 
 
-Prog typeChecker(Prog &prog, SymbolTable *globalScope) {
+ast::Prog typeChecker(ast::Prog &prog, SymbolTable *globalScope) {
     auto visitor = TypeChecker(globalScope);
     auto traveler = TreeTraveler(visitor);
     traveler(prog);

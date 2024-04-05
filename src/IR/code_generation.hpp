@@ -1,7 +1,9 @@
 #include "ir.hpp"
+#include "../visitor.hpp"
+#include <stack>
 
-using namespace std;
 
+namespace ast = grammar::ast;
 using AstValue = std::variant<int, bool>;
 
 class IRVisitor : public Visitor {
@@ -10,8 +12,8 @@ public:
 
     IRVisitor();
 
-    void preVisit(Prog &prog) override;
-    void postVisit(VarDecl &var_decl) override;
+    void preVisit(ast::Prog &prog) override;
+    void postVisit(ast::VarDecl &var_decl) override;
     void preVisit(int &i) override;
 
 private:
@@ -26,4 +28,4 @@ private:
 };
 
 
-IR intermediate_code_generation(Prog &prog);
+IR intermediate_code_generation(ast::Prog &prog);

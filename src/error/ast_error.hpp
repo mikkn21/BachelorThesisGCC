@@ -2,7 +2,6 @@
 #define AST_ERROR_HPP 
 
 #include "../ast.hpp"
-#include <type_traits>
 #include "compiler_error.hpp"
 #include <sstream>
 

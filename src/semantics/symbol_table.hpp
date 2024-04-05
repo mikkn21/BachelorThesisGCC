@@ -1,9 +1,6 @@
 #ifndef MGRAMMAR_SYMBOL_TABLE_HPP
 #define MGRAMMAR_SYMBOL_TABLE_HPP 
 
-#include <unordered_map>
-#include <string>
-#include <variant>
 #include "../ast.hpp"
 
 

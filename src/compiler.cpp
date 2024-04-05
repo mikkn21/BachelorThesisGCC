@@ -1,15 +1,8 @@
-#include <iostream>
 #include <fstream>
 #include "compiler.hpp"
 #include "parser/parser.hpp"
 #include "type_checking/typeChecking.hpp"
 #include "semantics/symbol_collection.hpp"
-
-
-// I have not cleand these up yet
-#include "IR/register_allocation.hpp"
-#include "IR/code_generation.hpp"
-#include "IR/emit.hpp"
 
 
 namespace grammar::compiler {

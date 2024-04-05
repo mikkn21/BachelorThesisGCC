@@ -2,9 +2,6 @@
 
 #include "semantics_error.hpp"
 
-#include <iostream>
-
-using namespace std;
 
 int nextUID = 0;
 
