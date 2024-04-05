@@ -1,7 +1,6 @@
 #ifndef MGRAMMAR_COMPILER_HPP
 #define MGRAMMAR_COMPILER_HPP 
 
-#include "ast.hpp"
 #include "semantics/symbol_table.hpp"
 #include <optional>
 #include <memory>

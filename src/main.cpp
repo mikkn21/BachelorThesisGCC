@@ -1,13 +1,6 @@
-#include <exception>
-#include <iostream>
-#include <ostream>
 #include <boost/program_options.hpp>
-#include <stdexcept>
-#include "error/ast_error.hpp"
-#include "error/compiler_error.hpp"
-
 #include "compiler.hpp"
-#include "semantics/semantics_error.hpp"
+
 
 using namespace std;
 using namespace grammar::compiler;

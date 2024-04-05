@@ -1,15 +1,12 @@
 #include <iostream>
-#include <stdexcept>
-#include <string_view>
 #include <fstream>
-#include <sstream>
-#include <memory>
 #include "compiler.hpp"
-#include "ast.hpp"
 #include "parser/parser.hpp"
 #include "type_checking/typeChecking.hpp"
 #include "semantics/symbol_collection.hpp"
-#include "semantics/symbol_table.hpp"
+
+
+// I have not cleand these up yet
 #include "IR/register_allocation.hpp"
 #include "IR/code_generation.hpp"
 #include "IR/emit.hpp"

@@ -4,9 +4,19 @@
 #include "../ast_adapt.hpp"
 
 #include <boost/spirit/include/support_line_pos_iterator.hpp>
+
+// !! This needs to be here for string to work 
+// !! But string.hpp breaks other things
+// #include <boost/spirit/home/support/char_encoding/iso8859_1.hpp>
+// #include <boost/spirit/home/x3/string.hpp>
+
+
+// i think maybe this needs to be here since we are using string, char, bool, int 
+#include <boost/spirit/home/x3.hpp> 
+
 #include <sys/resource.h>
 
-#include <boost/spirit/home/x3/string/symbols.hpp> 
+// #include <boost/spirit/home/x3/string/symbols.hpp> 
 
 
 
@@ -115,7 +125,7 @@ namespace grammar {
 
         // --- Precedens stuff  
         const auto expression_par_def = ('(' >> expression) > ')';
-        const auto expression_base =  expression_par | function_call | var_expression | int_ | bool_;
+        const auto expression_base =  expression_par | function_call | var_expression | x3::int_ | x3::bool_;
 
         const auto expression_def = logical_or;
 
