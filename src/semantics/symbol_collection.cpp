@@ -1,13 +1,7 @@
-#include <boost/variant.hpp>
-#include "../ast.hpp"
 #include "../visitor.hpp"
 #include "semantics_error.hpp"
-#include "symbol_table.hpp"
 #include "symbol_collection.hpp"
-#include <string>
-#include <variant>
-#include <boost/spirit/home/x3.hpp>
-#include "../parser/parser.hpp"
+
 
 class SymbolCollectionVisitor : public Visitor {
 private:
@@ -18,11 +12,11 @@ public:
 
     SymbolCollectionVisitor(SymbolTable *symTab) : Visitor(), currentSymbolTable(symTab) { }
 
-    void preVisit(Id &id) override {
+    void preVisit(grammar::ast::Id &id) override {
         id.scope = currentSymbolTable;
     }
 
-    void preVisit(VarAssign &varAssign) override {
+    void preVisit(grammar::ast::VarAssign &varAssign) override {
         Symbol *sym = currentSymbolTable->find(varAssign.id.id);
         if (sym == nullptr) {
             throw SemanticsError(varAssign.id.id + " not declared in scope", varAssign);
@@ -30,7 +24,7 @@ public:
         varAssign.id.sym = sym;
     }
 
-    void preVisit(VarExpression &exp) override {
+    void preVisit(grammar::ast::VarExpression &exp) override {
         Symbol *sym = currentSymbolTable->find(exp.id.id);
         if (sym != nullptr) {
             if (auto varSym = dynamic_cast<VarSymbol *>(sym)) {
@@ -43,7 +37,7 @@ public:
         }
     }
 
-    void postVisit(VarDecl &varDecl) override {
+    void postVisit(grammar::ast::VarDecl &varDecl) override {
         // We use postVisit, instead of preVisit, because then a VarExpression is visited first,
         // making sure that in the case of int x = x, then "x" in the right-hand side, is resolved in the parent scopes.
         if (currentSymbolTable->findLocal(varDecl.id.id)) {
@@ -56,7 +50,7 @@ public:
         varDecl.id.sym = variantSymbol;
     }
 
-    void preVisit(FuncDecl &funcDecl) override {
+    void preVisit(grammar::ast::FuncDecl &funcDecl) override {
         if (currentSymbolTable->findLocal(funcDecl.id.id)) {
             throw SemanticsError(funcDecl.id.id + " already declared in scope", funcDecl);
         }
@@ -70,13 +64,13 @@ public:
         currentSymbolTable = newSymbolTable; // Note that no object is changed, only pointers.
     }
 
-    void postVisit(FuncDecl &funcDecl) override {
+    void postVisit(grammar::ast::FuncDecl &funcDecl) override {
         currentSymbolTable = currentSymbolTable->parentScope;
     }
 
 };
 
-void symbol_collection(Prog &prog, SymbolTable *symTab) {
+void symbol_collection(grammar::ast::Prog &prog, SymbolTable *symTab) {
     auto visitor = SymbolCollectionVisitor(symTab);
     auto traveler = TreeTraveler(visitor);
     traveler(prog);

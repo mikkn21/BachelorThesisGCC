@@ -1,12 +1,7 @@
-#include <string>
-#include <optional>
-#include <unordered_map>
 #include "symbol_table.hpp"
-#include <functional>
-#include "../ast.hpp"
-#include <variant>
+
 #include "semantics_error.hpp"
-#include <memory>
+
 #include <iostream>
 
 using namespace std;
@@ -43,7 +38,7 @@ struct SymbolTypeToStringVisitor {
 };
 
 struct TypeConverterVisitor : boost::static_visitor<SymbolType> {
-    SymbolType operator()(const PrimitiveType &t) {
+    SymbolType operator()(const grammar::ast::PrimitiveType &t) {
         auto const type = t.type;
         if (type == "int") {
             return IntType();
@@ -84,15 +79,15 @@ string SymbolType::toString() const {
     return visit(SymbolTypeToStringVisitor{}, *this);
 }
 
-SymbolType convertType(Type type) {
+SymbolType convertType(grammar::ast::Type type) {
     auto visitor = TypeConverterVisitor{};
     return boost::apply_visitor(visitor, type);
 }
 
-FuncSymbol::FuncSymbol(FuncDecl *funcDecl, SymbolTable *scope) : symTab(scope){ 
+FuncSymbol::FuncSymbol(grammar::ast::FuncDecl *funcDecl, SymbolTable *scope) : symTab(scope){ 
     for (auto i : funcDecl->parameter_list.parameter){
         try {
-            auto decl = boost::get<VarDecl>(i);
+            auto decl = boost::get<grammar::ast::VarDecl>(i);
             parameters.push_back(convertType(decl.type));
         } catch (boost::bad_get& e) {
             throw SemanticsError("Expected VarDecl in parameter list", *funcDecl);
@@ -102,7 +97,7 @@ FuncSymbol::FuncSymbol(FuncDecl *funcDecl, SymbolTable *scope) : symTab(scope){
     scope->creator = this;
 }
 
-VarSymbol::VarSymbol(VarDecl *varDecl) : varDecl(varDecl) {
+VarSymbol::VarSymbol(grammar::ast::VarDecl *varDecl) : varDecl(varDecl) {
     uid = nextUID++;
     type = convertType(varDecl->type);
 }

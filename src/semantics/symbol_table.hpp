@@ -3,12 +3,10 @@
 
 #include <unordered_map>
 #include <string>
-#include <optional>
-#include <functional>
 #include <variant>
 #include "../ast.hpp"
-#include <memory>
-#include <iostream>
+
+
 
 using namespace std;
 
@@ -43,7 +41,7 @@ struct SymbolType : public std::variant<IntType, BoolType /*, ArrayType, TypeAli
 
 
 
-SymbolType convertType(Type type);
+SymbolType convertType(grammar::ast::Type type);
 
 class SymbolTable;
 
@@ -54,7 +52,7 @@ public:
 
 class FuncSymbol : public Symbol{
 public:
-    FuncSymbol(FuncDecl *funcDecl, SymbolTable *symTab);
+    FuncSymbol(grammar::ast::FuncDecl *funcDecl, SymbolTable *symTab);
     ~FuncSymbol() override;
     std::vector<SymbolType> parameters;
     SymbolType returnType;
@@ -63,10 +61,10 @@ public:
 
 class VarSymbol : public Symbol {
 public:
-    VarSymbol(VarDecl *varDecl);
+    VarSymbol(grammar::ast::VarDecl *varDecl);
     ~VarSymbol() override { }
     SymbolType type;
-    VarDecl *varDecl;
+    grammar::ast::VarDecl *varDecl;
     int uid;
 };
 

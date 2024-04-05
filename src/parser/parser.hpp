@@ -1,9 +1,12 @@
 #ifndef MGRAMMAR_PARSER_HPP
 #define MGRAMMAR_PARSER_HPP
 
-#include <string>
+
+#include <boost/spirit/home/x3/nonterminal.hpp>
+
+
 #include "../ast.hpp"
-#include <boost/spirit/home/x3.hpp>
+
 #include "../error/compiler_error.hpp"
 
 
@@ -13,7 +16,7 @@ namespace grammar {
 
     
     grammar::ast::Prog parse(std::string_view src);
-    extern const x3::rule<class prog, ast::Prog> prog;
+    extern const boost::spirit::x3::rule<class prog, ast::Prog> prog;
 
     class SyntaxError : public CompilerError {
     public:

@@ -1,6 +1,6 @@
 #include <iostream>
 #include "ast.hpp"
-#include "semantics/symbol_table.hpp"
+
 
 namespace {
     struct print_visitor : boost::static_visitor<> {

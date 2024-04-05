@@ -1,22 +1,24 @@
+#include <stack>
 #include "typeChecking.hpp"
 #include "../visitor.hpp"
+
+
 #include <cassert>
-#include <cstddef>
 #include <iostream>
-#include <sstream>
-#include <stack>
-#include <string>
-#include "../ast.hpp"
+
+
+
 #include "../semantics/symbol_table.hpp"
 
 using namespace std;
+using namespace grammar::ast;
 
 class TypeChecker : public Visitor {
 
     // the current function we are inside of
     FuncSymbol* func = nullptr;
     bool hasFuncReturned = false;
-
+   
     // The stack of types
     stack<SymbolType> typeStack = stack<SymbolType>();    
     vector<SymbolType> FuncCallArgs = vector<SymbolType>();
@@ -29,7 +31,7 @@ public:
 private:
 
     // Check that there is a main function and it adheres to the rules of our main function
-    void preVisit(Prog &prog) override {
+    void preVisit(grammar::ast::Prog &prog) override {
         Symbol *mainSymbol = globalScope->findLocal("main");
         if (mainSymbol == nullptr) {
             throw TypeCheckError("main function not declared");

@@ -1,20 +1,15 @@
 #ifndef MGRAMMAR_AST_HPP
 #define MGRAMMAR_AST_HPP 
 
-#include <boost/fusion/include/io.hpp>
-#include <boost/fusion/include/adapt_struct.hpp>
+
 #include <boost/spirit/home/x3/support/ast/variant.hpp>
-#include <boost/spirit/home/x3.hpp>
+#include <boost/optional.hpp>
 #include <vector>
 
 class FuncSymbol;
 class VarSymbol;
 class Symbol;
 class SymbolTable;
-
-namespace x3 = boost::spirit::x3;
-
-
 
 namespace grammar 
 { 
@@ -60,7 +55,7 @@ namespace grammar
             friend std::ostream& operator<<(std::ostream& os, const PrimitiveType &exp); 
         };
 
-        struct Expression : public x3::variant<int, x3::forward_ast<BinopExps>, bool, VarExpression, x3::forward_ast<ExpressionPar>, x3::forward_ast<FunctionCall>>, LocationInfo {
+        struct Expression : public boost::spirit::x3::variant<int, boost::spirit::x3::forward_ast<BinopExps>, bool, VarExpression, boost::spirit::x3::forward_ast<ExpressionPar>, boost::spirit::x3::forward_ast<FunctionCall>>, LocationInfo {
             using base_type::base_type;   
             using base_type::operator=;
         public:
@@ -116,7 +111,7 @@ namespace grammar
 
         struct WhileStatement : LocationInfo {
             Expression exp; 
-            x3::forward_ast<Block> block;
+            boost::spirit::x3::forward_ast<Block> block;
         public:
             friend std::ostream& operator<<(std::ostream& os, const WhileStatement &exp);
         };
@@ -127,7 +122,7 @@ namespace grammar
             friend std::ostream& operator<<(std::ostream& os, const StatementExpression &exp);
         };
 
-        struct Statement : public x3::variant<VarAssign, x3::forward_ast<VarDeclAssign>, x3::forward_ast<VarDeclStatement>, WhileStatement,StatementExpression, PrintStatement, ReturnStatement, x3::forward_ast<ConditionalStatement>>, LocationInfo {
+        struct Statement : public boost::spirit::x3::variant<VarAssign, boost::spirit::x3::forward_ast<VarDeclAssign>, boost::spirit::x3::forward_ast<VarDeclStatement>, WhileStatement,StatementExpression, PrintStatement, ReturnStatement, boost::spirit::x3::forward_ast<ConditionalStatement>>, LocationInfo {
             using base_type::base_type;  
             using base_type::operator=;
         public:
@@ -141,7 +136,7 @@ namespace grammar
             friend std::ostream& operator<<(std::ostream& os, const Statement &exp);
         };
 
-        struct BlockLine : public x3::variant<x3::forward_ast<Decl> , Statement>, LocationInfo  {
+        struct BlockLine : public boost::spirit::x3::variant<boost::spirit::x3::forward_ast<Decl> , Statement>, LocationInfo  {
             using base_type::base_type;   
             using base_type::operator=;
         public:
@@ -184,7 +179,7 @@ namespace grammar
             friend std::ostream& operator<<(std::ostream& os, const ConditionalStatement &exp);
         };
 
-        struct Type : public x3::variant<PrimitiveType /*, ArrayType*/>, LocationInfo {
+        struct Type : public boost::spirit::x3::variant<PrimitiveType /*, ArrayType*/>, LocationInfo {
             using base_type::base_type;   
             using base_type::operator=;
         public:
@@ -212,7 +207,7 @@ namespace grammar
             friend std::ostream& operator<<(std::ostream& os, const VarDeclAssign &exp);
         };
 
-        struct VarDeclStatement : public x3::variant<VarDecl> , LocationInfo {
+        struct VarDeclStatement : public boost::spirit::x3::variant<VarDecl> , LocationInfo {
             using base_type::base_type;  
             using base_type::operator=;
 
@@ -227,7 +222,7 @@ namespace grammar
         };
 
         // this is a variant because later it needs to be extended to include optional parameters
-        struct Parameter : public x3::variant<VarDecl>, LocationInfo {
+        struct Parameter : public boost::spirit::x3::variant<VarDecl>, LocationInfo {
             using base_type::base_type;  
             using base_type::operator=;
 
@@ -278,7 +273,7 @@ namespace grammar
             friend std::ostream& operator<<(std::ostream& os, const ArrayType &exp);
         };
 
-        struct Decl : public x3::variant<VarDeclAssign, VarDeclStatement, FuncDecl/*, ClassDecl*/>, LocationInfo { 
+        struct Decl : public boost::spirit::x3::variant<VarDeclAssign, VarDeclStatement, FuncDecl/*, ClassDecl*/>, LocationInfo { 
             using base_type::base_type;  
             using base_type::operator=;
         public:
@@ -301,145 +296,6 @@ namespace grammar
 
     } // namespace ast
 } // namespace grammar 
-
-
-using namespace grammar::ast;
-
-
-BOOST_FUSION_ADAPT_STRUCT(
-    BinopExps,
-    (Expression, lhs),
-    (std::vector<Rhs>, rhss)
-)
-
-BOOST_FUSION_ADAPT_STRUCT(
-    Rhs,
-    (std::string, op),
-    (Expression, exp)
-)
-
-
-BOOST_FUSION_ADAPT_STRUCT(
-    PrintStatement,
-    (Expression, exp)
-)
-
-BOOST_FUSION_ADAPT_STRUCT(
-    VarExpression,
-    (Id, id)
-)
-
-BOOST_FUSION_ADAPT_STRUCT(
-    IfStatement,
-    (Expression, exp),
-    (Block, block)
-)
-
-
-BOOST_FUSION_ADAPT_STRUCT(
-    ElseStatement,
-    (Block, block)
-)
-
-
-BOOST_FUSION_ADAPT_STRUCT(
-    ConditionalStatement,
-    (IfStatement, ifStatement),
-    (std::vector<IfStatement>, elseIfs), 
-    (boost::optional<ElseStatement>, conditionalElse)
-    // (x3::variant<ElseStatement, x3::unused_type>, conditionalElse)
-)
-
-
-BOOST_FUSION_ADAPT_STRUCT(
-    ReturnStatement,
-    (Expression, exp)
-)
-
-BOOST_FUSION_ADAPT_STRUCT(
-    StatementExpression, 
-    (Expression, exp)
-)
-
-BOOST_FUSION_ADAPT_STRUCT(
-    Id,
-    (std::string, id)
-)
-
-BOOST_FUSION_ADAPT_STRUCT(
-    ExpressionPar,
-    (Expression, exp)
-)
-
-BOOST_FUSION_ADAPT_STRUCT(
-    ArgumentList, 
-    (std::vector<Expression>, arguments)
-)
- 
-
-BOOST_FUSION_ADAPT_STRUCT(
-    PrimitiveType,
-    (std::string, type)
-)
-
-BOOST_FUSION_ADAPT_STRUCT(
-    FunctionCall, 
-    (Id, id), 
-    (ArgumentList, argument_list)
-)
-
-BOOST_FUSION_ADAPT_STRUCT(
-    Block,
-    (std::vector<BlockLine>, block_line)
-)
-
-BOOST_FUSION_ADAPT_STRUCT(
-    VarDecl,
-    (Type, type)
-    (Id, id)
-)
-
-BOOST_FUSION_ADAPT_STRUCT(
-    VarDeclAssign,
-    (VarDecl, decl)
-    (Expression, exp)
-)
-
-
-BOOST_FUSION_ADAPT_STRUCT(
-    ParameterList,
-    (std::vector<Parameter>, parameter)
-)
-
-BOOST_FUSION_ADAPT_STRUCT(
-    FuncDecl,
-    (Type, type)
-    (Id, id)
-    (ParameterList, parameter_list)
-    (Block, block)
-)
-
-BOOST_FUSION_ADAPT_STRUCT(
-    ArrayType,
-    (Type, type)
-)
-
-BOOST_FUSION_ADAPT_STRUCT(
-    VarAssign,
-    (Id, id),
-    (Expression, exp)
-)
-
-BOOST_FUSION_ADAPT_STRUCT(
-    WhileStatement,
-    (Expression, exp),
-    (Block, block)
-)
-
-BOOST_FUSION_ADAPT_STRUCT(
-    Prog,
-    (std::vector<Decl>, decls)
-)
 
 
 #endif
