@@ -22,6 +22,8 @@ public:
         } else {
             oss << message;
         }
+        oss << "\nError Type: " << typeid(*this).name() << std::endl;
+
         full_message = oss.str(); 
         return full_message.c_str();
     }
