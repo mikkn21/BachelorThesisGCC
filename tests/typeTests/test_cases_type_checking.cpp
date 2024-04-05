@@ -108,3 +108,23 @@ BOOST_AUTO_TEST_CASE(FuncCalledBeforeDeclared) {testTypeCheckString("int main() 
 
 BOOST_AUTO_TEST_CASE(DeclareNotInitYet) {testTypeCheckFile("../tests/typeTests/shadow.chad", TestingOutcome::SUCCESS);}
 BOOST_AUTO_TEST_CASE(ParameterFunctionCall) {testTypeCheckFile("../tests/typeTests/functionParam.chad", TestingOutcome::SUCCESS);}
+
+
+// if 
+BOOST_AUTO_TEST_CASE(SimpleIfVarWorks) {testTypeCheckString("int main() { int x = 2; if(x == 2 ) {}  return 0;}", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(SimpleIfWorks) {testTypeCheckString("int main() { if true {}  return 0;}", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(SimpleIfWorks2) {testTypeCheckString("int main() { if false {} else {}  return 0;}", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(SimpleIfNotWorks) {testTypeCheckString("int main() { if 1 {}  return 0;}", TestingOutcome::FAILED);}
+BOOST_AUTO_TEST_CASE(ComplexIfGuard) {testTypeCheckString("int main() { int x = 2; if x != 24 | (x < 4 & x == 2 ) {} else {}  return 0;}", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(ComplexIfGuardFails) {testTypeCheckString("int main() { int x = 2; if x != 24 | (0 & x == 2) {} else {}  return 0;}", TestingOutcome::FAILED);}
+BOOST_AUTO_TEST_CASE(SimpleIfGuardFails) {testTypeCheckString("int main() { int x = 2; if x + 4 {} else {}  return 0;}", TestingOutcome::FAILED);}
+
+// Precedence checks
+BOOST_AUTO_TEST_CASE(BooleanOperators1) {testTypeCheckString("int main() { bool x = true & 2 == 4; return 0;}", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(BooleanOperators2) {testTypeCheckString("int main() { bool x = 2 == 4 & true; return 0;}", TestingOutcome::SUCCESS);}
+
+BOOST_AUTO_TEST_CASE(BooleanOperators3) {testTypeCheckString("int main() { bool x = 2 > 3 | 2 == 2; return 0;}", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(BooleanOperators4) {testTypeCheckString("int main() { bool x = 2 == 2 | 2 > 3; return 0;}", TestingOutcome::SUCCESS);}
+
+BOOST_AUTO_TEST_CASE(BooleanOperators5) {testTypeCheckString("int main() { bool x = 2 > 3 & 2 == 2; return 0;}", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(BooleanOperators6) {testTypeCheckString("int main() { bool x = 2 == 2 & 2 > 3; return 0;}", TestingOutcome::SUCCESS);}

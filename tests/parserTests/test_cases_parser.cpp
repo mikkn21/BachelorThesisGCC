@@ -103,6 +103,12 @@ BOOST_AUTO_TEST_CASE(StatementWhileLoopComplexCondition) {test_parse_string("int
 BOOST_AUTO_TEST_CASE(StatementWhileLoopEmptyBody) {test_parse_string("int f () {\nwhile (true) ; }\n", TestingOutcome::PARSE_FAILED); }
 BOOST_AUTO_TEST_CASE(StatementWhileLoopWithoutParenthesis) {test_parse_string("int f () {\nwhile x > 0 {} }\n", TestingOutcome::SUCCESS); }
 
+BOOST_AUTO_TEST_CASE(WhileTest) {test_parse_string("int f () {\nwhilex > 0 {} }\n", TestingOutcome::PARSE_FAILED); }
+BOOST_AUTO_TEST_CASE(WhileTest2) {test_parse_string("int f () {\n10;while x > 0 {} }\n", TestingOutcome::SUCCESS); }
+
+
+
+
 BOOST_AUTO_TEST_CASE(StatementExpressionInt) {test_parse_string("int f () {\n55;\n}\n", TestingOutcome::SUCCESS); } 
 BOOST_AUTO_TEST_CASE(StatementExpressionBool) {test_parse_string("int f () {\ntrue;\n}\n", TestingOutcome::SUCCESS); } 
 BOOST_AUTO_TEST_CASE(StatementInvalidExpression) {test_parse_string("int f () {\nx + * 10;\n}\n", TestingOutcome::PARSE_FAILED); }
@@ -112,15 +118,19 @@ BOOST_AUTO_TEST_CASE(StatementVarAssignNoSemicolon) {test_parse_string("int f ()
 BOOST_AUTO_TEST_CASE(StatementExprInvalidToken) {test_parse_string("int f () {\n10 * / 5; }\n", TestingOutcome::PARSE_FAILED); }
 BOOST_AUTO_TEST_CASE(StatementExpressionBinOp) {test_parse_string("int f () {\nx + 5;\n}\n", TestingOutcome::SUCCESS); }
 BOOST_AUTO_TEST_CASE(StatementPrintSimple) {test_parse_string("int f () {\nprint(10); }\n", TestingOutcome::SUCCESS); }
+BOOST_AUTO_TEST_CASE(StatementPrintSimple2) {test_parse_string("int f () {\nprint (10); }\n", TestingOutcome::SUCCESS); }
 BOOST_AUTO_TEST_CASE(StatementPrintComplex) {test_parse_string("int f () {\nprint( (10 * 2) - 10); }\n", TestingOutcome::SUCCESS); }
 BOOST_AUTO_TEST_CASE(StatementPrintEmpty) {test_parse_string("int f () {\nprint(); }\n", TestingOutcome::PARSE_FAILED); }
 
-// return statement
+// return  
 BOOST_AUTO_TEST_CASE(ReturnSimpleTrue) {test_parse_string("int f () {return 2; }", TestingOutcome::SUCCESS); }
 BOOST_AUTO_TEST_CASE(ReturnSimpleFalse) {test_parse_string("int f () {return 2 }", TestingOutcome::PARSE_FAILED); }
 BOOST_AUTO_TEST_CASE(ReturnBinopTrue) {test_parse_string("int f () {return 2 + 2; }", TestingOutcome::SUCCESS); }
 BOOST_AUTO_TEST_CASE(ReturnMultiLinesTrue) {test_parse_string("int f () { int x = 2; x = 4; return 2 + 2; }", TestingOutcome::SUCCESS); }
 BOOST_AUTO_TEST_CASE(ReturnVarTrue) {test_parse_string("int f () { int x = 2; x = 4; return x; }", TestingOutcome::SUCCESS); }
+BOOST_AUTO_TEST_CASE(ReturnWithSpace) {test_parse_string("int f () { int x = 2; x = 4; return(x); }", TestingOutcome::SUCCESS); }
+BOOST_AUTO_TEST_CASE(ReturnWithoutSpacePlusPar) {test_parse_string("int f () { int x = 2; x = 4; return (x); }", TestingOutcome::SUCCESS); }
+BOOST_AUTO_TEST_CASE(ReturnWithoutSpaceAndPar) {test_parse_string("int f () { int x = 2; x = 4; return x; }", TestingOutcome::SUCCESS); }
 
 
 //  "if", "else", "while", "return", "print"
@@ -141,6 +151,32 @@ BOOST_AUTO_TEST_CASE(ReservedPrintVarFailF) {test_parse_string("int print = 3;",
 // Test using primitive types as variable names
 BOOST_AUTO_TEST_CASE(PrimitiveTypeVarFailF) {test_parse_string("int int = 3;", TestingOutcome::PARSE_FAILED);}
 BOOST_AUTO_TEST_CASE(PrimitiveTypeVarFailF2) {test_parse_string("bool bool = true;", TestingOutcome::PARSE_FAILED);}
+
+
+// Test if else 
+BOOST_AUTO_TEST_CASE(SimpleIf) {test_parse_string("int f() {if(true) { }}", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(SimpleIfFail) {test_parse_string("int f() { ifelse(true) { }}", TestingOutcome::PARSE_FAILED);}
+BOOST_AUTO_TEST_CASE(SimpleIfFail2) {test_parse_string("int f() { else(true) { }}", TestingOutcome::PARSE_FAILED);}
+BOOST_AUTO_TEST_CASE(SimpleIfFail3) {test_parse_string("int f() { iff(true) { }}", TestingOutcome::PARSE_FAILED);}
+BOOST_AUTO_TEST_CASE(SimpleIfFail33) {test_parse_string("int f() { iif(true) { }}", TestingOutcome::PARSE_FAILED);}
+BOOST_AUTO_TEST_CASE(SimpleIfFail4) {test_parse_string("int f() { elseif(true) { }}", TestingOutcome::PARSE_FAILED);}
+BOOST_AUTO_TEST_CASE(SimpleIfFail5) {test_parse_string("int f() { ifif(true) { }}", TestingOutcome::PARSE_FAILED);}
+BOOST_AUTO_TEST_CASE(SimpleIfFail6) {test_parse_string("int f() { if(true){} elseif(true){ }}", TestingOutcome::PARSE_FAILED);}
+
+BOOST_AUTO_TEST_CASE(SimpleIfWithBlock) {test_parse_string("int f() { if(true) { int x = 2; }}", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(SimpleIfElse) {test_parse_string("int f() {if(true) { } else { }}", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(SimpleIfElse2) {test_parse_string("int f() {if(true){ }else{ }}", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(SimpleIfElseWithBlocks) {test_parse_string("int f() {if(true) { int x = 2; } else { int y = 2; }}", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(SimpleIfElseElse) {test_parse_string("int f() { if(false) {  } else if(true) {} else {} }", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(SimpleIfElseElseWithBlocks) {test_parse_string("int f() { if(false) { int x = 2; } else if(true) { int y = 2;} else { int z = 2;}}", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(ComplexIfElseFile) {test_parse_file("../tests/parserTests/compIfElse.chad", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(DeepNestIfElse) {test_parse_file("../tests/parserTests/deepNestIfElse.chad", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(ComplexIfElseFile2) {test_parse_file("../tests/parserTests/compIfElseElseElse.chad", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(SyntaxErrorInCondition) {test_parse_string("int f() { if(true false) { }}", TestingOutcome::PARSE_FAILED);}
+BOOST_AUTO_TEST_CASE(MissingParentheses) {test_parse_string("int f() { if true) { }}", TestingOutcome::PARSE_FAILED);}
+BOOST_AUTO_TEST_CASE(IfWithVariableExpressions) {test_parse_string("int f() { int x = 5; if(x > 2) { }}", TestingOutcome::SUCCESS);}
+
+
 
 
 // Testing files

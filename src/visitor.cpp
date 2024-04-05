@@ -25,6 +25,13 @@ void TreeTraveler::operator()(x3::forward_ast<T> &ast) {
     (*this)(ast.get());
 }
 
+template <typename T>
+void TreeTraveler::operator()(boost::optional<T> &opt) {
+    if (opt.has_value()) {
+        (*this)(opt.value());
+    }
+}
+
 // Variants
 template <>
 void TreeTraveler::operator()(Decl &decl) {
@@ -90,11 +97,21 @@ void TreeTraveler::operator()(bool &value) {
 }
 
 template <>
-void TreeTraveler::operator()(BinopExp &binop) {
+void TreeTraveler::operator()(Rhs &rhs) {
+    visitor.preVisit(rhs);
+    // The operator is not visited because it's a string
+    (*this)(rhs.exp);
+    visitor.postVisit(rhs);
+}
+
+template <>
+void TreeTraveler::operator()(BinopExps &binop) {
     visitor.preVisit(binop);
     (*this)(binop.lhs);
     visitor.preRhsVisit(binop);
-    (*this)(binop.rhs);
+    for(auto &rhs : binop.rhss) {
+        (*this)(rhs);
+    }
     visitor.postVisit(binop);
 }
 
@@ -147,6 +164,43 @@ void TreeTraveler::operator()(VarAssign &varAssign) {
 }
 
 template <>
+void TreeTraveler::operator()(Block &block) {
+    visitor.preVisit(block);
+    for (auto &blockLine : block.block_line) {
+        (*this)(blockLine);
+    }
+    visitor.postVisit(block);
+}
+
+template <>
+void TreeTraveler::operator()(IfStatement &statement) {
+    visitor.preVisit(statement);
+    (*this)(statement.exp);
+    visitor.preBlockVisit(statement);
+    (*this)(statement.block);
+    visitor.postVisit(statement);
+}
+
+template <>
+void TreeTraveler::operator()(ElseStatement &statement) {
+    visitor.preVisit(statement);
+    (*this)(statement.block);
+    visitor.postVisit(statement);
+}
+
+template <>
+void TreeTraveler::operator()(ConditionalStatement &statement) {
+    visitor.preVisit(statement);
+    (*this)(statement.ifStatement);
+    for (auto ifStatement : statement.elseIfs) {
+        (*this)(ifStatement);
+    }
+    visitor.preElseVisit(statement);
+    (*this)(statement.conditionalElse);
+    visitor.postVisit(statement);
+}
+
+template <>
 void TreeTraveler::operator()(PrintStatement &print) {
     visitor.preVisit(print);
     (*this)(print.exp);
@@ -176,14 +230,6 @@ void TreeTraveler::operator()(StatementExpression &statement) {
     visitor.postVisit(statement);
 }
 
-template <>
-void TreeTraveler::operator()(Block &block) {
-    visitor.preVisit(block);
-    for (auto &blockLine : block.block_line) {
-        (*this)(blockLine);
-    }
-    visitor.postVisit(block);
-}
 
 template <>
 void TreeTraveler::operator()(VarDecl &decl) {

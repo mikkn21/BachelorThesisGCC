@@ -3,6 +3,7 @@
 #include <cassert>
 #include <cstddef>
 #include <iostream>
+#include <sstream>
 #include <stack>
 #include <string>
 #include "../ast.hpp"
@@ -67,6 +68,7 @@ private:
                 }
 
                 // Parameters
+                // We go backwards through the parameters because the arguments are pushed onto the stack in reverse order
                 for(int i = funcSym->parameters.size() - 1; i >= 0; i--) {
                     SymbolType argType;
                     try {
@@ -103,6 +105,21 @@ private:
 
         if (t1 != t2) {
              throw TypeCheckError("Variable type do not match type of evaluated expression", varassign);
+        }
+    }
+
+
+    // Check that the expression in the if statement evaluates to a bool
+    // Checks both if and else if (since they are both if nodes in the ast)
+    // TODO: Check return statements? 
+    void postVisit(IfStatement &ifStatement) override {
+        // exp
+        auto t1 = pop(typeStack);
+        
+        if (t1 != BoolType()) {
+            std::ostringstream oss;
+            oss << ifStatement.exp;
+            throw TypeCheckError("if(" + oss.str()   + "):  do not evaluate to bool", ifStatement);
         }
     }
 
@@ -179,31 +196,29 @@ private:
         typeStack.push(IntType());
     }
 
-    void postVisit(BinopExp &binop) override  {
-        // exp resault
-        auto t1 = pop(typeStack); // lhs
-        // exp resault
-        auto t2 = pop(typeStack); // rhs
-    
-        if (t1 != t2) {
-            throw TypeCheckError("Type of lefthand side does not match Type of righthand side", binop);
-        }
-        
-        auto const op = binop.op;
-    
-        if (t1 == BoolType()) {
-            if (op != "&" && op != "|") {
-                throw TypeCheckError(op + " does not support bools", binop);
-            }
-        } // Not a bool
-        else if (op == "&" || op == "|") {
-            throw TypeCheckError(op + " is only supported on bools", binop);
+    void postVisit(Rhs &rhs) override {
+        auto expType = pop(typeStack);
+        auto lhsType = pop(typeStack);
+        auto op = rhs.op;
+
+        if (expType != lhsType ) {
+            throw TypeCheckError("Type of lefthand side (" + lhsType.toString()  + ") does not match type of righthand side (" + expType.toString() + ")", rhs);
         }
 
+        if (lhsType == BoolType()) {
+          if (op != "&" && op != "|") {
+            throw TypeCheckError(op + " does not support bools", rhs);
+          }
+        } // Not a bool
+        else if (op == "&" || op == "|") {
+          throw TypeCheckError(op + " is only supported on bools", rhs);
+        }
+
+        // This uses left-associativity
         if (op == "==" || op == "!=" || op == "<"  || op == ">"  || op == "<=" || op == ">=") {
             typeStack.push(BoolType());
         } else {
-            typeStack.push(t1);
+            typeStack.push(lhsType);
         }
     }
 

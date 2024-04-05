@@ -1,3 +1,5 @@
+// #define BOOST_SPIRIT_X3_DEBUG
+
 #include <boost/spirit/home/x3.hpp>
 #include <boost/spirit/include/support_line_pos_iterator.hpp>
 #include <sys/resource.h>
@@ -29,17 +31,29 @@ namespace grammar {
 
 
         // Rules up here:
-        const x3::rule<class binop_exp, BinopExp> binop_exp = "binop_exp";
+        const x3::rule<class factor_rule, BinopExps>  factor = "factor";      
+        const x3::rule<class term_rule, BinopExps>  term = "term";
+        const x3::rule<class comp_rule, BinopExps>  comp = "comp";      
+        const x3::rule<class eq_rule, BinopExps>  eq = "eq";
+        const x3::rule<class logical_and_rule, BinopExps>  logical_and = "logical_and";
+        const x3::rule<class logical_or_rule, BinopExps>  logical_or = "logical_or";
+
+        const x3::rule<class factor_rule_rhs, Rhs>  factor_rhs = "factor_rhs";      
+        const x3::rule<class term_rule_rhs, Rhs>  term_rhs = "term_rhs";
+        const x3::rule<class comp_rule_rhs, Rhs>  comp_rhs = "comp_rhs";      
+        const x3::rule<class eq_rule_rhs, Rhs>  eq_rhs = "eq_rhs";
+        const x3::rule<class logical_and_rule_rhs, Rhs>  logical_and_rhs = "logical_and_rhs";
+        const x3::rule<class logical_or_rule_rhs, Rhs>  logical_or_rhs = "logical_or_rhs";
+      
+
         const x3::rule<class id, Id> id = "id";
         const x3::rule<class primitive_type, PrimitiveType> primitive_type = "primitive_type";
         const x3::rule<class block_line, BlockLine> block_line = "block_line";
         const x3::rule<class block, Block> block = "block";
         const x3::rule<class type, Type> type = "type";
         const x3::rule<class var_decl, VarDecl> var_decl = "var_decl";
-
         const x3::rule<class var_decl_assign, VarDeclAssign> var_decl_assign = "var_decl_assign";
         const x3::rule<class var_decl_statement, VarDeclStatement> var_decl_statement = "var_decl_statement";
-    
         const x3::rule<class parameter, Parameter> parameter = "parameter";
         const x3::rule<class parameter_list, ParameterList> parameter_list = "parameter_list";
         const x3::rule<class func_decl, FuncDecl> func_decl = "func_decl";
@@ -58,6 +72,11 @@ namespace grammar {
         const x3::rule<class return_statement, ReturnStatement> return_statement = "return_statement";
         const x3::rule<class var_expression, VarExpression> var_expression =  "var_expression";
 
+        const x3::rule<class if_statement, IfStatement> if_statement =  "if_statement";
+        const x3::rule<class else_statement, ElseStatement> else_statement =  "else_statement";
+        const x3::rule<class conditional_statement, ConditionalStatement> conditional_statement =  "conditional_statement";
+
+        
 
         struct reservedkeywords : x3::symbols<std::string> {
             reservedkeywords() {
@@ -75,32 +94,70 @@ namespace grammar {
 
    
         // Define a parser for operators
-        const auto operator_parser =
-            x3::string("==") | x3::string("!=") | x3::string("<=") | x3::string(">=") |
-            x3::string("+") | x3::string("-") | x3::string("*") | x3::string("/") |
-            x3::string("%") | x3::string("<") | x3::string(">") | x3::string("&") | x3::string("|");
+        // const auto operator_parser =
+        //     x3::string("==") | x3::string("!=") | x3::string("<=") | x3::string(">=") |
+        //     x3::string("+") | x3::string("-") | x3::string("*") | x3::string("/") |
+        //     x3::string("%") | x3::string("<") | x3::string(">") | x3::string("&") | x3::string("|");
         
+        
+        // highest to lowset precedence
+        const auto mul_op = x3::string("*") | x3::string("/") | x3::string("%");
+        const auto add_op = x3::string("+") | x3::string("-");
+        const auto comp_op = x3::string("<=") | x3::string(">=") | x3::string("<") | x3::string(">");
+        const auto eq_op = x3::string("==") | x3::string("!=");
+        const auto logical_and_op = x3::string("&");
+        const auto logical_or_op =x3::string("|");
+
+        auto optionalParExp(string s) {
+            return x3::lit(s + " ") > expression | x3::lit(s) > expression_par;
+        }
+
+
         // Useable
         const auto primitive_type_def = x3::string("int") | x3::string("bool");
         const auto type_def = primitive_type;  // | array_type;
         const auto id_def = x3::raw[ x3::lexeme[(x3::char_("a-zA-Z_") >> *x3::char_("a-zA-Z_0-9"))]] - (reservedkeywordsInstance >> !x3::alnum) ;
         const auto parameter_def = var_decl; // don't know if this is an issue since vardecl is declared later
         const auto parameter_list_def = -(parameter % ',');
+
+        // --- Precedens stuff  
         const auto expression_par_def = ('(' >> expression) > ')';
-        const auto expression_base = expression_par | function_call | var_expression | int_ | bool_;
-        const auto expression_def = binop_exp | expression_base;
-        const auto binop_exp_def = expression_base >> (operator_parser > expression);
+        const auto expression_base =  expression_par | function_call | var_expression | int_ | bool_;
+
+        const auto expression_def = logical_or;
+
+        // Lowest to highest precedence
+        const auto logical_or_def = logical_and >> *logical_or_rhs;
+        const auto logical_or_rhs_def = logical_or_op > eq;
+        const auto logical_and_def = eq >> *logical_and_rhs;
+        const auto logical_and_rhs_def = logical_and_op > eq;
+        const auto eq_def = comp >> *eq_rhs;
+        const auto eq_rhs_def = eq_op > comp;
+        const auto comp_def = term >> *comp_rhs;
+        const auto comp_rhs_def = comp_op > term;
+        const auto term_def = factor >> *term_rhs;
+        const auto term_rhs_def = add_op > factor;
+        const auto factor_def = expression_base >> *factor_rhs;
+        const auto factor_rhs_def = mul_op > expression_base;
+        // Precedens stuff ---
+
         const auto var_expression_def = id;
         
         const auto var_assign_def = (id >> '=' >> expression) > ";";
-        const auto while_statement_def = x3::lit("while") > expression > block;
+        const auto while_statement_def = optionalParExp("while") > block;
 
       
         const auto print_statement_def = x3::lit("print") > '(' > expression > ')' > ';';
-        const auto return_statement_def = x3::lit("return") > expression > ';';
-
+        const auto return_statement_def = optionalParExp("return") > ';';
         const auto block_line_def = statement | decl;
         const auto block_def = '{' > *block_line > '}';
+
+
+        const auto else_if = x3::lit("else ") >> if_statement;
+        const auto conditional_statement_def = if_statement > *(else_if) > -else_statement;
+                
+        const auto if_statement_def = optionalParExp("if") > block;
+        const auto else_statement_def = x3::lit("else") > block;
 
         const auto func_decl_def = type >> id >> ('(' > parameter_list > ')' > block);
         const auto var_decl_def = type >> id;
@@ -108,7 +165,7 @@ namespace grammar {
         const auto var_decl_statement_def = var_decl >> ';';
 
         const auto statement_expression_def = expression >> ';';
-        const auto statement_def = var_assign | var_decl_statement | var_decl_assign | while_statement | statement_expression | print_statement | return_statement;
+        const auto statement_def = var_assign | var_decl_statement | var_decl_assign | conditional_statement | while_statement | statement_expression | print_statement | return_statement;
         
         // const auto decl_def = var_decl | func_decl;
         const auto decl_def = var_decl_assign | var_decl_statement | func_decl;
@@ -121,7 +178,18 @@ namespace grammar {
         const auto array_type_def = type >> x3::lit("[]");
 
         BOOST_SPIRIT_DEFINE(
-            binop_exp,
+            factor,
+            factor_rhs,
+            term,
+            term_rhs,
+            comp,
+            comp_rhs,
+            eq,
+            eq_rhs,
+            logical_or,
+            logical_or_rhs,
+            logical_and,
+            logical_and_rhs,
             id,
             primitive_type,
             block_line,
@@ -146,7 +214,10 @@ namespace grammar {
             return_statement,
             var_expression,
             var_decl_statement,
-            var_decl_assign
+            var_decl_assign,
+            if_statement,
+            else_statement,
+            conditional_statement
         )
 
         grammar::ast::Prog parse(std::string_view src)
@@ -194,5 +265,7 @@ namespace grammar {
     } // namespace parser
 
 } // namespace grammar
+
+
 
 

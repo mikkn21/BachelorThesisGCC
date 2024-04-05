@@ -1,0 +1,38 @@
+int main () {
+
+    int x = 2; 
+
+    if x > 1 {
+        x = 4;
+    }
+
+    if x < 3 {
+        x = 3;
+    }
+    else if x == 4 {
+        x = 20;
+    }
+
+    if x < 20 {
+        x = 10;
+    }
+    else {
+        x = 2;
+    }
+
+    if (false) {
+        int y = 2;
+    }
+    else if x == 2 {
+        x = 0;
+    }
+    else {
+        x = 2;
+    }
+
+    if x == 2 {
+        x = x + x;
+    }
+
+    return 0;
+}
