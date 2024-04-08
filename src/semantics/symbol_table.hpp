@@ -4,7 +4,6 @@
 #include "../ast.hpp"
 
 
-
 using namespace std;
 
 
@@ -16,21 +15,22 @@ struct SymbolType;
 
 struct IntType {
     bool operator==(const IntType &other) const;
-    string toString() const;
+    std::string toString() const;
 };
 
 struct BoolType {
     bool operator==(const BoolType &other) const;
-    string toString() const;
+    std::string toString() const;
 };
 
-struct SymbolType : public std::variant<IntType, BoolType /*, ArrayType, TypeAlias, ClassType*/> {
+// TODO: Changed from std::variant to boost::variant
+struct SymbolType : public boost::variant<IntType, BoolType /*, ArrayType, TypeAlias, ClassType*/> {
     // IntType,
     // BoolType
     //ArrayType
     //Class, future implementation
-    using std::variant<IntType, BoolType>::variant;
-    using std::variant<IntType, BoolType>::operator=;
+    using boost::variant<IntType, BoolType>::variant;
+    using boost::variant<IntType, BoolType>::operator=;
     bool operator==(const SymbolType &other) const;
     bool operator!=(const SymbolType &other) const;
     string toString() const;

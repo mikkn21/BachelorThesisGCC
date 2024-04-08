@@ -18,23 +18,23 @@ Instruction::Instruction(Op op, Arg arg1, Arg arg2, std::optional<std::string> c
 
 std::ostream& operator<<(std::ostream& os, const Arg arg) {
     if (holds_alternative<ImmediateValue>(arg.target)) {
-        os << "$" << get<ImmediateValue>(arg.target).value;
+        os << "$" << std::get<ImmediateValue>(arg.target).value;
     } else if (holds_alternative<Register>(arg.target)) {
         if (holds_alternative<IND>(arg.access_type)) {
-            os << "(" << get<Register>(arg.target) << ")";
+            os << "(" << std::get<Register>(arg.target) << ")";
         } else if (holds_alternative<IRL>(arg.access_type)) {
-            os << get<IRL>(arg.access_type).offset << "(" << get<Register>(arg.target) << ")";
+            os << std::get<IRL>(arg.access_type).offset << "(" << std::get<Register>(arg.target) << ")";
         } else if (holds_alternative<DIR>(arg.access_type)) {
-            os << get<Register>(arg.target);
+            os << std::get<Register>(arg.target);
         } else {
             throw IRError("Unexpected access_type");
         }
     } else if (holds_alternative<GenericRegister>(arg.target)) {
-        os << "Generic Register(" << get<GenericRegister>(arg.target).id << ")";
+        os << "Generic Register(" << std::get<GenericRegister>(arg.target).id << ")";
     } else if (holds_alternative<Label>(arg.target)) {
-        os << "Label: " << get<Label>(arg.target).label;
+        os << "Label: " << std::get<Label>(arg.target).label;
     } else if (holds_alternative<Procedure>(arg.target)) {
-        os << "Procedure" << get<Procedure>(arg.target);
+        os << "Procedure" << std::get<Procedure>(arg.target);
     }
     return os;
 }

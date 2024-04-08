@@ -17,12 +17,12 @@ struct print_visitor {
 
 struct SymbolTypeEqualityVisitor {
     template <typename T, typename E>
-    bool operator()(const T &t, const E &e) {
+    bool operator()(const T &t, const E &e) const { // TODO: added const
         return false;
     }
 
     template <typename T>
-    bool operator()(const T &t1, const T &t2) {
+    bool operator()(const T &t1, const T &t2) const { // TODO: added const
         return t1 == t2;
     }
 };
@@ -35,6 +35,8 @@ struct SymbolTypeToStringVisitor {
 };
 
 struct TypeConverterVisitor : boost::static_visitor<SymbolType> {
+public: 
+    TypeConverterVisitor() = default; // TODO: Added this default constructor
     SymbolType operator()(const grammar::ast::PrimitiveType &t) {
         auto const type = t.type;
         if (type == "int") {
@@ -49,7 +51,9 @@ struct TypeConverterVisitor : boost::static_visitor<SymbolType> {
 };
 
 bool SymbolType::operator==(const SymbolType &other) const {
-    return visit(SymbolTypeEqualityVisitor{}, *this, other);
+    // return visit(SymbolTypeEqualityVisitor{}, *this, other);
+    // TODO did this
+    return boost::apply_visitor(SymbolTypeEqualityVisitor{}, *this, other);
 }
 
 bool SymbolType::operator!=(const SymbolType &other) const {
@@ -73,11 +77,13 @@ string IntType::toString() const {
 }
 
 string SymbolType::toString() const {
-    return visit(SymbolTypeToStringVisitor{}, *this);
+    // TODO: Changed this
+    // return visit(SymbolTypeToStringVisitor{}, *this);
+    return boost::apply_visitor(SymbolTypeToStringVisitor{}, *this);
 }
 
 SymbolType convertType(grammar::ast::Type type) {
-    auto visitor = TypeConverterVisitor{};
+    auto visitor = TypeConverterVisitor{}; // TODO: Default constructor on TypeConverter makes this work
     return boost::apply_visitor(visitor, type);
 }
 
