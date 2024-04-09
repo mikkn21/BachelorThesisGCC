@@ -14,11 +14,9 @@
 
 namespace grammar::compiler {
 
-using namespace std;
-
 struct CompilerReturnObj {
 private:
-    unique_ptr<SymbolTable> globalScope;
+    std::unique_ptr<SymbolTable> globalScope;
 
 public:
     ast::Prog ast; 
@@ -26,7 +24,7 @@ public:
     IR ir;
     // Essembly
 
-    void setGlobalScope(unique_ptr<SymbolTable> globalScope) {
+    void setGlobalScope(std::unique_ptr<SymbolTable> globalScope) {
         this->globalScope = std::move(globalScope);
     }
 };
