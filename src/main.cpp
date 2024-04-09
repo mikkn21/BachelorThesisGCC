@@ -1,13 +1,10 @@
 #include <boost/program_options.hpp>
 #include "compiler.hpp"
 
-
-using namespace std;
-using namespace grammar::compiler;
 namespace po = boost::program_options;
 
 int main(int argc, char* argv[]) {
-    CompilerOptions options = CompilerOptions();
+    grammar::compiler::CompilerOptions options = grammar::compiler::CompilerOptions();
     try {
         po::options_description desc("Compiler Options");
         desc.add_options()
@@ -38,19 +35,19 @@ int main(int argc, char* argv[]) {
             return 0;
         }
         if (vm["parse-only"].as<bool>()) { 
-            options.stopAfter = StopAfterParser;
+            options.stopAfter = grammar::compiler::StopAfterParser;
         }
         if (vm["symbol-collection-only"].as<bool>()) { 
-            options.stopAfter = StopAfterSymbolCollection;
+            options.stopAfter = grammar::compiler::StopAfterSymbolCollection;
         }
         if (vm["type-check-only"].as<bool>()) { 
-            options.stopAfter = StopAfterTypeCheck;
+            options.stopAfter = grammar::compiler::StopAfterTypeCheck;
         }
         if (vm["code-generation-only"].as<bool>()) { 
-            options.stopAfter = StopAfterCodeGen;
+            options.stopAfter = grammar::compiler::StopAfterCodeGen;
         }
         if (vm["register-allocation-only"].as<bool>()) { 
-            options.stopAfter = StopAfterRegAlloc;
+            options.stopAfter = grammar::compiler::StopAfterRegAlloc;
         }
         if (vm["print-ast"].as<bool>()) {
             options.printAst = true;
