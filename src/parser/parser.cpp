@@ -19,10 +19,6 @@
 
 #include <sys/resource.h>
 
-// #include <boost/spirit/home/x3/string/symbols.hpp> 
-
-
-
 
 
 namespace grammar {
@@ -70,7 +66,6 @@ namespace grammar {
         const x3::rule<class parameter, ast::Parameter> parameter = "parameter";
         const x3::rule<class parameter_list, ast::ParameterList> parameter_list = "parameter_list";
         const x3::rule<class func_decl, ast::FuncDecl> func_decl = "func_decl";
-        const x3::rule<class array_type, ast::ArrayType> array_type = "array_type";
         const x3::rule<class var_assign, ast::VarAssign> var_assign = "var_assign";
         const x3::rule<class while_statement, ast::WhileStatement> while_statement = "while_statement";
         const x3::rule<class decl, ast::Decl> decl = "decl";
@@ -84,6 +79,11 @@ namespace grammar {
         const x3::rule<class print_statement, ast::PrintStatement> print_statement = "print_statement";
         const x3::rule<class return_statement, ast::ReturnStatement> return_statement = "return_statement";
         const x3::rule<class var_expression, ast::VarExpression> var_expression =  "var_expression";
+
+        const x3::rule<class array_type, ast::ArrayType> array_type = "array_type";
+        const x3::rule<class array_index, ast::ArrayIndex> array_index = "array_index";
+        const x3::rule<class array_exp, ast::ArrayExp> array_exp = "array_exp";
+        const x3::rule<class array_index_assign, ast::ArrayIndexAssign> array_index_assign = "array_index_assign";
 
         const x3::rule<class if_statement, ast::IfStatement> if_statement =  "if_statement";
         const x3::rule<class else_statement, ast::ElseStatement> else_statement =  "else_statement";
@@ -101,6 +101,7 @@ namespace grammar {
                     ("bool", "bool")
                     ("true", "true")
                     ("false", "false")
+                    ("new", "new")
                     ("print", "print"); 
             }
         } reservedkeywordsInstance; 
@@ -121,14 +122,14 @@ namespace grammar {
 
         // Useable
         const auto primitive_type_def = x3::string("int") | x3::string("bool");
-        const auto type_def = primitive_type;  // | array_type;
+        const auto type_def = array_type | primitive_type;
         const auto id_def = x3::raw[ x3::lexeme[( x3::char_("a-zA-Z_") >> * boost::spirit::x3::char_("a-zA-Z_0-9"))]] - (reservedkeywordsInstance >> ! x3::alnum) ;
         const auto parameter_def = var_decl; // don't know if this is an issue since vardecl is declared later
         const auto parameter_list_def = -(parameter % ',');
 
         // --- Precedens stuff  
         const auto expression_par_def = ('(' >> expression) > ')';
-        const auto expression_base =  expression_par | function_call | var_expression | x3::int_ | x3::bool_;
+        const auto expression_base =  expression_par | function_call | array_index | array_exp | var_expression | x3::int_ | x3::bool_;
 
         const auto expression_def = logical_or;
 
@@ -171,17 +172,19 @@ namespace grammar {
         const auto var_decl_statement_def = var_decl >> ';';
 
         const auto statement_expression_def = expression >> ';';
-        const auto statement_def = var_assign | var_decl_statement | var_decl_assign | conditional_statement | while_statement | statement_expression | print_statement | return_statement;
-        
-        // const auto decl_def = var_decl | func_decl;
+        const auto statement_def = var_assign | var_decl_statement | var_decl_assign | conditional_statement | while_statement | array_index_assign | statement_expression | print_statement | return_statement;
+    
+
         const auto decl_def = var_decl_assign | var_decl_statement | func_decl;
         const auto prog_def = *decl;
 
         const auto function_call_def = (id >> '('>> argument_list) > ')';
         const auto argument_list_def = -(expression % ',');
 
-        // Not useable, TODO
-        const auto array_type_def = type >> x3::lit("[]");
+        const auto array_type_def = (primitive_type >> '[') > x3::int_ > ']'; // NOTE: Is literal int this is by choice
+        const auto array_exp_def = (x3::lit("new ") >> primitive_type >> '[') > (expression % ',') > ']';
+        const auto array_index_def = (id >> '[') > (expression % ',') > ']';
+        const auto array_index_assign_def = (array_index >> '=') > expression > ';';
 
         BOOST_SPIRIT_DEFINE(
             factor,
@@ -206,6 +209,9 @@ namespace grammar {
             parameter_list,
             func_decl,
             array_type,
+            array_exp,
+            array_index,
+            array_index_assign,
             var_assign,
             while_statement,
             decl,

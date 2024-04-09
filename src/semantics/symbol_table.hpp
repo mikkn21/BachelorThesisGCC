@@ -2,11 +2,8 @@
 #define MGRAMMAR_SYMBOL_TABLE_HPP 
 
 #include "../ast.hpp"
+#include <memory>
 
-
-// struct ClassType {
-//     string name; 
-// };
 
 struct SymbolType;
 
@@ -20,19 +17,34 @@ struct BoolType {
     std::string toString() const;
 };
 
+struct ArraySymbolType {
+    std::shared_ptr<SymbolType> elementType;
+    // SymbolType *elementType; // ArrayType owns elementType
+    int dimensions;
+    bool operator==(const ArraySymbolType &other) const;
+    std::string toString() const;
+    // ~ArraySymbolType();
+};
+
 // TODO: Changed from std::variant to boost::variant
-struct SymbolType : public boost::variant<IntType, BoolType /*, ArrayType, TypeAlias, ClassType*/> {
+struct SymbolType : public boost::variant<IntType, BoolType, ArraySymbolType /*, TypeAlias, ClassType*/ > {
     // IntType,
     // BoolType
     //ArrayType
     //Class, future implementation
-    using boost::variant<IntType, BoolType>::variant;
-    using boost::variant<IntType, BoolType>::operator=;
+    using boost::variant<IntType, BoolType, ArraySymbolType>::variant;
+    using boost::variant<IntType, BoolType, ArraySymbolType>::operator=;
     bool operator==(const SymbolType &other) const;
     bool operator!=(const SymbolType &other) const;
     std::string toString() const;
 };
 
+
+// struct ArrayType {
+//     SymbolType elementType;
+//     bool operator==(const ArrayType &other) const;
+//     std::string toString() const;
+// };
 
 
 SymbolType convertType(grammar::ast::Type type);

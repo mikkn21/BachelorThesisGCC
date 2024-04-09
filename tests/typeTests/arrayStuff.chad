@@ -1,0 +1,14 @@
+int main() { 
+
+    int[1] a = new int[3]; 
+
+    a[0] = 1;
+    a[1] = 2;
+    a[2] = 3; 
+
+    int[1] b = new int[1];
+
+    b = a[0]; 
+    
+    return 0;
+}

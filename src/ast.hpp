@@ -30,6 +30,9 @@ namespace grammar
         struct VarDeclAssign;
         struct VarDeclStatement;
         struct ConditionalStatement;
+        struct ArrayType;
+        struct ArrayExp;
+        struct ArrayIndex;
 
 
         struct Id : LocationInfo {
@@ -55,7 +58,7 @@ namespace grammar
             friend std::ostream& operator<<(std::ostream& os, const PrimitiveType &exp); 
         };
 
-        struct Expression : public boost::spirit::x3::variant<int, boost::spirit::x3::forward_ast<BinopExps>, bool, VarExpression, boost::spirit::x3::forward_ast<ExpressionPar>, boost::spirit::x3::forward_ast<FunctionCall>>, LocationInfo {
+        struct Expression : public boost::spirit::x3::variant<int, boost::spirit::x3::forward_ast<BinopExps>, bool, VarExpression, boost::spirit::x3::forward_ast<ExpressionPar>, boost::spirit::x3::forward_ast<FunctionCall>, boost::spirit::x3::forward_ast<ArrayExp>, boost::spirit::x3::forward_ast<ArrayIndex>>, LocationInfo {
             using base_type::base_type;   
             using base_type::operator=;
         public:
@@ -74,6 +77,20 @@ namespace grammar
             Expression exp;
         public:
             friend std::ostream& operator<<(std::ostream& os, const ExpressionPar &exp);
+        };
+
+        struct ArrayIndex : LocationInfo {
+            Id id;
+            std::vector<Expression> indices; 
+        public: 
+            friend std::ostream& operator<<(std::ostream& os, const ArrayIndex &exp);
+        };
+
+        struct ArrayIndexAssign : LocationInfo {
+            ArrayIndex index;
+            Expression exp;
+        public: 
+            friend std::ostream& operator<<(std::ostream& os, const ArrayIndexAssign &exp);
         };
 
         struct Rhs : LocationInfo {
@@ -122,7 +139,7 @@ namespace grammar
             friend std::ostream& operator<<(std::ostream& os, const StatementExpression &exp);
         };
 
-        struct Statement : public boost::spirit::x3::variant<VarAssign, boost::spirit::x3::forward_ast<VarDeclAssign>, boost::spirit::x3::forward_ast<VarDeclStatement>, WhileStatement,StatementExpression, PrintStatement, ReturnStatement, boost::spirit::x3::forward_ast<ConditionalStatement>>, LocationInfo {
+        struct Statement : public boost::spirit::x3::variant<VarAssign, boost::spirit::x3::forward_ast<VarDeclAssign>, boost::spirit::x3::forward_ast<VarDeclStatement>, WhileStatement,StatementExpression, ArrayIndexAssign, PrintStatement, ReturnStatement, boost::spirit::x3::forward_ast<ConditionalStatement>>, LocationInfo {
             using base_type::base_type;  
             using base_type::operator=;
         public:
@@ -173,13 +190,19 @@ namespace grammar
         struct ConditionalStatement : public LocationInfo {
             IfStatement ifStatement;
             std::vector<IfStatement> elseIfs; 
-            // x3::variant<ElseStatement, x3::unused_type> conditionalElse;
             boost::optional<ElseStatement> conditionalElse;
         public:
             friend std::ostream& operator<<(std::ostream& os, const ConditionalStatement &exp);
         };
 
-        struct Type : public boost::spirit::x3::variant<PrimitiveType /*, ArrayType*/>, LocationInfo {
+        struct ArrayType : LocationInfo {
+            PrimitiveType type;
+            int dim;
+        public:
+            friend std::ostream& operator<<(std::ostream& os, const ArrayType &exp);
+        };
+
+        struct Type : public boost::spirit::x3::variant<PrimitiveType, ArrayType>, LocationInfo {
             using base_type::base_type;   
             using base_type::operator=;
         public:
@@ -267,11 +290,14 @@ namespace grammar
             friend std::ostream& operator<<(std::ostream& os, const FuncDecl &exp);
         };
         
-        struct ArrayType : LocationInfo {
-            Type type;
-        public:
-            friend std::ostream& operator<<(std::ostream& os, const ArrayType &exp);
+
+        struct ArrayExp : LocationInfo {
+            PrimitiveType primType;
+            std::vector<Expression> sizes; 
+        public: 
+            friend std::ostream& operator<<(std::ostream& os, const ArrayExp &exp);
         };
+
 
         struct Decl : public boost::spirit::x3::variant<VarDeclAssign, VarDeclStatement, FuncDecl/*, ClassDecl*/>, LocationInfo { 
             using base_type::base_type;  

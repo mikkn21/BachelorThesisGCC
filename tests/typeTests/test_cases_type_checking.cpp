@@ -43,7 +43,8 @@ BOOST_AUTO_TEST_CASE(ReturnFuncTrue) {testTypeCheckString("int main() { int f() 
 BOOST_AUTO_TEST_CASE(ReturnVarSimple) {testTypeCheckString("int main() { int f() { int x = 2; return x;} return 0; }", TestingOutcome::SUCCESS);}
 BOOST_AUTO_TEST_CASE(ReturnDeadCode) {testTypeCheckString("int main() { int f() { int x = 2; return x; x = 40 + 2; } return 0; }", TestingOutcome::FAILED);}
 
-
+// Print
+BOOST_AUTO_TEST_CASE(PrintFunc) {testTypeCheckString("int main() { int f() { print(2); return 0;} return 0; }", TestingOutcome::SUCCESS);}
 
 // While
 BOOST_AUTO_TEST_CASE(WhileGuardBoolTrue) {testTypeCheckString("int main() { int f() {while (true) {} return 2;} return 0;} ", TestingOutcome::SUCCESS);}
@@ -128,3 +129,20 @@ BOOST_AUTO_TEST_CASE(BooleanOperators4) {testTypeCheckString("int main() { bool 
 
 BOOST_AUTO_TEST_CASE(BooleanOperators5) {testTypeCheckString("int main() { bool x = 2 > 3 & 2 == 2; return 0;}", TestingOutcome::SUCCESS);}
 BOOST_AUTO_TEST_CASE(BooleanOperators6) {testTypeCheckString("int main() { bool x = 2 == 2 & 2 > 3; return 0;}", TestingOutcome::SUCCESS);}
+
+
+// array 
+BOOST_AUTO_TEST_CASE(ArrayDimNotCorrect) {testTypeCheckString("int main() { int[2] x = new int[5,2,2]; return 0; }", TestingOutcome::FAILED);}
+BOOST_AUTO_TEST_CASE(ArrayIndexDimNotCorrect) {testTypeCheckString("int main() { int[3] a = new int[5,5]; return 0; }", TestingOutcome::FAILED);}
+BOOST_AUTO_TEST_CASE(ArrayIndexDimNotCorrect1) {testTypeCheckString("int main() { int[3] a = new int[5,5,5]; int y = a[2,3,5,5]; return 0; }", TestingOutcome::FAILED);}
+BOOST_AUTO_TEST_CASE(ArrayIndexDimNotCorrect2) {testTypeCheckString("int main() { int[3] a = new int[5,5]; int y = a[2,3]; return 0; } ", TestingOutcome::FAILED);}
+BOOST_AUTO_TEST_CASE(ArrayTypeMismatch) {testTypeCheckString("int main() { int[1] x = new bool[5]; return 0; }", TestingOutcome::FAILED);}
+BOOST_AUTO_TEST_CASE(ArrayTypeMatch) {testTypeCheckString("int main() { bool[1] x = new bool[5]; return 0; }", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(ArrayIndex) {testTypeCheckString("int main() { int[2] a = new int[5,5]; a[1] = 2;  int x = a[1]; return 0; } ", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(ArrayIndex15) {testTypeCheckString("int main() { int[1] a = new int[15]; a[14] = 2; return 0; } ", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(ArrayIndex2) {testTypeCheckString("int main() { int[2] a = new int[5,5]; a[1] = 2;  int x = a[10]; return 0; } ", TestingOutcome::FAILED);}
+BOOST_AUTO_TEST_CASE(ArrayIndex3) {testTypeCheckString("int main() { int[2] a = new int[5,5]; a[1] = 2;  int x = a[1,2]; return 0; } ", TestingOutcome::FAILED);}
+BOOST_AUTO_TEST_CASE(ArrayMixedTypes) {testTypeCheckString("int main() { int[3] a = new int[1,2, true]; return 0; } ", TestingOutcome::FAILED);}
+BOOST_AUTO_TEST_CASE(ArrayMixedTypes2) {testTypeCheckString("int main() { int[1] a = new int[20]; a[15] = true; return 0; } ", TestingOutcome::FAILED);}
+
+BOOST_AUTO_TEST_CASE(ArrayFromFile) {testTypeCheckFile("../tests/typeTests/arrayStuff.chad", TestingOutcome::SUCCESS);}

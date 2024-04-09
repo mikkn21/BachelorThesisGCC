@@ -20,6 +20,22 @@ public:
     virtual void preVisit(grammar::ast::Type &type) { }
     virtual void postVisit(grammar::ast::Type &type) { }
 
+    virtual void preVisit(grammar::ast::ArrayType &type) {}
+    virtual void preIntVisit(grammar::ast::ArrayType &type) {} 
+    virtual void postVisit(grammar::ast::ArrayType &type) {}
+
+    virtual void preVisit(grammar::ast::ArrayIndexAssign &type) {}
+    virtual void preArrayIndexVisit(grammar::ast::ArrayIndexAssign &type) {} 
+    virtual void postVisit(grammar::ast::ArrayIndexAssign &type) {}
+
+    virtual void preVisit(grammar::ast::ArrayExp &exp) {}
+    virtual void preSizeVisit(grammar::ast::ArrayExp &exp) {}
+    virtual void postVisit(grammar::ast::ArrayExp &exp) {}
+ 
+    virtual void preVisit(grammar::ast::ArrayIndex &arrayIndex) {}
+    virtual void preIndexVisit(grammar::ast::ArrayIndex &arrayIndex) {}
+    virtual void postVisit(grammar::ast::ArrayIndex &arrayIndex) {}
+
     virtual void preVisit(int &value) { }
     virtual void postVisit(int &value) { }
 
@@ -119,6 +135,9 @@ public:
 
     template <typename T>
     void operator()(boost::optional<T> &ast);
+
+    template <typename T>
+    void operator()(std::vector<T> &t);
 
     template <typename T>
     void operator()(T &t);

@@ -1,6 +1,7 @@
 #include "symbol_table.hpp"
 
 #include "semantics_error.hpp"
+#include <iostream>
 
 
 int nextUID = 0;
@@ -25,6 +26,7 @@ struct SymbolTypeEqualityVisitor {
     bool operator()(const T &t1, const T &t2) const { // TODO: added const
         return t1 == t2;
     }
+
 };
 
 struct SymbolTypeToStringVisitor {
@@ -37,6 +39,7 @@ struct SymbolTypeToStringVisitor {
 struct TypeConverterVisitor : boost::static_visitor<SymbolType> {
 public: 
     TypeConverterVisitor() = default; // TODO: Added this default constructor
+
     SymbolType operator()(const grammar::ast::PrimitiveType &t) {
         auto const type = t.type;
         if (type == "int") {
@@ -47,6 +50,14 @@ public:
         }
 
         throw SemanticsError("Unknown primitive type", t);
+    }
+
+
+    SymbolType operator()(const grammar::ast::ArrayType &arrayType) {
+        // void* memory = ::operator new(sizeof(SymbolType));
+        SymbolType type = (*this)(arrayType.type);
+        // SymbolType* typePtr = new(memory) SymbolType(type);
+        return ArraySymbolType{std::make_shared<SymbolType>(type), arrayType.dim};
     }
 };
 
@@ -68,6 +79,10 @@ bool IntType::operator==(const IntType &other) const {
     return true;
 }
 
+bool ArraySymbolType::operator==(const ArraySymbolType &other) const {
+    return (dimensions == other.dimensions) && (*elementType.get() == *other.elementType.get());
+}
+
 std::string BoolType::toString() const {
     return "bool";
 }
@@ -75,6 +90,14 @@ std::string BoolType::toString() const {
 std::string IntType::toString() const {
     return "int";
 }
+
+std::string ArraySymbolType::toString() const {
+    return "Array of " + elementType->toString();
+}
+
+// ArraySymbolType::~ArraySymbolType() {
+//     delete elementType;
+// }
 
 std::string SymbolType::toString() const {
     // TODO: Changed this

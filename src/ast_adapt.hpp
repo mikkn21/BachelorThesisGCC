@@ -120,7 +120,26 @@ BOOST_FUSION_ADAPT_STRUCT(
 
 BOOST_FUSION_ADAPT_STRUCT(
     grammar::ast::ArrayType,
-    (grammar::ast::Type, type)
+    (grammar::ast::PrimitiveType, type),
+    (int, dim)
+)
+
+BOOST_FUSION_ADAPT_STRUCT(
+    grammar::ast::ArrayIndexAssign,
+    (grammar::ast::ArrayIndex, index),
+    (grammar::ast::Expression, exp)
+)
+
+BOOST_FUSION_ADAPT_STRUCT(
+    grammar::ast::ArrayExp,
+    (grammar::ast::PrimitiveType, primType),
+    (std::vector<grammar::ast::Expression>, sizes)
+)
+
+BOOST_FUSION_ADAPT_STRUCT(
+    grammar::ast::ArrayIndex,
+    (grammar::ast::Id, id),
+    (std::vector<grammar::ast::Expression>, indices)
 )
 
 BOOST_FUSION_ADAPT_STRUCT(

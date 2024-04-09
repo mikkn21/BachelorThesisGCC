@@ -1,5 +1,6 @@
 #include <stack>
 #include <iostream>
+#include <variant>
 #include "typeChecking.hpp"
 #include "../visitor.hpp"
 #include "../semantics/symbol_table.hpp"
@@ -127,12 +128,11 @@ private:
     void postVisit(ast::VarDeclAssign &vardecl) override {  
         //id  
         auto t1 = vardecl.decl.sym->type;
-        // cout << "Debug: postVisit VarDecl t1: " << t1 << endl;
+        std::cout << "Debug: postVisit VarDecl t1: " << t1.toString() << std::endl;
         // exp resault
         auto t2 = pop(typeStack);
-        // cout << "Debug: postVisit VarDecl t2: " << t2 << endl;
+        std::cout << "Debug: postVisit VarDecl t2: " << t2.toString() << std::endl;
         if (t1 != t2) {
-            // cout << "Types do not mathch" << endl;
             throw TypeCheckError("Type does not match expression", vardecl);
         }
     } 
@@ -180,6 +180,71 @@ private:
         // cout << "Debug: preVisit FuncDecl" << endl;
     }
 
+    void postVisit(ast::PrintStatement &_) override {
+        pop(typeStack);
+    }
+
+    template <typename T>
+    bool areAllInts(std::vector<T> vec) {
+        auto intType = IntType();
+        int size = static_cast<int>(vec.size());
+        for (int i = 0; i < size; i++){
+            std::cout << "POP" << std::endl;
+            auto type = pop(typeStack);
+            if (type != intType) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    void postVisit(ast::ArrayExp &exp) override {
+        if (!areAllInts(exp.sizes)) {
+            throw TypeCheckError("Array size must be an int", exp);
+        }
+
+        auto symbolType = convertType(ast::Type(exp.primType));
+        // void* memory = ::operator new(sizeof(SymbolType));
+        // SymbolType* symbolTypePtr = new(memory) SymbolType(symbolType);
+        typeStack.push(ArraySymbolType{std::make_shared<SymbolType>(symbolType), static_cast<int>(exp.sizes.size())});
+    }
+
+
+    void postVisit(ast::ArrayIndex &arrayIndex) override {
+        if (auto sym = dynamic_cast<VarSymbol *>(arrayIndex.id.sym)) {
+            if (auto *type = boost::get<ArraySymbolType>(&sym->type)) {
+                if (static_cast<int>(arrayIndex.indices.size()) != type->dimensions) {
+                    throw TypeCheckError("Index was attempted on an incompatible type", arrayIndex);
+                }
+
+                if (!areAllInts(arrayIndex.indices)) {
+                    throw TypeCheckError("Array index must be an int", arrayIndex);
+                }
+
+                typeStack.push(*type->elementType.get());
+            } else {
+                throw TypeCheckError("Index was attempted on an incompatible type", arrayIndex);
+            }
+        } else {
+          // TODO: Make a better msg
+          throw TypeCheckError("I DUNNO MAN", arrayIndex);
+          
+        }
+    }
+
+    void postVisit(ast::ArrayIndexAssign &assign) override {
+        // Exp result
+        auto t1 = pop(typeStack);
+        // std::cout << "Debug: postVisit VarDecl t1: " << t1.toString() << std::endl;
+
+        // Array index resault
+        auto t2 = pop(typeStack);
+        // std::cout << "Debug: postVisit VarDecl t2: " << t2.toString() << std::endl;
+        if (t1 != t2) {
+            throw TypeCheckError("Array index type does not match expression", assign);
+        }
+    }
+
     void postVisit(ast::FuncDecl &funcDecl) override {
         if (!hasFuncReturned) {
             throw TypeCheckError("Function " + funcDecl.id.id + " does not always return", funcDecl);
@@ -206,7 +271,7 @@ private:
         }
 
         if (lhsType == BoolType()) {
-          if (op != "&" && op != "|") {
+          if (op != "&" && op != "|" && op != "==" && op != "!=") {
             throw TypeCheckError(op + " does not support bools", rhs);
           }
         } // Not a bool

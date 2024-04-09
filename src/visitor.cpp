@@ -1,5 +1,6 @@
 
 #include "visitor.hpp"
+#include "ast.hpp"
 // Included in Visitor.hpp>ast.hpp #include <boost/spirit/home/x3/support/ast/variant.hpp>
 
 
@@ -25,6 +26,13 @@ void TreeTraveler::operator()(boost::optional<T> &opt) {
     }
 }
 
+template <typename T>
+void TreeTraveler::operator()(std::vector<T> &vec) {
+    for (auto &elem : vec) {
+        (*this)(elem);
+    }
+}
+
 // Variants
 template <>
 void TreeTraveler::operator()(grammar::ast::Decl &decl) {
@@ -35,6 +43,7 @@ template <>
 void TreeTraveler::operator()(grammar::ast::Statement &statement) {
     apply_visitor(*this, statement);
 }
+
 
 template <>
 void TreeTraveler::operator()(grammar::ast::Expression &exp) {
@@ -102,9 +111,7 @@ void TreeTraveler::operator()(grammar::ast::BinopExps &binop) {
     visitor.preVisit(binop);
     (*this)(binop.lhs);
     visitor.preRhsVisit(binop);
-    for(auto &rhs : binop.rhss) {
-        (*this)(rhs);
-    }
+    (*this)(binop.rhss);
     visitor.postVisit(binop);
 }
 
@@ -144,6 +151,43 @@ void TreeTraveler::operator()(grammar::ast::FunctionCall &funcCall) {
     visitor.preArgumentListVisit(funcCall);
     (*this)(funcCall.argument_list);
     visitor.postVisit(funcCall);
+}
+
+// Arrays
+template <>
+void TreeTraveler::operator()(grammar::ast::ArrayType &arrayType) {
+    visitor.preVisit(arrayType);
+    (*this)(arrayType.type);
+    visitor.preIntVisit(arrayType);
+    (*this)(arrayType.dim);
+    visitor.postVisit(arrayType);
+}
+
+template <>
+void TreeTraveler::operator()(grammar::ast::ArrayExp &arrayExp) {
+    visitor.preVisit(arrayExp);
+    (*this)(arrayExp.primType);
+    visitor.preSizeVisit(arrayExp);
+    (*this)(arrayExp.sizes);
+    visitor.postVisit(arrayExp);
+}
+
+template <>
+void TreeTraveler::operator()(grammar::ast::ArrayIndex &arrayIndex) {
+    visitor.preVisit(arrayIndex);
+    (*this)(arrayIndex.id);
+    visitor.preIndexVisit(arrayIndex);
+    (*this)(arrayIndex.indices);
+    visitor.postVisit(arrayIndex);
+}
+
+template <>
+void TreeTraveler::operator()(grammar::ast::ArrayIndexAssign &ArrayIndexAssign) {
+    visitor.preVisit(ArrayIndexAssign);
+    (*this)(ArrayIndexAssign.index);
+    visitor.preArrayIndexVisit(ArrayIndexAssign);
+    (*this)(ArrayIndexAssign.exp);
+    visitor.postVisit(ArrayIndexAssign);
 }
 
 // Statements
