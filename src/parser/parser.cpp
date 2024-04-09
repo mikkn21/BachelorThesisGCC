@@ -5,14 +5,17 @@
 
 #include <boost/spirit/include/support_line_pos_iterator.hpp>
 
-// !! This needs to be here for string to work 
-// !! But string.hpp breaks other things
-// #include <boost/spirit/home/support/char_encoding/iso8859_1.hpp>
-// #include <boost/spirit/home/x3/string.hpp>
+#include <boost/spirit/home/support/char_encoding/iso8859_1.hpp>
+#include <boost/spirit/home/x3/string.hpp>
+#include <boost/spirit/home/x3/operator.hpp>
+#include <boost/spirit/home/x3/directive/lexeme.hpp>
+#include <boost/spirit/home/x3/directive/raw.hpp>
+#include <boost/spirit/home/x3/char/char.hpp>
+#include <boost/spirit/home/x3/numeric/bool.hpp>
+#include <boost/spirit/home/x3/numeric/int.hpp>
+#include <boost/spirit/home/x3/char/char_class.hpp>
 
-
-// i think maybe this needs to be here since we are using string, char, bool, int 
-#include <boost/spirit/home/x3.hpp> 
+#include <boost/spirit/home/x3/core/parse.hpp>
 
 #include <sys/resource.h>
 
@@ -226,10 +229,8 @@ namespace grammar {
         grammar::ast::Prog parse(std::string_view src)
         {
             namespace x3 = boost::spirit::x3;
-            using x3::space;
-            using grammar::ast::Prog;
 
-            Prog ast;
+            grammar::ast::Prog ast;
             using PosIter = boost::spirit::line_pos_iterator<std::string_view::const_iterator>;
             PosIter iter(src.begin());
 
@@ -242,7 +243,6 @@ namespace grammar {
                     if(c == '\t') msg += std::string(SpacesPerTabs, ' ');
                     else msg += c;
                 }
-                // std::string msg = "Parsing failed";
                 msg += "\n";
                 msg += std::string(column - 1, '-');
                 msg += "^";
@@ -250,12 +250,11 @@ namespace grammar {
 	        };
 
             try {
-                bool r = phrase_parse(iter,  PosIter(src.end()), prog, space, ast);
+                bool r = phrase_parse(iter,  PosIter(src.end()), prog, x3::space, ast);
 
                 if(!r || iter !=  PosIter(src.end())) {
                     throw SyntaxError(makeError() + "\nEnd of x3 error.");
                 }
-		        // return ast;
                 return ast;
 
             }catch(const x3::expectation_failure<PosIter> &e) {
