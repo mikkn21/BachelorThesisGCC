@@ -40,7 +40,7 @@ void test_assembly(string input, string expected_output, Compiler compiler) {
     BOOST_CHECK_EQUAL(assemble_result, 0);
 
     // Link the object file
-    std::string link_cmd = "gcc -o chad chad.o";
+    std::string link_cmd = "ld -o chad chad.o";
     int link_result = system(link_cmd.c_str());
     BOOST_CHECK_EQUAL(link_result, 0);
 

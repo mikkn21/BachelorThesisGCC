@@ -84,6 +84,7 @@ namespace grammar
         struct Rhs : LocationInfo {
             std::string op;
             Expression exp;
+            SymbolTable *scope = nullptr;
         public: 
             friend std::ostream& operator<<(std::ostream& os, const Rhs &exp);
         };
