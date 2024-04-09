@@ -137,8 +137,8 @@ void emit_to_file(IR ir) {
         outputFile << ".data\n";
         outputFile << "newline: .ascii \"\\n\"\n\n";
         outputFile << ".text\n";
-        outputFile << ".globl main\n";
-        outputFile << "\nmain:\n";
+        outputFile << ".globl _start\n";
+        outputFile << "\n_start:\n";
         for (const Instruction& instruction : ir) {
             // cout << instruction.operation << endl;
             switch (instruction.operation) {

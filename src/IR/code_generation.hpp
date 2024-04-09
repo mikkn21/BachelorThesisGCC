@@ -13,12 +13,12 @@ public:
     void preVisit(FuncDecl &func_decl) override;
     void postVisit(FuncDecl &func_decl) override;
 
-    // void postVisit(VarDecl &var_decl) override;
+    void postVisit(VarDeclAssign &var_decl_assign) override;
     void preVisit(int &i) override;
     void preVisit(bool &b) override;
     void postVisit(PrintStatement &print) override;
     void postVisit(VarExpression &var_expr) override;
-    // void postVisit(BinopExps &binop_exp) override;
+    void postVisit(Rhs &op_exp) override;
 
 private:
     std::vector<std::string> function_container;

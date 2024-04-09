@@ -1,6 +1,6 @@
 
 int main() {
-    print(19);
+    print(2+3);
 
     return 0;
 }

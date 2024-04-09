@@ -153,7 +153,7 @@ private:
 
 
     void preVisit(ast::VarExpression &varExp) override {
-        std::cout << "Debug: in id: " << varExp.id.id << std::endl;
+        // std::cout << "Debug: in id: " << varExp.id.id << std::endl;
         if (varExp.id.sym == nullptr) {
             throw TypeCheckError("Symbol not found", varExp);
         }
