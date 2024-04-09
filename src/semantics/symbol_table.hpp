@@ -4,9 +4,6 @@
 #include "../ast.hpp"
 
 
-using namespace std;
-
-
 // struct ClassType {
 //     string name; 
 // };
@@ -33,7 +30,7 @@ struct SymbolType : public boost::variant<IntType, BoolType /*, ArrayType, TypeA
     using boost::variant<IntType, BoolType>::operator=;
     bool operator==(const SymbolType &other) const;
     bool operator!=(const SymbolType &other) const;
-    string toString() const;
+    std::string toString() const;
 };
 
 
@@ -69,7 +66,7 @@ public:
 
 class SymbolTable {
 private:
-    unordered_map<string, Symbol*> entries;
+    std::unordered_map<std::string, Symbol*> entries;
 
 public:
 
@@ -85,9 +82,9 @@ public:
 
     ~SymbolTable();
 
-    void insert(string key, Symbol* symbol);
-    Symbol *findLocal(string key) const;
-    Symbol *find(string key) const;
+    void insert(std::string key, Symbol* symbol);
+    Symbol *findLocal(std::string key) const;
+    Symbol *find(std::string key) const;
 };
 
 

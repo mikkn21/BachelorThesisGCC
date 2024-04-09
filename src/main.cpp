@@ -19,7 +19,7 @@ int main(int argc, char* argv[]) {
             ("print-input,i", po::bool_switch(), "Print the input before parsing")
             ("print-code-generation,c", po::bool_switch(), "Print the Intermediate code after the code generation phase")
             ("print-register-allocation,r", po::bool_switch(), "Print the Intermediate code after the register allocation phase")
-            ("input-file", po::value<string>(), "Input file to compile"); // this is to necessary
+            ("input-file", po::value<std::string>(), "Input file to compile"); // this is to necessary
         po::positional_options_description p;
         // Here we say that we expect 1 non-posestional argument namely the file
         p.add("input-file", 1); 
@@ -30,7 +30,7 @@ int main(int argc, char* argv[]) {
         po::notify(vm);
 
         if (vm.count("help")) {
-            cout << "Usage: giga [options] <input-file>\n\n" 
+            std::cout << "Usage: giga [options] <input-file>\n\n" 
                 << desc; 
             return 0;
         }
@@ -62,20 +62,20 @@ int main(int argc, char* argv[]) {
             options.printRegisterAllocation = true;
         }
         if (vm.count("input-file")) {
-            string_view filename = vm["input-file"].as<string>();
+            std::string_view filename = vm["input-file"].as<std::string>();
             grammar::compiler::compileFromFile(filename, options);
         } else {
-            cerr << "Error: An input source is required.\n";
+            std::cerr << "Error: An input source is required.\n";
             return 1;
         }
     } catch (CompilerError &e) {
-        cerr  << e.what() << endl;
+        std::cerr  << e.what() << std::endl;
         return 1;
-    } catch (exception &e) {
-        cerr << e.what() << endl;
+    } catch (std::exception &e) {
+        std::cerr << e.what() << std::endl;
         return 1;
     } catch (...) {
-        cerr << "Unknown error" << endl;
+        std::cerr << "Unknown error" << std::endl;
         return 1;
     }
     return 0;
