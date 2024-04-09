@@ -1,13 +1,6 @@
 
 int main() {
-    int x = 10;
-    int y = 11;
-    int z = x/y;
-    print(y!=x);
-    print(z);
-
-
-
+    print(19);
 
     return 0;
 }

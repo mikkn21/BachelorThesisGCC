@@ -91,6 +91,7 @@ namespace grammar
         struct BinopExps : LocationInfo { 
             Expression lhs;
             std::vector<Rhs> rhss;
+            SymbolTable *scope = nullptr;
         public: 
             friend std::ostream& operator<<(std::ostream& os, const BinopExps &exp);
         };

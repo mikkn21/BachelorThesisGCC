@@ -11,7 +11,7 @@ string get_label(string name) {
 }
 
 string callerSave(){
-    return R"(pushq %rax
+    return R"(    pushq %rax
     pushq %rcx
     pushq %rdx
     pushq %rsi
@@ -21,11 +21,11 @@ string callerSave(){
     pushq %r10
     pushq %r11
     pushq %rsp
-    )";
+)";
 }
 
 string callerRestore(){
-    return R"(popq %rsp
+    return R"(    popq %rsp
     popq %r11
     popq %r10
     popq %r9
@@ -35,29 +35,29 @@ string callerRestore(){
     popq %rdx
     popq %rcx
     popq %rax
-    )";
+)";
 }
 
 
 
 string calleeSave() {
-    return R"(pushq %rbp
+    return R"(    pushq %rbp
     pushq %rbx
     pushq %r12
     pushq %r13
     pushq %r14
     pushq %r15
-    )";
+)";
 }
 
 string calleeRestore() {
-    return R"(popq %r15
+    return R"(    popq %r15
     popq %r14
     popq %r13
     popq %r12
     popq %rbx
     popq %rbp
-    )";
+)";
 }
 
 string print_immediate_value(int number) {

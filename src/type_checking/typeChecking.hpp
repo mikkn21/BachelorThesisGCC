@@ -2,8 +2,6 @@
 #define TYPE_CHECK_HPP
 
 #include "../error/ast_error.hpp"
-#include "../ast.hpp"
-
     
     class TypeCheckError: public ASTError {
     public:
@@ -20,7 +18,7 @@
             : CompilerError("Attempting to pop from an empty stack") {}
     };
 
-    Prog typeChecker(Prog &prog, SymbolTable *globalScope);
+    grammar::ast::Prog typeChecker(grammar::ast::Prog &prog, SymbolTable *globalScope);
 
 
 #endif //TYPE_CHECK_HPP
