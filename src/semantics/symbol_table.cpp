@@ -29,7 +29,7 @@ struct SymbolTypeEqualityVisitor {
 
 struct SymbolTypeToStringVisitor {
     template <typename T>
-    string operator()(const T &t) {
+    std::string operator()(const T &t) {
         return t.toString();
     }
 };
@@ -68,15 +68,15 @@ bool IntType::operator==(const IntType &other) const {
     return true;
 }
 
-string BoolType::toString() const {
+std::string BoolType::toString() const {
     return "bool";
 }
 
-string IntType::toString() const {
+std::string IntType::toString() const {
     return "int";
 }
 
-string SymbolType::toString() const {
+std::string SymbolType::toString() const {
     // TODO: Changed this
     // return visit(SymbolTypeToStringVisitor{}, *this);
     return boost::apply_visitor(SymbolTypeToStringVisitor{}, *this);
@@ -122,11 +122,11 @@ SymbolTable::~SymbolTable(){
     }
 }
 
-void SymbolTable::insert(string key, Symbol *symbol) {
+void SymbolTable::insert(std::string key, Symbol *symbol) {
     entries.emplace(key, symbol); 
 }
 
-Symbol *SymbolTable::findLocal(string key) const {
+Symbol *SymbolTable::findLocal(std::string key) const {
     auto x = entries.find(key);
     if (x == entries.end()) {
         return nullptr;
@@ -136,7 +136,7 @@ Symbol *SymbolTable::findLocal(string key) const {
     }
 }
 
-Symbol *SymbolTable::find(string key) const {
+Symbol *SymbolTable::find(std::string key) const {
     auto x = entries.find(key);
     if (x == entries.end()) {
         if (parentScope == nullptr) {

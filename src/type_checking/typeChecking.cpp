@@ -17,8 +17,8 @@ class TypeChecker : public Visitor {
     
    
     // The stack of types
-    stack<SymbolType> typeStack = stack<SymbolType>();    
-    vector<SymbolType> FuncCallArgs = vector<SymbolType>();
+    std::stack<SymbolType> typeStack = std::stack<SymbolType>();    
+    std::vector<SymbolType> FuncCallArgs = std::vector<SymbolType>();
 
     const SymbolTable *globalScope;
 
@@ -39,7 +39,7 @@ private:
                 throw TypeCheckError("main function must return an int, it returns " + mainFunc->returnType.toString());
             }
             if (mainFunc->parameters.size() != 0) {
-                throw TypeCheckError("main function is not allowed to have any parameters, it currently have: " + to_string(mainFunc->parameters.size()));
+                throw TypeCheckError("main function is not allowed to have any parameters, it currently have: " + std::to_string(mainFunc->parameters.size()));
             }
         } else {
             throw TypeCheckError("main is not a function");
@@ -85,7 +85,7 @@ private:
 
                 typeStack.push(funcSym->returnType);
             } else {
-                throw TypeCheckError("Unknown symbol type was encountered: " + to_string(reinterpret_cast<uintptr_t>(sym)), funcCall);
+                throw TypeCheckError("Unknown symbol type was encountered: " + std::to_string(reinterpret_cast<uintptr_t>(sym)), funcCall);
             }
         } else {
             throw TypeCheckError(funcCall.id.id + " not declared in scope", funcCall);
@@ -139,7 +139,7 @@ private:
 
     void preBlockVisit(ast::WhileStatement &whileStatement) override {
         // exp
-        cout << "Debug: Entering preBlockVisit WhileStatement" << endl;
+        std::cout << "Debug: Entering preBlockVisit WhileStatement" << std::endl;
         auto t1 = pop(typeStack);
 
         if (t1 != BoolType()) {
@@ -149,7 +149,7 @@ private:
 
 
     void preVisit(ast::VarExpression &varExp) override {
-        cout << "Debug: in id: " << varExp.id.id << endl;
+        std::cout << "Debug: in id: " << varExp.id.id << std::endl;
         if (varExp.id.sym == nullptr) {
             throw TypeCheckError("Symbol not found", varExp);
         }
@@ -223,7 +223,7 @@ private:
     }
 
     template<typename T>
-    T pop(stack<T>& myStack) {
+    T pop(std::stack<T>& myStack) {
         if (myStack.empty()) {
             throw EmptyTypeStackError();
         }

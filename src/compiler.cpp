@@ -51,7 +51,7 @@ namespace grammar::compiler {
             return obj;
         }
 
-        unique_ptr<SymbolTable> globalScope = make_unique<SymbolTable>();
+        std::unique_ptr<SymbolTable> globalScope = std::make_unique<SymbolTable>();
         symbol_collection(obj->ast, globalScope.get());
 
         if (options.stopAfter == StopAfterSymbolCollection ) {
