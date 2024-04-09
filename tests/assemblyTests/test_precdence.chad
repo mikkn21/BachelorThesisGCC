@@ -1,0 +1,13 @@
+int main() {
+    print(4+5/9);
+    print(9/4+2);
+    print(4+5*9);
+    print(9*4+2);
+    print(4+5-9);
+    print(9-4+2);
+    print(4+5+9);
+    print(9*4/2);
+    
+    
+    return 0;
+}
