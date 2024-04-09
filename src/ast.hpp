@@ -84,6 +84,7 @@ namespace grammar
         struct Rhs : LocationInfo {
             std::string op;
             Expression exp;
+            SymbolTable *scope = nullptr;
         public: 
             friend std::ostream& operator<<(std::ostream& os, const Rhs &exp);
         };
@@ -91,7 +92,6 @@ namespace grammar
         struct BinopExps : LocationInfo { 
             Expression lhs;
             std::vector<Rhs> rhss;
-            SymbolTable *scope = nullptr;
         public: 
             friend std::ostream& operator<<(std::ostream& os, const BinopExps &exp);
         };

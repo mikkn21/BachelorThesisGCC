@@ -43,8 +43,8 @@ public:
         }
     }
 
-    void preVisit(BinopExps &exp) override {
-        exp.scope = currentSymbolTable;
+    void preVisit(Rhs &op_exp) override {
+        op_exp.scope = currentSymbolTable;
     }
 
     void postVisit(VarDecl &varDecl) override {
