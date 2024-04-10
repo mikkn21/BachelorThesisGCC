@@ -10,6 +10,7 @@ void IRVisitor::preVisit(FuncDecl &func_decl) {
     // caller save registers
     code.push_back(Instruction(Op::PUSHQ, Arg(Register::RBP, DIR())));
     code.push_back(Instruction(Op::MOVQ, Arg(Register::RSP, DIR()), Arg(Register::RBP, DIR())));
+    code.push_back(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_SAVE, DIR())));
     vector<VarSymbol*> var_decls = func_decl.sym->symTab->get_var_symbols();
     // code.push_back(Instruction(Op::SUBQ, Arg(ImmediateValue(8 * var_decls.size()), DIR()), Arg(Register::RSP, DIR())));
     for (int i = 0; i < var_decls.size(); i++) {
@@ -20,6 +21,26 @@ void IRVisitor::preVisit(FuncDecl &func_decl) {
 void IRVisitor::postVisit(FuncDecl &func_decl) {
     code.push_back(Instruction(Op::MOVQ, Arg(Register::RBP, DIR()), Arg(Register::RSP, DIR())));
     code.push_back(Instruction(Op::POPQ, Arg(Register::RBP, DIR())));
+}
+
+void IRVisitor::postVisit(FunctionCall &func_call) {
+    code.push_back(Instruction(Op::PROCEDURE, Arg(Procedure::CALLER_SAVE, DIR())));
+    for (auto& arg : func_call.argument_list.arguments) {
+        AstValue value = pop(temp_storage);
+        if (std::holds_alternative<int>(value)) {
+            code.push_back(Instruction(Op::PUSHQ, Arg(ImmediateValue(std::get<int>(value)), DIR())));
+        } else if (std::holds_alternative<bool>(value)) {
+            bool bool_value = std::get<bool>(value);
+            int int_value = bool_value ? 1 : 0;
+            code.push_back(Instruction(Op::PUSHQ, Arg(ImmediateValue(int_value), DIR())));
+        } else if (std::holds_alternative<GenericRegister>(value)) {
+            code.push_back(Instruction(Op::PUSHQ, Arg(get<GenericRegister>(value), DIR())));
+        }
+    }
+    
+    code.push_back(Instruction(Op::PUSHQ, Arg(Register::RBP, DIR())));
+    code.push_back(Instruction(Op::CALL, Arg(Label(func_call.id.id), DIR())));
+    
 }
 
 void IRVisitor::postVisit(VarDeclAssign &var_decl_assign) {

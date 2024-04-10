@@ -19,6 +19,7 @@ public:
     void postVisit(PrintStatement &print) override;
     void postVisit(VarExpression &var_expr) override;
     void postVisit(Rhs &op_exp) override;
+    void postVisit(FunctionCall &func_call) override;
 
 private:
     std::vector<std::string> function_container;
