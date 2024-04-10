@@ -244,12 +244,10 @@ private:
     }
 
     void postVisit(bool &val) override {
-        std::cout << "DEUBG: pushed bool" << std::endl;
         typeStack.push(BoolType());
     }
     
     void postVisit(int &val) override {
-        std::cout << "DEUBG: pushed int" << std::endl;
         typeStack.push(IntType());
     }
 
