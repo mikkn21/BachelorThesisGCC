@@ -9,7 +9,7 @@
 
 
 enum class Op {
-   MOVQ, PUSH, POP, CALL, RET, CMPQ, JMP, JE, JNE, JL, JLE, JG, JGE, ADDQ, SUBQ, IMULQ, IDIVQ, LABEL, PROCEDURE, ANDQ, ORQ, XORQ, PUSHQ, POPQ, SETL, SETG, SETLE, SETGE, SETE, SETNE
+   MOVQ, PUSH, POP, CALL, RET, CMPQ, JMP, JE, JNE, JL, JLE, JG, JGE, ADDQ, SUBQ, IMULQ, IDIVQ, LABEL, PROCEDURE, ANDQ, ORQ, XORQ, PUSHQ, POPQ, SETL, SETG, SETLE, SETGE, SETE, SETNE, 
 };
 
 struct DIR {};
@@ -41,7 +41,7 @@ struct Label {
 };
 
 enum class Procedure {
-    CALLEE_SAVE, CALLEE_RESTORE, CALLER_SAVE, CALLER_RESTORE, PRINT,
+    CALLEE_SAVE, CALLEE_RESTORE, CALLER_SAVE, CALLER_RESTORE, PRINT, 
 };
 
 using TargetType = std::variant<ImmediateValue, Register, GenericRegister, Label, Procedure>;

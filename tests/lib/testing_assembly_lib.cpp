@@ -45,25 +45,25 @@ void test_assembly(string input, string expected_output, Compiler compiler) {
     BOOST_CHECK_EQUAL(link_result, 0);
 
     // Run the compiled program and capture its output
-    std::string run_cmd = "./chad > output.txt";
-    // std::string output;
-    // FILE* pipe = popen(run_cmd.c_str(), "r");
-    // if (pipe) {
-    //     char buffer[128];
-    //     while (!feof(pipe)) {
-    //         if (fgets(buffer, 128, pipe) != nullptr)
-    //             output += buffer;
-    //     }
-    //     pclose(pipe);
-    // }
+    std::string run_cmd = "./chad";
+    std::string output;
+    FILE* pipe = popen(run_cmd.c_str(), "r");
+    if (pipe) {
+        char buffer[128];
+        while (!feof(pipe)) {
+            if (fgets(buffer, 128, pipe) != nullptr)
+                output += buffer;
+        }
+        pclose(pipe);
+    }
 
-    // // Compare the captured output with the expected output
-    // BOOST_CHECK_MESSAGE(equal_ignore_whitespaces(output, expected_output), "\n\n--- Expected output:\n" << expected_output << "\n\n--- Actual output:\n" << output << "\n\n");
+    // Compare the captured output with the expected output
+    BOOST_CHECK_MESSAGE(equal_ignore_whitespaces(output, expected_output), "\n\n--- Expected output:\n" << expected_output << "\n\n--- Actual output:\n" << output << "\n\n");
 
-    // Clean up the generated files
-    // remove(assembly_file.c_str());
-    // remove("chad.o");
-    // remove("chad");
+    //Clean up the generated files
+    remove(assembly_file.c_str());
+    remove("chad.o");
+    remove("chad");
 }
 
 void test_assembly_file(string input, string expected_outpout) {

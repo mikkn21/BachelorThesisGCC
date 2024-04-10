@@ -32,7 +32,7 @@ std::ostream& operator<<(std::ostream& os, const Arg arg) {
     } else if (std::holds_alternative<GenericRegister>(arg.target)) {
         os << "Generic Register(" << std::get<GenericRegister>(arg.target).local_id << ")";
     } else if (std::holds_alternative<Label>(arg.target)) {
-        os << std::get<Label>(arg.target).label << ":";
+        os << std::get<Label>(arg.target).label;
     } else if (std::holds_alternative<Procedure>(arg.target)) {
         os << "Procedure" << std::get<Procedure>(arg.target);
     }

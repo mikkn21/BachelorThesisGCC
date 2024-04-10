@@ -20,6 +20,8 @@ public:
     void postVisit(grammar::ast::PrintStatement &print) override;
     void postVisit(grammar::ast::VarExpression &var_expr) override;
     void postVisit(grammar::ast::Rhs &op_exp) override;
+    void postVisit(grammar::ast::FunctionCall &func_call) override;
+
 
 private:
     std::vector<std::string> function_container;
