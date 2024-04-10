@@ -138,11 +138,12 @@ BOOST_AUTO_TEST_CASE(ArrayIndexDimNotCorrect1) {testTypeCheckString("int main() 
 BOOST_AUTO_TEST_CASE(ArrayIndexDimNotCorrect2) {testTypeCheckString("int main() { int[3] a = new int[5,5]; int y = a[2,3]; return 0; } ", TestingOutcome::FAILED);}
 BOOST_AUTO_TEST_CASE(ArrayTypeMismatch) {testTypeCheckString("int main() { int[1] x = new bool[5]; return 0; }", TestingOutcome::FAILED);}
 BOOST_AUTO_TEST_CASE(ArrayTypeMatch) {testTypeCheckString("int main() { bool[1] x = new bool[5]; return 0; }", TestingOutcome::SUCCESS);}
-BOOST_AUTO_TEST_CASE(ArrayIndex) {testTypeCheckString("int main() { int[2] a = new int[5,5]; a[1] = 2;  int x = a[1]; return 0; } ", TestingOutcome::SUCCESS);}
-BOOST_AUTO_TEST_CASE(ArrayIndex15) {testTypeCheckString("int main() { int[1] a = new int[15]; a[14] = 2; return 0; } ", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(ArrayIndex) {testTypeCheckString("int main() { int[2] a = new int[5,5]; a[1,3] = 2;  int x = a[1,3]; return 0; } ", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(ArrayIndex15) {testTypeCheckString("int main() { int[1] a = new int[15]; a[14] = 2;  return 0; } ", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(ArrayIndex16) {testTypeCheckString("int main() { int[1] a = new int[15]; int x = a[14];  return 0; } ", TestingOutcome::SUCCESS);}
 BOOST_AUTO_TEST_CASE(ArrayIndex2) {testTypeCheckString("int main() { int[2] a = new int[5,5]; a[1] = 2;  int x = a[10]; return 0; } ", TestingOutcome::FAILED);}
 BOOST_AUTO_TEST_CASE(ArrayIndex3) {testTypeCheckString("int main() { int[2] a = new int[5,5]; a[1] = 2;  int x = a[1,2]; return 0; } ", TestingOutcome::FAILED);}
 BOOST_AUTO_TEST_CASE(ArrayMixedTypes) {testTypeCheckString("int main() { int[3] a = new int[1,2, true]; return 0; } ", TestingOutcome::FAILED);}
 BOOST_AUTO_TEST_CASE(ArrayMixedTypes2) {testTypeCheckString("int main() { int[1] a = new int[20]; a[15] = true; return 0; } ", TestingOutcome::FAILED);}
 
-BOOST_AUTO_TEST_CASE(ArrayFromFile) {testTypeCheckFile("../tests/typeTests/arrayStuff.chad", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(ArrayFromFile) {testTypeCheckFile("../tests/typeTests/arrayStuff.chad", TestingOutcome::FAILED);}

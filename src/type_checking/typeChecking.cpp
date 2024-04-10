@@ -189,13 +189,17 @@ private:
         auto intType = IntType();
         int size = static_cast<int>(vec.size());
         for (int i = 0; i < size; i++){
-            std::cout << "POP" << std::endl;
+            std::cout << "DEBUG: POP" << std::endl;
             auto type = pop(typeStack);
             if (type != intType) {
                 return false;
             }
         }
         return true;
+    }
+
+    void postVisit(ast::ArrayType &arrayType) override {
+        pop(typeStack);
     }
 
     void postVisit(ast::ArrayExp &exp) override {
@@ -206,11 +210,16 @@ private:
         auto symbolType = convertType(ast::Type(exp.primType));
         // void* memory = ::operator new(sizeof(SymbolType));
         // SymbolType* symbolTypePtr = new(memory) SymbolType(symbolType);
+        std::cout << "DEBUG: pushed arraySymbol in ArrayExp" << std::endl;
         typeStack.push(ArraySymbolType{std::make_shared<SymbolType>(symbolType), static_cast<int>(exp.sizes.size())});
     }
 
 
     void postVisit(ast::ArrayIndex &arrayIndex) override {
+        std::cout << "DEBUG: in ArrayIndex: " << arrayIndex.id.sym << std::endl;
+        if (arrayIndex.id.sym == nullptr) {
+            std::cout << "DEBUG: Symbol is null" << std::endl;
+        }
         if (auto sym = dynamic_cast<VarSymbol *>(arrayIndex.id.sym)) {
             if (auto *type = boost::get<ArraySymbolType>(&sym->type)) {
                 if (static_cast<int>(arrayIndex.indices.size()) != type->dimensions) {
@@ -254,10 +263,12 @@ private:
     }
 
     void postVisit(bool &val) override {
+        std::cout << "DEUBG: pushed bool" << std::endl;
         typeStack.push(BoolType());
     }
     
     void postVisit(int &val) override {
+        std::cout << "DEUBG: pushed int" << std::endl;
         typeStack.push(IntType());
     }
 

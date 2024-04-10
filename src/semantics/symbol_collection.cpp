@@ -68,6 +68,14 @@ public:
         currentSymbolTable = currentSymbolTable->parentScope;
     }
 
+    void postVisit(grammar::ast::ArrayIndex &index) override {
+        Symbol *sym = currentSymbolTable->find(index.id.id);
+        if (sym == nullptr) {
+            throw SemanticsError(index.id.id + " not declared in scope", index);
+        }
+        index.id.sym = sym;
+    }
+
 };
 
 void symbol_collection(grammar::ast::Prog &prog, SymbolTable *symTab) {
