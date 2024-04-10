@@ -1,49 +1,53 @@
 #ifndef MGRAMMAR_SYMBOL_TABLE_HPP
 #define MGRAMMAR_SYMBOL_TABLE_HPP 
 
-#include <unordered_map>
-#include <string>
-#include <optional>
-#include <functional>
-#include <variant>
 #include "../ast.hpp"
 #include <memory>
-#include <iostream>
 
-using namespace std;
-
-
-// struct ClassType {
-//     string name; 
-// };
 
 struct SymbolType;
 
 struct IntType {
     bool operator==(const IntType &other) const;
-    string toString() const;
+    std::string toString() const;
 };
 
 struct BoolType {
     bool operator==(const BoolType &other) const;
-    string toString() const;
+    std::string toString() const;
 };
 
-struct SymbolType : public std::variant<IntType, BoolType /*, ArrayType, TypeAlias, ClassType*/> {
+struct ArraySymbolType {
+    std::shared_ptr<SymbolType> elementType;
+    // SymbolType *elementType; // ArrayType owns elementType
+    int dimensions;
+    bool operator==(const ArraySymbolType &other) const;
+    std::string toString() const;
+    // ~ArraySymbolType();
+};
+
+// TODO: Changed from std::variant to boost::variant
+struct SymbolType : public boost::variant<IntType, BoolType, ArraySymbolType /*, TypeAlias, ClassType*/ > {
     // IntType,
     // BoolType
     //ArrayType
     //Class, future implementation
-    using std::variant<IntType, BoolType>::variant;
-    using std::variant<IntType, BoolType>::operator=;
+    using boost::variant<IntType, BoolType, ArraySymbolType>::variant;
+    using boost::variant<IntType, BoolType, ArraySymbolType>::operator=;
     bool operator==(const SymbolType &other) const;
     bool operator!=(const SymbolType &other) const;
-    string toString() const;
+    std::string toString() const;
 };
 
 
+// struct ArrayType {
+//     SymbolType elementType;
+//     bool operator==(const ArrayType &other) const;
+//     std::string toString() const;
+// };
 
-SymbolType convertType(Type type);
+
+SymbolType convertType(grammar::ast::Type type);
 
 class SymbolTable;
 
@@ -54,7 +58,7 @@ public:
 
 class FuncSymbol : public Symbol{
 public:
-    FuncSymbol(FuncDecl *funcDecl, SymbolTable *symTab);
+    FuncSymbol(grammar::ast::FuncDecl *funcDecl, SymbolTable *symTab);
     ~FuncSymbol() override;
     std::vector<SymbolType> parameters;
     SymbolType returnType;
@@ -63,10 +67,10 @@ public:
 
 class VarSymbol : public Symbol {
 public:
-    VarSymbol(VarDecl *varDecl);
+    VarSymbol(grammar::ast::VarDecl *varDecl);
     ~VarSymbol() override { }
     SymbolType type;
-    VarDecl *varDecl;
+    grammar::ast::VarDecl *varDecl;
     long local_id;
 };
 
@@ -74,7 +78,7 @@ public:
 
 class SymbolTable {
 private:
-    unordered_map<string, Symbol*> entries;
+    std::unordered_map<std::string, Symbol*> entries;
 
 public:
 
@@ -91,12 +95,12 @@ public:
 
     ~SymbolTable();
 
-    void insert(string key, FuncSymbol* symbol);
-    void insert(string key, VarSymbol* symbol);
+    void insert(std::string key, FuncSymbol* symbol);
+    void insert(std::string key, VarSymbol* symbol);
 
-    Symbol *findLocal(string key) const;
-    Symbol *find(string key) const;
-    vector<VarSymbol*> get_var_symbols();
+    Symbol *findLocal(std::string key) const;
+    Symbol *find(std::string key) const;
+    std::vector<VarSymbol*> get_var_symbols();
 };
 
 

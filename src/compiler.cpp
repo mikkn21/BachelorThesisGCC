@@ -1,18 +1,8 @@
-#include <iostream>
-#include <stdexcept>
-#include <string_view>
 #include <fstream>
-#include <sstream>
-#include <memory>
 #include "compiler.hpp"
-#include "ast.hpp"
 #include "parser/parser.hpp"
 #include "type_checking/typeChecking.hpp"
 #include "semantics/symbol_collection.hpp"
-#include "semantics/symbol_table.hpp"
-#include "IR/register_allocation.hpp"
-#include "IR/code_generation.hpp"
-#include "IR/emit.hpp"
 
 
 namespace grammar::compiler {
@@ -61,7 +51,7 @@ namespace grammar::compiler {
             return obj;
         }
 
-        unique_ptr<SymbolTable> globalScope = make_unique<SymbolTable>();
+        std::unique_ptr<SymbolTable> globalScope = std::make_unique<SymbolTable>();
         symbol_collection(obj->ast, globalScope.get());
 
         if (options.stopAfter == StopAfterSymbolCollection ) {

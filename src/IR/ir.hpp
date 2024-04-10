@@ -3,16 +3,10 @@
 
 #include <vector>
 #include <variant>
-#include <string>
 #include <optional>
-#include "../ast.hpp"
-#include "../visitor.hpp"
-#include "../semantics/symbol_table.hpp"
-#include <stack>
 #include <iostream>
 #include "../error/compiler_error.hpp"
 
-using namespace std;
 
 enum class Op {
    MOVQ, PUSH, POP, CALL, RET, CMPQ, JMP, JE, JNE, JL, JLE, JG, JGE, ADDQ, SUBQ, IMULQ, IDIVQ, LABEL, PROCEDURE, ANDQ, ORQ, XORQ, PUSHQ, POPQ, SETL, SETG, SETLE, SETGE, SETE, SETNE

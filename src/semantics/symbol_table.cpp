@@ -1,16 +1,9 @@
-#include <string>
-#include <optional>
-#include <unordered_map>
 #include "symbol_table.hpp"
-#include <functional>
-#include "../ast.hpp"
-#include <variant>
+
 #include "semantics_error.hpp"
-#include <memory>
 #include <iostream>
 #include <typeinfo>
 
-using namespace std;
 
 struct print_visitor {
     std::ostream& os;
@@ -24,25 +17,29 @@ struct print_visitor {
 
 struct SymbolTypeEqualityVisitor {
     template <typename T, typename E>
-    bool operator()(const T &t, const E &e) {
+    bool operator()(const T &t, const E &e) const { // TODO: added const
         return false;
     }
 
     template <typename T>
-    bool operator()(const T &t1, const T &t2) {
+    bool operator()(const T &t1, const T &t2) const { // TODO: added const
         return t1 == t2;
     }
+
 };
 
 struct SymbolTypeToStringVisitor {
     template <typename T>
-    string operator()(const T &t) {
+    std::string operator()(const T &t) {
         return t.toString();
     }
 };
 
 struct TypeConverterVisitor : boost::static_visitor<SymbolType> {
-    SymbolType operator()(PrimitiveType &t) { // I removed the const keyword here, is it a problem? - sofus
+public: 
+    TypeConverterVisitor() = default; // TODO: Added this default constructor
+
+    SymbolType operator()(const grammar::ast::PrimitiveType &t) {
         auto const type = t.type;
         if (type == "int") {
             return IntType();
@@ -53,10 +50,20 @@ struct TypeConverterVisitor : boost::static_visitor<SymbolType> {
 
         throw SemanticsError("Unknown primitive type", t);
     }
+
+
+    SymbolType operator()(const grammar::ast::ArrayType &arrayType) {
+        // void* memory = ::operator new(sizeof(SymbolType));
+        SymbolType type = (*this)(arrayType.type);
+        // SymbolType* typePtr = new(memory) SymbolType(type);
+        return ArraySymbolType{std::make_shared<SymbolType>(type), arrayType.dim};
+    }
 };
 
 bool SymbolType::operator==(const SymbolType &other) const {
-    return visit(SymbolTypeEqualityVisitor{}, *this, other);
+    // return visit(SymbolTypeEqualityVisitor{}, *this, other);
+    // TODO did this
+    return boost::apply_visitor(SymbolTypeEqualityVisitor{}, *this, other);
 }
 
 bool SymbolType::operator!=(const SymbolType &other) const {
@@ -71,27 +78,41 @@ bool IntType::operator==(const IntType &other) const {
     return true;
 }
 
-string BoolType::toString() const {
+bool ArraySymbolType::operator==(const ArraySymbolType &other) const {
+    return (dimensions == other.dimensions) && (*elementType.get() == *other.elementType.get());
+}
+
+std::string BoolType::toString() const {
     return "bool";
 }
 
-string IntType::toString() const {
+std::string IntType::toString() const {
     return "int";
 }
 
-string SymbolType::toString() const {
-    return visit(SymbolTypeToStringVisitor{}, *this);
+std::string ArraySymbolType::toString() const {
+    return "Array of " + elementType->toString();
 }
 
-SymbolType convertType(Type type) {
-    auto visitor = TypeConverterVisitor{};
+// ArraySymbolType::~ArraySymbolType() {
+//     delete elementType;
+// }
+
+std::string SymbolType::toString() const {
+    // TODO: Changed this
+    // return visit(SymbolTypeToStringVisitor{}, *this);
+    return boost::apply_visitor(SymbolTypeToStringVisitor{}, *this);
+}
+
+SymbolType convertType(grammar::ast::Type type) {
+    auto visitor = TypeConverterVisitor{}; // TODO: Default constructor on TypeConverter makes this work
     return boost::apply_visitor(visitor, type);
 }
 
-FuncSymbol::FuncSymbol(FuncDecl *funcDecl, SymbolTable *scope) : symTab(scope){ 
+FuncSymbol::FuncSymbol(grammar::ast::FuncDecl *funcDecl, SymbolTable *scope) : symTab(scope){ 
     for (auto i : funcDecl->parameter_list.parameter){
         try {
-            auto decl = boost::get<VarDecl>(i);
+            auto decl = boost::get<grammar::ast::VarDecl>(i);
             parameters.push_back(convertType(decl.type));
         } catch (boost::bad_get& e) {
             throw SemanticsError("Expected VarDecl in parameter list", *funcDecl);
@@ -101,7 +122,7 @@ FuncSymbol::FuncSymbol(FuncDecl *funcDecl, SymbolTable *scope) : symTab(scope){
     scope->creator = this;
 }
 
-VarSymbol::VarSymbol(VarDecl *varDecl) : varDecl(varDecl) {
+VarSymbol::VarSymbol(grammar::ast::VarDecl *varDecl) : varDecl(varDecl) {
     type = convertType(varDecl->type);
 }
 
@@ -122,16 +143,16 @@ SymbolTable::~SymbolTable(){
     }
 }
 
-void SymbolTable::insert(string key, VarSymbol* symbol) {
+void SymbolTable::insert(std::string key, VarSymbol* symbol) {
     symbol->local_id = ++registerCounter;
     entries.emplace(key, symbol); 
 }
 
-void SymbolTable::insert(string key, FuncSymbol *symbol) {
+void SymbolTable::insert(std::string key, FuncSymbol *symbol) {
     entries.emplace(key, symbol); 
 }
 
-Symbol *SymbolTable::findLocal(string key) const {
+Symbol *SymbolTable::findLocal(std::string key) const {
     auto x = entries.find(key);
     if (x == entries.end()) {
         return nullptr;
@@ -141,7 +162,7 @@ Symbol *SymbolTable::findLocal(string key) const {
     }
 }
 
-Symbol *SymbolTable::find(string key) const {
+Symbol *SymbolTable::find(std::string key) const {
     auto x = entries.find(key);
     if (x == entries.end()) {
         if (parentScope == nullptr) {
@@ -155,14 +176,14 @@ Symbol *SymbolTable::find(string key) const {
     }
 }
 
-vector<VarSymbol*> SymbolTable::get_var_symbols() {
-    vector<VarSymbol*> var_symbols;
+std::vector<VarSymbol*> SymbolTable::get_var_symbols() {
+    std::vector<VarSymbol*> var_symbols;
     for (auto var : entries) {
         auto var_casted = dynamic_cast<VarSymbol*>(var.second);
         if (typeid(var_casted) == typeid(VarSymbol*)) {
             var_symbols.push_back(var_casted);
         } else {
-            cout << "something went wrong when casting symbol" << endl;
+            std::cout << "something went wrong when casting symbol" << std::endl;
         }
     }
     return var_symbols;
