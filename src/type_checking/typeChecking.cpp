@@ -92,7 +92,7 @@ private:
     
     void postVisit(grammar::ast::VarAssign &varassign) override {
         // id 
-        // cout << "Debug: Entering postVisit VarAssign" << endl;
+
         if (varassign.id.sym == nullptr) {
             throw TypeCheckError("Symbol not found", varassign);
         }
@@ -125,10 +125,8 @@ private:
     void postVisit(grammar::ast::VarDeclAssign &vardecl) override {  
         //id  
         auto t1 = vardecl.decl.sym->type;
-        std::cout << "Debug: postVisit VarDecl t1: " << t1.toString() << std::endl;
         // exp resault
         auto t2 = pop(typeStack);
-        std::cout << "Debug: postVisit VarDecl t2: " << t2.toString() << std::endl;
         if (t1 != t2) {
             throw TypeCheckError("Type does not match expression", vardecl);
         }
@@ -136,7 +134,6 @@ private:
 
     void preBlockVisit(grammar::ast::WhileStatement &whileStatement) override {
         // exp
-        std::cout << "Debug: Entering preBlockVisit WhileStatement" << std::endl;
         auto t1 = pop(typeStack);
 
         if (t1 != BoolType()) {
@@ -146,7 +143,6 @@ private:
 
 
     void preVisit(grammar::ast::VarExpression &varExp) override {
-        // std::cout << "Debug: in id: " << varExp.id.id << std::endl;
         if (varExp.id.sym == nullptr) {
             throw TypeCheckError("Symbol not found", varExp);
         }
@@ -160,11 +156,7 @@ private:
 
     void postVisit(grammar::ast::ReturnStatement &rtn) override {
         auto t1 = pop(typeStack);
-        // cout << "Debug: postVisit ReturnStatement t1: " << t1 << endl;
         auto t2 = func->returnType;
-
-        // cout << "Debug: postVisit ReturnStatement t2: " << t2 << endl;
-
         if (t1 != t2) {
             throw TypeCheckError("Return type " + t2.toString() + " does not match function return type " + t1.toString(), rtn);
         }
@@ -174,7 +166,6 @@ private:
 
     void preVisit(grammar::ast::FuncDecl &funcDecl) override {
         func = funcDecl.sym;
-        // cout << "Debug: preVisit FuncDecl" << endl;
     }
 
     void postVisit(grammar::ast::PrintStatement &_) override {
@@ -186,7 +177,6 @@ private:
         auto intType = IntType();
         int size = static_cast<int>(vec.size());
         for (int i = 0; i < size; i++){
-            std::cout << "DEBUG: POP" << std::endl;
             auto type = pop(typeStack);
             if (type != intType) {
                 return false;
@@ -207,15 +197,12 @@ private:
         auto symbolType = convertType(grammar::ast::Type(exp.primType));
         // void* memory = ::operator new(sizeof(SymbolType));
         // SymbolType* symbolTypePtr = new(memory) SymbolType(symbolType);
-        std::cout << "DEBUG: pushed arraySymbol in ArrayExp" << std::endl;
         typeStack.push(ArraySymbolType{std::make_shared<SymbolType>(symbolType), static_cast<int>(exp.sizes.size())});
     }
 
 
     void postVisit(grammar::ast::ArrayIndex &arrayIndex) override {
-        std::cout << "DEBUG: in ArrayIndex: " << arrayIndex.id.sym << std::endl;
         if (arrayIndex.id.sym == nullptr) {
-            std::cout << "DEBUG: Symbol is null" << std::endl;
         }
         if (auto sym = dynamic_cast<VarSymbol *>(arrayIndex.id.sym)) {
             if (auto *type = boost::get<ArraySymbolType>(&sym->type)) {
@@ -241,11 +228,9 @@ private:
     void postVisit(grammar::ast::ArrayIndexAssign &assign) override {
         // Exp result
         auto t1 = pop(typeStack);
-        // std::cout << "Debug: postVisit VarDecl t1: " << t1.toString() << std::endl;
 
         // Array index resault
         auto t2 = pop(typeStack);
-        // std::cout << "Debug: postVisit VarDecl t2: " << t2.toString() << std::endl;
         if (t1 != t2) {
             throw TypeCheckError("Array index type does not match expression", assign);
         }
@@ -256,7 +241,6 @@ private:
             throw TypeCheckError("Function " + funcDecl.id.id + " does not always return", funcDecl);
         }
         func = func->symTab->parentScope->creator;
-        // cout << "Debug: postVisit FuncDecl" << endl;
     }
 
     void postVisit(bool &val) override {
