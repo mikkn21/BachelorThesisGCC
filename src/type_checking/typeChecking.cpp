@@ -5,9 +5,6 @@
 #include "../visitor.hpp"
 #include "../semantics/symbol_table.hpp"
 
-namespace ast = grammar::ast;
-
-
 class TypeChecker : public Visitor {
     
 
@@ -48,15 +45,15 @@ private:
     }
 
 
-    void postVisit(ast::Prog &prog) override {
+    void postVisit(grammar::ast::Prog &prog) override {
         assert(typeStack.size() == 0);
     }
 
-    void postVisit(ast::StatementExpression &exp) override {
+    void postVisit(grammar::ast::StatementExpression &exp) override {
         typeStack.pop();
     }
 
-    void postVisit(ast::FunctionCall &funcCall) override {
+    void postVisit(grammar::ast::FunctionCall &funcCall) override {
         Symbol *sym = funcCall.id.scope->find(funcCall.id.id);
         if (sym != nullptr) {
             if (dynamic_cast<VarSymbol *>(sym)) {
@@ -93,7 +90,7 @@ private:
         }
     }
     
-    void postVisit(ast::VarAssign &varassign) override {
+    void postVisit(grammar::ast::VarAssign &varassign) override {
         // id 
         // cout << "Debug: Entering postVisit VarAssign" << endl;
         if (varassign.id.sym == nullptr) {
@@ -113,7 +110,7 @@ private:
     // Check that the expression in the if statement evaluates to a bool
     // Checks both if and else if (since they are both if nodes in the ast)
     // TODO: Check return statements? 
-    void postVisit(ast::IfStatement &ifStatement) override {
+    void postVisit(grammar::ast::IfStatement &ifStatement) override {
         // exp
         auto t1 = pop(typeStack);
         
@@ -125,7 +122,7 @@ private:
     }
 
 
-    void postVisit(ast::VarDeclAssign &vardecl) override {  
+    void postVisit(grammar::ast::VarDeclAssign &vardecl) override {  
         //id  
         auto t1 = vardecl.decl.sym->type;
         std::cout << "Debug: postVisit VarDecl t1: " << t1.toString() << std::endl;
@@ -137,7 +134,7 @@ private:
         }
     } 
 
-    void preBlockVisit(ast::WhileStatement &whileStatement) override {
+    void preBlockVisit(grammar::ast::WhileStatement &whileStatement) override {
         // exp
         std::cout << "Debug: Entering preBlockVisit WhileStatement" << std::endl;
         auto t1 = pop(typeStack);
@@ -148,8 +145,8 @@ private:
     }
 
 
-    void preVisit(ast::VarExpression &varExp) override {
-        std::cout << "Debug: in id: " << varExp.id.id << std::endl;
+    void preVisit(grammar::ast::VarExpression &varExp) override {
+        // std::cout << "Debug: in id: " << varExp.id.id << std::endl;
         if (varExp.id.sym == nullptr) {
             throw TypeCheckError("Symbol not found", varExp);
         }
@@ -157,11 +154,11 @@ private:
         typeStack.push(varSymbol->type);
     }
 
-    void preVisit(ast::BlockLine &blockLine) override {
+    void preVisit(grammar::ast::BlockLine &blockLine) override {
         hasFuncReturned = false;
     }
 
-    void postVisit(ast::ReturnStatement &rtn) override {
+    void postVisit(grammar::ast::ReturnStatement &rtn) override {
         auto t1 = pop(typeStack);
         // cout << "Debug: postVisit ReturnStatement t1: " << t1 << endl;
         auto t2 = func->returnType;
@@ -175,12 +172,12 @@ private:
         hasFuncReturned = true;
     }
 
-    void preVisit(ast::FuncDecl &funcDecl) override {
+    void preVisit(grammar::ast::FuncDecl &funcDecl) override {
         func = funcDecl.sym;
         // cout << "Debug: preVisit FuncDecl" << endl;
     }
 
-    void postVisit(ast::PrintStatement &_) override {
+    void postVisit(grammar::ast::PrintStatement &_) override {
         pop(typeStack);
     }
 
@@ -198,16 +195,16 @@ private:
         return true;
     }
 
-    void postVisit(ast::ArrayType &arrayType) override {
+    void postVisit(grammar::ast::ArrayType &arrayType) override {
         pop(typeStack);
     }
 
-    void postVisit(ast::ArrayExp &exp) override {
+    void postVisit(grammar::ast::ArrayExp &exp) override {
         if (!areAllInts(exp.sizes)) {
             throw TypeCheckError("Array size must be an int", exp);
         }
 
-        auto symbolType = convertType(ast::Type(exp.primType));
+        auto symbolType = convertType(grammar::ast::Type(exp.primType));
         // void* memory = ::operator new(sizeof(SymbolType));
         // SymbolType* symbolTypePtr = new(memory) SymbolType(symbolType);
         std::cout << "DEBUG: pushed arraySymbol in ArrayExp" << std::endl;
@@ -215,7 +212,7 @@ private:
     }
 
 
-    void postVisit(ast::ArrayIndex &arrayIndex) override {
+    void postVisit(grammar::ast::ArrayIndex &arrayIndex) override {
         std::cout << "DEBUG: in ArrayIndex: " << arrayIndex.id.sym << std::endl;
         if (arrayIndex.id.sym == nullptr) {
             std::cout << "DEBUG: Symbol is null" << std::endl;
@@ -241,7 +238,7 @@ private:
         }
     }
 
-    void postVisit(ast::ArrayIndexAssign &assign) override {
+    void postVisit(grammar::ast::ArrayIndexAssign &assign) override {
         // Exp result
         auto t1 = pop(typeStack);
         // std::cout << "Debug: postVisit VarDecl t1: " << t1.toString() << std::endl;
@@ -254,7 +251,7 @@ private:
         }
     }
 
-    void postVisit(ast::FuncDecl &funcDecl) override {
+    void postVisit(grammar::ast::FuncDecl &funcDecl) override {
         if (!hasFuncReturned) {
             throw TypeCheckError("Function " + funcDecl.id.id + " does not always return", funcDecl);
         }
@@ -272,7 +269,7 @@ private:
         typeStack.push(IntType());
     }
 
-    void postVisit(ast::Rhs &rhs) override {
+    void postVisit(grammar::ast::Rhs &rhs) override {
         auto expType = pop(typeStack);
         auto lhsType = pop(typeStack);
         auto op = rhs.op;
@@ -310,17 +307,12 @@ private:
 }; 
 
 
-ast::Prog typeChecker(ast::Prog &prog, SymbolTable *globalScope) {
+grammar::ast::Prog typeChecker(grammar::ast::Prog &prog, SymbolTable *globalScope) {
     auto visitor = TypeChecker(globalScope);
     auto traveler = TreeTraveler(visitor);
     traveler(prog);
     return prog;
 }
-
-
-
-
-
 
 
 

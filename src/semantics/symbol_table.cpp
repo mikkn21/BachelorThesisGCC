@@ -2,9 +2,8 @@
 
 #include "semantics_error.hpp"
 #include <iostream>
+#include <typeinfo>
 
-
-int nextUID = 0;
 
 struct print_visitor {
     std::ostream& os;
@@ -124,7 +123,6 @@ FuncSymbol::FuncSymbol(grammar::ast::FuncDecl *funcDecl, SymbolTable *scope) : s
 }
 
 VarSymbol::VarSymbol(grammar::ast::VarDecl *varDecl) : varDecl(varDecl) {
-    uid = nextUID++;
     type = convertType(varDecl->type);
 }
 
@@ -145,7 +143,12 @@ SymbolTable::~SymbolTable(){
     }
 }
 
-void SymbolTable::insert(std::string key, Symbol *symbol) {
+void SymbolTable::insert(std::string key, VarSymbol* symbol) {
+    symbol->local_id = ++registerCounter;
+    entries.emplace(key, symbol); 
+}
+
+void SymbolTable::insert(std::string key, FuncSymbol *symbol) {
     entries.emplace(key, symbol); 
 }
 
@@ -173,3 +176,15 @@ Symbol *SymbolTable::find(std::string key) const {
     }
 }
 
+std::vector<VarSymbol*> SymbolTable::get_var_symbols() {
+    std::vector<VarSymbol*> var_symbols;
+    for (auto var : entries) {
+        auto var_casted = dynamic_cast<VarSymbol*>(var.second);
+        if (typeid(var_casted) == typeid(VarSymbol*)) {
+            var_symbols.push_back(var_casted);
+        } else {
+            std::cout << "something went wrong when casting symbol" << std::endl;
+        }
+    }
+    return var_symbols;
+}

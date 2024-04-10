@@ -3,13 +3,14 @@
 
 
 #include <string>
-
+#include "../ast.hpp"
+#include <sstream>
+#include <optional>
+#include <stdexcept>
 
 class CompilerError : public std::runtime_error {
-private:
 public:
     CompilerError(const std::string& msg) : std::runtime_error(msg) {}
-
 };
 
 #endif

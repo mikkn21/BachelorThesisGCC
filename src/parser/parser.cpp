@@ -263,7 +263,7 @@ namespace grammar {
                 }
                 return ast;
 
-            }catch(const x3::expectation_failure<PosIter> &e) {
+            } catch (const x3::expectation_failure<PosIter> &e) {
 	            iter = e.where();
 		        throw SyntaxError(makeError()
 		            + "\nExpected " + e.which() + ".\n"

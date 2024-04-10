@@ -37,6 +37,10 @@ public:
         }
     }
 
+    void preVisit(grammar::ast::Rhs &op_exp) override {
+        op_exp.scope = currentSymbolTable;
+    }
+
     void postVisit(grammar::ast::VarDecl &varDecl) override {
         // We use postVisit, instead of preVisit, because then a VarExpression is visited first,
         // making sure that in the case of int x = x, then "x" in the right-hand side, is resolved in the parent scopes.
@@ -45,6 +49,7 @@ public:
         }
 
         VarSymbol *variantSymbol = new VarSymbol(&varDecl);
+        
         currentSymbolTable->insert(varDecl.id.id, variantSymbol);
         varDecl.sym = variantSymbol;
         varDecl.id.sym = variantSymbol;

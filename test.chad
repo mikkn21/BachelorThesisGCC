@@ -1,2 +1,6 @@
-int c = 5;
-int x = 1;
+
+int main() {
+    print(2+10/3+4/3*2);
+
+    return 0;
+}

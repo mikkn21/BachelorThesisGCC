@@ -3,8 +3,7 @@
 #include <stack>
 
 
-namespace ast = grammar::ast;
-using AstValue = std::variant<int, bool>;
+using AstValue = std::variant<int, bool, GenericRegister>;
 
 class IRVisitor : public Visitor {
 public:
@@ -12,20 +11,26 @@ public:
 
     IRVisitor();
 
-    void preVisit(ast::Prog &prog) override;
-    void postVisit(ast::VarDecl &var_decl) override;
+    void preVisit(grammar::ast::FuncDecl &func_decl) override;
+    void postVisit(grammar::ast::FuncDecl &func_decl) override;
+
+    void postVisit(grammar::ast::VarDeclAssign &var_decl_assign) override;
     void preVisit(int &i) override;
+    void preVisit(bool &b) override;
+    void postVisit(grammar::ast::PrintStatement &print) override;
+    void postVisit(grammar::ast::VarExpression &var_expr) override;
+    void postVisit(grammar::ast::Rhs &op_exp) override;
 
 private:
-    size_t register_counter;
     std::vector<std::string> function_container;
     std::stack<AstValue> temp_storage;
 
     int new_register();
+    void binopInstructions(std::string op, GenericRegister result);
 
     template<typename T>
     T pop(std::stack<T>& myStack);
 };
 
 
-IR intermediate_code_generation(ast::Prog &prog);
+IR intermediate_code_generation(grammar::ast::Prog &prog);
