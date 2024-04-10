@@ -28,7 +28,7 @@ void IRVisitor::postVisit(grammar::ast::FuncDecl &func_decl) {
     code.push_back(Instruction(Op::RET));
 }
 
-void IRVisitor::postVisit(FunctionCall &func_call) {
+void IRVisitor::postVisit(grammar::ast::FunctionCall &func_call) {
     code.push_back(Instruction(Op::PROCEDURE, Arg(Procedure::CALLER_SAVE, DIR())));
     for (long unsigned int i = 0; i < func_call.argument_list.arguments.size(); i++) {
         AstValue value = pop(temp_storage);
@@ -39,7 +39,7 @@ void IRVisitor::postVisit(FunctionCall &func_call) {
             int int_value = bool_value ? 1 : 0;
             code.push_back(Instruction(Op::PUSHQ, Arg(ImmediateValue(int_value), DIR())));
         } else if (std::holds_alternative<GenericRegister>(value)) {
-            code.push_back(Instruction(Op::PUSHQ, Arg(get<GenericRegister>(value), DIR())));
+            code.push_back(Instruction(Op::PUSHQ, Arg(std::get<GenericRegister>(value), DIR())));
         }
     }
     
