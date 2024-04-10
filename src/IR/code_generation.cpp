@@ -40,6 +40,13 @@ void IRVisitor::postVisit(FunctionCall &func_call) {
     
     code.push_back(Instruction(Op::PUSHQ, Arg(Register::RBP, DIR())));
     code.push_back(Instruction(Op::CALL, Arg(Label(func_call.id.id), DIR())));
+    int callee_depth = static_cast<FuncSymbol*>(func_call.id.sym)->symTab->parentScope->depth;
+    int caller_depth = func_call.id.scope->depth;
+    int difference = caller_depth - callee_depth;
+    GenericRegister reg = GenericRegister(++func_call.id.scope->registerCounter);
+    for (int i = 0; i < difference; i++) {
+        code.push_back(Instruction(Op::MOVQ, Arg(Register::RBP, IRL(16)), Arg(reg, DIR())));
+    }
     
 }
 
