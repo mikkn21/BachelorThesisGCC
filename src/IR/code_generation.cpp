@@ -44,10 +44,15 @@ void IRVisitor::postVisit(FunctionCall &func_call) {
     int caller_depth = func_call.id.scope->depth;
     int difference = caller_depth - callee_depth;
     GenericRegister reg = GenericRegister(++func_call.id.scope->registerCounter);
+    GenericRegister reg2 = GenericRegister(++func_call.id.scope->registerCounter);
+    code.push_back(Instruction(Op::MOVQ, Arg(Register::RBP, DIR()), Arg(reg2, DIR())));
     for (int i = 0; i < difference; i++) {
-        code.push_back(Instruction(Op::MOVQ, Arg(Register::RBP, IRL(16)), Arg(reg, DIR())));
-    }
-    
+        code.push_back(Instruction(Op::MOVQ, Arg(reg2, IRL(16)), Arg(reg, DIR())));
+        code.push_back(Instruction(Op::MOVQ, Arg(reg, DIR()), Arg(reg2, DIR())));
+    } // post loop reg2 contains scope where funtion was defined?
+    // do smth with final scope?
+    code.push_back(Instruction(Op::PUSHQ, Arg(reg2, DIR())));
+    code.push_back(Instruction(Op::CALL, Arg(Label(func_call.id.id), DIR())));
 }
 
 void IRVisitor::postVisit(VarDeclAssign &var_decl_assign) {
