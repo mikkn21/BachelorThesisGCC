@@ -1,21 +1,22 @@
 #ifndef MGRAMMAR_COMPILER_HPP
 #define MGRAMMAR_COMPILER_HPP 
 
-#include "ast.hpp"
 #include "semantics/symbol_table.hpp"
 #include <optional>
 #include <memory>
 #include <string_view>
-#include "IR/ir.hpp"
+
+// ALl 3 of these include IR.hpp (so we include it 3 times here)
+#include "IR/register_allocation.hpp"
+#include "IR/code_generation.hpp"
+#include "IR/emit.hpp"
 
 
 namespace grammar::compiler {
 
-using namespace std;
-
 struct CompilerReturnObj {
 private:
-    unique_ptr<SymbolTable> globalScope;
+    std::unique_ptr<SymbolTable> globalScope;
 
 public:
     ast::Prog ast; 
@@ -23,7 +24,7 @@ public:
     IR ir;
     // Essembly
 
-    void setGlobalScope(unique_ptr<SymbolTable> globalScope) {
+    void setGlobalScope(std::unique_ptr<SymbolTable> globalScope) {
         this->globalScope = std::move(globalScope);
     }
 };

@@ -1,29 +1,38 @@
 // #define BOOST_SPIRIT_X3_DEBUG
 
-#include <boost/spirit/home/x3.hpp>
-#include <boost/spirit/include/support_line_pos_iterator.hpp>
-#include <sys/resource.h>
-#include "../ast.hpp"
 #include "parser.hpp"
+#include "../ast_adapt.hpp" 
+
+#include <boost/spirit/include/support_line_pos_iterator.hpp>
+
+#include <boost/spirit/home/support/char_encoding/iso8859_1.hpp>
+#include <boost/spirit/home/x3/string.hpp>
+#include <boost/spirit/home/x3/operator.hpp>
+#include <boost/spirit/home/x3/directive/lexeme.hpp>
+#include <boost/spirit/home/x3/directive/raw.hpp>
+#include <boost/spirit/home/x3/char/char.hpp>
+#include <boost/spirit/home/x3/numeric/bool.hpp>
+#include <boost/spirit/home/x3/numeric/int.hpp>
+#include <boost/spirit/home/x3/char/char_class.hpp>
+
+#include <boost/spirit/home/x3/core/parse.hpp>
+
+#include <sys/resource.h>
 
 
-using namespace std;
 
 namespace grammar {
     namespace parser {
+
         namespace x3 = boost::spirit::x3;
-
-        using x3::int_;
-        using x3::bool_;
-        using namespace grammar::ast;
-
+    
         namespace {
             constexpr int SpacesPerTabs = 4;   
         } // namespace
 
         struct LocationHandler {
 	    template<typename Iterator, typename Context>
-	    void on_success(const Iterator &first, const Iterator &last, LocationInfo &locInfo, const Context &) {
+	    void on_success(const Iterator &first, const Iterator &last, ast::LocationInfo &locInfo, const Context &) {
 		    locInfo.line = get_line(first);
 		    locInfo.column = get_column(first, last, SpacesPerTabs);
 	       }
@@ -31,50 +40,54 @@ namespace grammar {
 
 
         // Rules up here:
-        const x3::rule<class factor_rule, BinopExps>  factor = "factor";      
-        const x3::rule<class term_rule, BinopExps>  term = "term";
-        const x3::rule<class comp_rule, BinopExps>  comp = "comp";      
-        const x3::rule<class eq_rule, BinopExps>  eq = "eq";
-        const x3::rule<class logical_and_rule, BinopExps>  logical_and = "logical_and";
-        const x3::rule<class logical_or_rule, BinopExps>  logical_or = "logical_or";
+        const x3::rule<class factor_rule, ast::BinopExps>  factor = "factor";      
+        const x3::rule<class term_rule, ast::BinopExps>  term = "term";
+        const x3::rule<class comp_rule, ast::BinopExps>  comp = "comp";      
+        const x3::rule<class eq_rule, ast::BinopExps>  eq = "eq";
+        const x3::rule<class logical_and_rule, ast::BinopExps>  logical_and = "logical_and";
+        const x3::rule<class logical_or_rule, ast::BinopExps>  logical_or = "logical_or";
 
-        const x3::rule<class factor_rule_rhs, Rhs>  factor_rhs = "factor_rhs";      
-        const x3::rule<class term_rule_rhs, Rhs>  term_rhs = "term_rhs";
-        const x3::rule<class comp_rule_rhs, Rhs>  comp_rhs = "comp_rhs";      
-        const x3::rule<class eq_rule_rhs, Rhs>  eq_rhs = "eq_rhs";
-        const x3::rule<class logical_and_rule_rhs, Rhs>  logical_and_rhs = "logical_and_rhs";
-        const x3::rule<class logical_or_rule_rhs, Rhs>  logical_or_rhs = "logical_or_rhs";
+        const x3::rule<class factor_rule_rhs, ast::Rhs>  factor_rhs = "factor_rhs";      
+        const x3::rule<class term_rule_rhs, ast::Rhs>  term_rhs = "term_rhs";
+        const x3::rule<class comp_rule_rhs, ast::Rhs>  comp_rhs = "comp_rhs";      
+        const x3::rule<class eq_rule_rhs, ast::Rhs>  eq_rhs = "eq_rhs";
+        const x3::rule<class logical_and_rule_rhs, ast::Rhs>  logical_and_rhs = "logical_and_rhs";
+        const x3::rule<class logical_or_rule_rhs, ast::Rhs>  logical_or_rhs = "logical_or_rhs";
       
 
-        const x3::rule<class id, Id> id = "id";
-        const x3::rule<class primitive_type, PrimitiveType> primitive_type = "primitive_type";
-        const x3::rule<class block_line, BlockLine> block_line = "block_line";
-        const x3::rule<class block, Block> block = "block";
-        const x3::rule<class type, Type> type = "type";
-        const x3::rule<class var_decl, VarDecl> var_decl = "var_decl";
-        const x3::rule<class var_decl_assign, VarDeclAssign> var_decl_assign = "var_decl_assign";
-        const x3::rule<class var_decl_statement, VarDeclStatement> var_decl_statement = "var_decl_statement";
-        const x3::rule<class parameter, Parameter> parameter = "parameter";
-        const x3::rule<class parameter_list, ParameterList> parameter_list = "parameter_list";
-        const x3::rule<class func_decl, FuncDecl> func_decl = "func_decl";
-        const x3::rule<class array_type, ArrayType> array_type = "array_type";
-        const x3::rule<class var_assign, VarAssign> var_assign = "var_assign";
-        const x3::rule<class while_statement, WhileStatement> while_statement = "while_statement";
-        const x3::rule<class decl, Decl> decl = "decl";
-        const x3::rule<class prog, Prog> prog = "prog";
-        const x3::rule<class expression,  Expression> expression = "expression";
-        const x3::rule<class expression_par, ExpressionPar> expression_par = "expression_par";
-        const x3::rule<class function_call, FunctionCall> function_call = "function_call";
-        const x3::rule<class argument_list, ArgumentList> argument_list = "argument_list";
-        const x3::rule<class statement_expression, StatementExpression> statement_expression = "statement_expression";
-        const x3::rule<class statement, Statement> statement = "statement";
-        const x3::rule<class print_statement, PrintStatement> print_statement = "print_statement";
-        const x3::rule<class return_statement, ReturnStatement> return_statement = "return_statement";
-        const x3::rule<class var_expression, VarExpression> var_expression =  "var_expression";
+        const x3::rule<class id, ast::Id> id = "id";
+        const x3::rule<class primitive_type, ast::PrimitiveType> primitive_type = "primitive_type";
+        const x3::rule<class block_line, ast::BlockLine> block_line = "block_line";
+        const x3::rule<class block, ast::Block> block = "block";
+        const x3::rule<class type, ast::Type> type = "type";
+        const x3::rule<class var_decl, ast::VarDecl> var_decl = "var_decl";
+        const x3::rule<class var_decl_assign, ast::VarDeclAssign> var_decl_assign = "var_decl_assign";
+        const x3::rule<class var_decl_statement, ast::VarDeclStatement> var_decl_statement = "var_decl_statement";
+        const x3::rule<class parameter, ast::Parameter> parameter = "parameter";
+        const x3::rule<class parameter_list, ast::ParameterList> parameter_list = "parameter_list";
+        const x3::rule<class func_decl, ast::FuncDecl> func_decl = "func_decl";
+        const x3::rule<class var_assign, ast::VarAssign> var_assign = "var_assign";
+        const x3::rule<class while_statement, ast::WhileStatement> while_statement = "while_statement";
+        const x3::rule<class decl, ast::Decl> decl = "decl";
+        const x3::rule<class prog, ast::Prog> prog = "prog";
+        const x3::rule<class expression,  ast::Expression> expression = "expression";
+        const x3::rule<class expression_par, ast::ExpressionPar> expression_par = "expression_par";
+        const x3::rule<class function_call, ast::FunctionCall> function_call = "function_call";
+        const x3::rule<class argument_list, ast::ArgumentList> argument_list = "argument_list";
+        const x3::rule<class statement_expression, ast::StatementExpression> statement_expression = "statement_expression";
+        const x3::rule<class statement, ast::Statement> statement = "statement";
+        const x3::rule<class print_statement, ast::PrintStatement> print_statement = "print_statement";
+        const x3::rule<class return_statement, ast::ReturnStatement> return_statement = "return_statement";
+        const x3::rule<class var_expression, ast::VarExpression> var_expression =  "var_expression";
 
-        const x3::rule<class if_statement, IfStatement> if_statement =  "if_statement";
-        const x3::rule<class else_statement, ElseStatement> else_statement =  "else_statement";
-        const x3::rule<class conditional_statement, ConditionalStatement> conditional_statement =  "conditional_statement";
+        const x3::rule<class array_type, ast::ArrayType> array_type = "array_type";
+        const x3::rule<class array_index, ast::ArrayIndex> array_index = "array_index";
+        const x3::rule<class array_exp, ast::ArrayExp> array_exp = "array_exp";
+        const x3::rule<class array_index_assign, ast::ArrayIndexAssign> array_index_assign = "array_index_assign";
+
+        const x3::rule<class if_statement, ast::IfStatement> if_statement =  "if_statement";
+        const x3::rule<class else_statement, ast::ElseStatement> else_statement =  "else_statement";
+        const x3::rule<class conditional_statement, ast::ConditionalStatement> conditional_statement =  "conditional_statement";
 
         
 
@@ -88,17 +101,11 @@ namespace grammar {
                     ("bool", "bool")
                     ("true", "true")
                     ("false", "false")
+                    ("new", "new")
                     ("print", "print"); 
             }
         } reservedkeywordsInstance; 
 
-   
-        // Define a parser for operators
-        // const auto operator_parser =
-        //     x3::string("==") | x3::string("!=") | x3::string("<=") | x3::string(">=") |
-        //     x3::string("+") | x3::string("-") | x3::string("*") | x3::string("/") |
-        //     x3::string("%") | x3::string("<") | x3::string(">") | x3::string("&") | x3::string("|");
-        
         
         // highest to lowset precedence
         const auto mul_op = x3::string("*") | x3::string("/") | x3::string("%");
@@ -106,23 +113,23 @@ namespace grammar {
         const auto comp_op = x3::string("<=") | x3::string(">=") | x3::string("<") | x3::string(">");
         const auto eq_op = x3::string("==") | x3::string("!=");
         const auto logical_and_op = x3::string("&");
-        const auto logical_or_op =x3::string("|");
+        const auto logical_or_op = x3::string("|");
 
-        auto optionalParExp(string s) {
+        auto optionalParExp(std::string s) {
             return x3::lit(s + " ") > expression | x3::lit(s) > expression_par;
         }
 
 
         // Useable
         const auto primitive_type_def = x3::string("int") | x3::string("bool");
-        const auto type_def = primitive_type;  // | array_type;
-        const auto id_def = x3::raw[ x3::lexeme[(x3::char_("a-zA-Z_") >> *x3::char_("a-zA-Z_0-9"))]] - (reservedkeywordsInstance >> !x3::alnum) ;
+        const auto type_def = array_type | primitive_type;
+        const auto id_def = x3::raw[ x3::lexeme[( x3::char_("a-zA-Z_") >> * boost::spirit::x3::char_("a-zA-Z_0-9"))]] - (reservedkeywordsInstance >> ! x3::alnum) ;
         const auto parameter_def = var_decl; // don't know if this is an issue since vardecl is declared later
         const auto parameter_list_def = -(parameter % ',');
 
         // --- Precedens stuff  
         const auto expression_par_def = ('(' >> expression) > ')';
-        const auto expression_base =  expression_par | function_call | var_expression | int_ | bool_;
+        const auto expression_base =  expression_par | function_call | array_index | array_exp | var_expression | x3::int_ | x3::bool_;
 
         const auto expression_def = logical_or;
 
@@ -165,17 +172,19 @@ namespace grammar {
         const auto var_decl_statement_def = var_decl >> ';';
 
         const auto statement_expression_def = expression >> ';';
-        const auto statement_def = var_assign | var_decl_statement | var_decl_assign | conditional_statement | while_statement | statement_expression | print_statement | return_statement;
-        
-        // const auto decl_def = var_decl | func_decl;
+        const auto statement_def = var_assign | var_decl_statement | var_decl_assign | conditional_statement | while_statement | array_index_assign | statement_expression | print_statement | return_statement;
+    
+
         const auto decl_def = var_decl_assign | var_decl_statement | func_decl;
         const auto prog_def = *decl;
 
         const auto function_call_def = (id >> '('>> argument_list) > ')';
         const auto argument_list_def = -(expression % ',');
 
-        // Not useable, TODO
-        const auto array_type_def = type >> x3::lit("[]");
+        const auto array_type_def = (primitive_type >> '[') > x3::int_ > ']'; // NOTE: Is literal int this is by choice
+        const auto array_exp_def = (x3::lit("new ") >> primitive_type >> '[') > (expression % ',') > ']';
+        const auto array_index_def = (id >> '[') > (expression % ',') > ']';
+        const auto array_index_assign_def = (array_index >> '=') > expression > ';';
 
         BOOST_SPIRIT_DEFINE(
             factor,
@@ -200,6 +209,9 @@ namespace grammar {
             parameter_list,
             func_decl,
             array_type,
+            array_exp,
+            array_index,
+            array_index_assign,
             var_assign,
             while_statement,
             decl,
@@ -223,10 +235,8 @@ namespace grammar {
         grammar::ast::Prog parse(std::string_view src)
         {
             namespace x3 = boost::spirit::x3;
-            using x3::space;
-            using grammar::ast::Prog;
 
-            Prog ast;
+            grammar::ast::Prog ast;
             using PosIter = boost::spirit::line_pos_iterator<std::string_view::const_iterator>;
             PosIter iter(src.begin());
 
@@ -239,7 +249,6 @@ namespace grammar {
                     if(c == '\t') msg += std::string(SpacesPerTabs, ' ');
                     else msg += c;
                 }
-                // std::string msg = "Parsing failed";
                 msg += "\n";
                 msg += std::string(column - 1, '-');
                 msg += "^";
@@ -247,12 +256,11 @@ namespace grammar {
 	        };
 
             try {
-                bool r = phrase_parse(iter,  PosIter(src.end()), prog, space, ast);
+                bool r = phrase_parse(iter,  PosIter(src.end()), prog, x3::space, ast);
 
                 if(!r || iter !=  PosIter(src.end())) {
                     throw SyntaxError(makeError() + "\nEnd of x3 error.");
                 }
-		        // return ast;
                 return ast;
 
             } catch (const x3::expectation_failure<PosIter> &e) {

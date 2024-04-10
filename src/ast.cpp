@@ -1,6 +1,6 @@
 #include <iostream>
 #include "ast.hpp"
-#include "semantics/symbol_table.hpp"
+
 
 namespace {
     struct print_visitor : boost::static_visitor<> {
@@ -23,7 +23,24 @@ namespace grammar
     {
         FuncDecl::FuncDecl() = default;
         FuncDecl::~FuncDecl() = default;
-        
+
+
+        /**
+            * Print a delimiter seperated list 
+            * e.g [a, b, c]
+            @param Os stream 
+            @param vec vector that you need to print 
+            @param delimiter the delimiter between the vec elements
+        */
+        template <typename T>
+        std::ostream& printVec(std::ostream& os, std::vector<T> vec, std::string delimiter) {
+            os << vec[0];
+            for (unsigned long i = 1; i < vec.size(); i++) {
+                os << delimiter << vec[i];
+            }
+            return os;
+        }
+
         std::ostream& operator<<(std::ostream& os, const grammar::ast::LocationInfo &location_info) {
             return os << "[" << location_info.line << ", " << location_info.column << "]";
         };
@@ -39,6 +56,26 @@ namespace grammar
         std::ostream& operator<<(std::ostream& os, const grammar::ast::Rhs &rhs) {
             return os << rhs.op << " " << rhs.exp;
         }
+
+        std::ostream& operator<<(std::ostream& os, const grammar::ast::ArrayIndex &arrayIndex) {
+            os << arrayIndex.id << "["; 
+            return printVec(os, arrayIndex.indices, ", ") << "]";
+        }
+
+        std::ostream& operator<<(std::ostream& os, const ArrayIndexAssign &ArrayIndexAssign) {
+            return os << ArrayIndexAssign.index << " = " << ArrayIndexAssign.exp << ';';
+        }
+
+        std::ostream& operator<<(std::ostream& os, const grammar::ast::ArrayType &arrayType) {
+            return os << arrayType.type << "[" << arrayType.dim << "]"; 
+        }
+
+        std::ostream& operator<<(std::ostream& os, const grammar::ast::ArrayExp &arrayExp) {
+            os << "new " << arrayExp.primType << '[';
+            printVec(os, arrayExp.sizes, ", ");
+            return os  << ']';
+        }
+
 
         std::ostream& operator<<(std::ostream& os, const IfStatement &exp) {
             return os << "if " << exp.exp << " " << exp.block;
@@ -170,10 +207,6 @@ namespace grammar
 
         std::ostream& operator<<(std::ostream& os, const grammar::ast::FuncDecl &func) {
             return os << func.type << " " << func.id << " (" << func.parameter_list << ") " << func.block;
-        }
-
-        std::ostream& operator<<(std::ostream& os, const grammar::ast::ArrayType &arr) {
-            return os << arr.type << "[]";
         }
 
         std::ostream& operator<<(std::ostream& os, const grammar::ast::VarAssign &assign) {

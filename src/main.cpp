@@ -1,20 +1,10 @@
-#include <exception>
-#include <iostream>
-#include <ostream>
 #include <boost/program_options.hpp>
-#include <stdexcept>
-#include "error/ast_error.hpp"
-#include "error/compiler_error.hpp"
-
 #include "compiler.hpp"
-#include "semantics/semantics_error.hpp"
 
-using namespace std;
-using namespace grammar::compiler;
 namespace po = boost::program_options;
 
 int main(int argc, char* argv[]) {
-    CompilerOptions options = CompilerOptions();
+    grammar::compiler::CompilerOptions options = grammar::compiler::CompilerOptions();
     try {
         po::options_description desc("Compiler Options");
         desc.add_options()
@@ -29,7 +19,7 @@ int main(int argc, char* argv[]) {
             ("print-input,i", po::bool_switch(), "Print the input before parsing")
             ("print-code-generation,c", po::bool_switch(), "Print the Intermediate code after the code generation phase")
             ("print-register-allocation,r", po::bool_switch(), "Print the Intermediate code after the register allocation phase")
-            ("input-file", po::value<string>(), "Input file to compile"); // this is to necessary
+            ("input-file", po::value<std::string>(), "Input file to compile"); // this is to necessary
         po::positional_options_description p;
         // Here we say that we expect 1 non-posestional argument namely the file
         p.add("input-file", 1); 
@@ -40,24 +30,24 @@ int main(int argc, char* argv[]) {
         po::notify(vm);
 
         if (vm.count("help")) {
-            cout << "Usage: giga [options] <input-file>\n\n" 
+            std::cout << "Usage: giga [options] <input-file>\n\n" 
                 << desc; 
             return 0;
         }
         if (vm["parse-only"].as<bool>()) { 
-            options.stopAfter = StopAfterParser;
+            options.stopAfter = grammar::compiler::StopAfterParser;
         }
         if (vm["symbol-collection-only"].as<bool>()) { 
-            options.stopAfter = StopAfterSymbolCollection;
+            options.stopAfter = grammar::compiler::StopAfterSymbolCollection;
         }
         if (vm["type-check-only"].as<bool>()) { 
-            options.stopAfter = StopAfterTypeCheck;
+            options.stopAfter = grammar::compiler::StopAfterTypeCheck;
         }
         if (vm["code-generation-only"].as<bool>()) { 
-            options.stopAfter = StopAfterCodeGen;
+            options.stopAfter = grammar::compiler::StopAfterCodeGen;
         }
         if (vm["register-allocation-only"].as<bool>()) { 
-            options.stopAfter = StopAfterRegAlloc;
+            options.stopAfter = grammar::compiler::StopAfterRegAlloc;
         }
         if (vm["print-ast"].as<bool>()) {
             options.printAst = true;
@@ -72,20 +62,20 @@ int main(int argc, char* argv[]) {
             options.printRegisterAllocation = true;
         }
         if (vm.count("input-file")) {
-            string_view filename = vm["input-file"].as<string>();
+            std::string_view filename = vm["input-file"].as<std::string>();
             grammar::compiler::compileFromFile(filename, options);
         } else {
-            cerr << "Error: An input source is required.\n";
+            std::cerr << "Error: An input source is required.\n";
             return 1;
         }
     } catch (CompilerError &e) {
-        cerr  << e.what() << endl;
+        std::cerr  << e.what() << std::endl;
         return 1;
-    } catch (exception &e) {
-        cerr << e.what() << endl;
+    } catch (std::exception &e) {
+        std::cerr << e.what() << std::endl;
         return 1;
     } catch (...) {
-        cerr << "Unknown error" << endl;
+        std::cerr << "Unknown error" << std::endl;
         return 1;
     }
     return 0;

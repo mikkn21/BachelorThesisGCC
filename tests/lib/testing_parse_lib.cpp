@@ -1,8 +1,5 @@
-#include "../../src/ast.hpp"
-#include <sstream>
 #include "../../src/parser/parser.hpp"
 #include "../../src/compiler.hpp"
-#include <string>
 #include "testing_parse_lib.hpp"
 
 std::string remove_whitespace(const std::string& str) {
@@ -40,7 +37,7 @@ void test_parse(std::string input, TestingOutcome testing_outcome, Compiler comp
     } catch (const CompilerError &e) {   
         BOOST_CHECK_MESSAGE(false, "\n--- An unknown error derived from Baseerror was encountered in the test.\n" << e.what());
         return;
-    } catch (exception &e) {
+    } catch (std::exception &e) {
         BOOST_CHECK_MESSAGE(false, "\n--- An unknown error type was encountered in the test.\n" << e.what());
         return;
     } catch (...) {
@@ -65,7 +62,7 @@ void test_parse(std::string input, TestingOutcome testing_outcome, Compiler comp
     } catch (const CompilerError &e) {   
         BOOST_CHECK_MESSAGE(false, "\n--- An unknown error derived from Baseerror was encountered in the test.\n" << e.what());
         return;
-    } catch (exception &e) {
+    } catch (std::exception &e) {
         BOOST_CHECK_MESSAGE(false, "\n--- An unknown error type was encountered in the test.\n" << e.what());
         return;
     } catch (...) {

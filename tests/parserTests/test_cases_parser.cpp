@@ -176,6 +176,33 @@ BOOST_AUTO_TEST_CASE(SyntaxErrorInCondition) {test_parse_string("int f() { if(tr
 BOOST_AUTO_TEST_CASE(MissingParentheses) {test_parse_string("int f() { if true) { }}", TestingOutcome::PARSE_FAILED);}
 BOOST_AUTO_TEST_CASE(IfWithVariableExpressions) {test_parse_string("int f() { int x = 5; if(x > 2) { }}", TestingOutcome::SUCCESS);}
 
+// Arrays
+BOOST_AUTO_TEST_CASE(SimpleArray) {test_parse_string("int[1] x = new int[5];", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(SimpleArray2) {test_parse_string("int[] x = new int[5];", TestingOutcome::PARSE_FAILED);}
+BOOST_AUTO_TEST_CASE(twoDimArray) {test_parse_string("int[2] x = new int[5,2];", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(threeDimArray) {test_parse_string("int[3] x = new int[5,2,2];", TestingOutcome::SUCCESS);}
+
+
+BOOST_AUTO_TEST_CASE(BigDim) {test_parse_string("int[10] x = new int[1,2,3,4,5,6,7,8,9,10];", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(ArrayIndex) {test_parse_string("int[1] a = new int[5]; int y = a[2];", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(ArrayIndexDim2) {test_parse_string("int[2] a = new int[5,5]; int y = a[2,3];", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(ArrayIndexDim3) {test_parse_string("int[3] a = new int[5,5]; int y = a[2,3,5];", TestingOutcome::SUCCESS);}
+
+
+
+BOOST_AUTO_TEST_CASE(ArrayGiveValueOutsideOfFunction) {test_parse_string("int[1] a = new int[2]; a[1] = 4;", TestingOutcome::PARSE_FAILED);}
+BOOST_AUTO_TEST_CASE(ArrayGiveValue) {test_parse_string("int f() { int[1] a = new int[2]; a[1] = 4; }", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(ArrayGiveValue2d) {test_parse_string(" int f() { int[2] a = new int[2,2]; a[1,2] = 4; }", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(ArrayGiveValue3d) {test_parse_string("int f() { int[3] a = new int[2,2,4]; a[1,2,3] = 4; }", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(ArrayTypeBool) {test_parse_string("int f() { new bool[2,2,4]; a[1,2,3] = true; }", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(DimAsVar) {test_parse_string("int f() { int x = 2; int[x] a = new int[2,2]; }", TestingOutcome::PARSE_FAILED);}
+BOOST_AUTO_TEST_CASE(DimAsFunc) {test_parse_string("int g { int f() { return 2; } int[f()] a = new int[2,2]; }", TestingOutcome::PARSE_FAILED);}
+BOOST_AUTO_TEST_CASE(ArrIndexFunc) {test_parse_string("int f() { return 1; } int[2] a = new int[2, 2]; int x = a[f(), f()]; ", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(ArrIndexVar) {test_parse_string("int i = 1; int[2] a = new int[2, 2]; int x = a[i,i]; ", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(ArrIndexVarWrong) {test_parse_string("int i = 1; int[2] a = new int[2, 2]; int x = a[,i,i]; ", TestingOutcome::PARSE_FAILED);}
+BOOST_AUTO_TEST_CASE(ArrIndexVarWrong2) {test_parse_string("int i = 1; int[2] a = new int[2, 2]; int x = a[i,i,]; ", TestingOutcome::PARSE_FAILED);}
+BOOST_AUTO_TEST_CASE(ArrExpFunc) {test_parse_string("int f() { return 1; } int[2] a = new int[f(), f()]; ", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(ArrExpVar) {test_parse_string("int i = 1; int[2] a = new int[i, i]; ", TestingOutcome::SUCCESS);}
 
 
 

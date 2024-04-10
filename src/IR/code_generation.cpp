@@ -1,4 +1,7 @@
 #include "code_generation.hpp"
+#include "../semantics/symbol_table.hpp"
+
+
 #include <string>
 // #include <boost/spirit/home/x3.hpp>
 // #include <boost/spirit/home/x3/support/ast/apply_visitor.hpp>
@@ -6,25 +9,26 @@
 
 IRVisitor::IRVisitor() : Visitor() {}
 
-void IRVisitor::preVisit(FuncDecl &func_decl) {
+
+void IRVisitor::preVisit(grammar::ast::FuncDecl &func_decl) {
     code.push_back(Instruction(Op::LABEL, Arg(Label(func_decl.id.id), DIR())));
     code.push_back(Instruction(Op::PUSHQ, Arg(Register::RBP, DIR())));
     code.push_back(Instruction(Op::MOVQ, Arg(Register::RSP, DIR()), Arg(Register::RBP, DIR())));
     code.push_back(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_SAVE, DIR())));
-    vector<VarSymbol*> var_decls = func_decl.sym->symTab->get_var_symbols();
+    std::vector<VarSymbol*> var_decls = func_decl.sym->symTab->get_var_symbols();
     for (long unsigned int i = 0; i < var_decls.size(); i++) {
         code.push_back(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR())));
     }
 }
 
-void IRVisitor::postVisit(FuncDecl &func_decl) {
+void IRVisitor::postVisit(grammar::ast::FuncDecl &func_decl) {
     code.push_back(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_RESTORE, DIR())));
     code.push_back(Instruction(Op::MOVQ, Arg(Register::RBP, DIR()), Arg(Register::RSP, DIR())));
     code.push_back(Instruction(Op::POPQ, Arg(Register::RBP, DIR())));
     code.push_back(Instruction(Op::RET));
 }
 
-void IRVisitor::postVisit(FunctionCall &func_call) {
+void IRVisitor::postVisit(grammar::ast::FunctionCall &func_call) {
     code.push_back(Instruction(Op::PROCEDURE, Arg(Procedure::CALLER_SAVE, DIR())));
     for (long unsigned int i = 0; i < func_call.argument_list.arguments.size(); i++) {
         AstValue value = pop(temp_storage);
@@ -35,7 +39,7 @@ void IRVisitor::postVisit(FunctionCall &func_call) {
             int int_value = bool_value ? 1 : 0;
             code.push_back(Instruction(Op::PUSHQ, Arg(ImmediateValue(int_value), DIR())));
         } else if (std::holds_alternative<GenericRegister>(value)) {
-            code.push_back(Instruction(Op::PUSHQ, Arg(get<GenericRegister>(value), DIR())));
+            code.push_back(Instruction(Op::PUSHQ, Arg(std::get<GenericRegister>(value), DIR())));
         }
     }
     
@@ -64,7 +68,7 @@ void IRVisitor::postVisit(FunctionCall &func_call) {
     code.push_back(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_RESTORE, DIR())));
 }
 
-void IRVisitor::postVisit(VarDeclAssign &var_decl_assign) {
+void IRVisitor::postVisit(grammar::ast::VarDeclAssign &var_decl_assign) {
     AstValue value = pop(temp_storage);
     if (std::holds_alternative<int>(value)) {
         code.push_back(Instruction(Op::MOVQ, Arg(ImmediateValue(std::get<int>(value)), DIR()), Arg(GenericRegister(var_decl_assign.decl.sym->local_id), DIR())));
@@ -88,12 +92,12 @@ void IRVisitor::preVisit(bool &b) {
     temp_storage.push(b);
 }
 
-void IRVisitor::postVisit(VarExpression &var_expr) {
+void IRVisitor::postVisit(grammar::ast::VarExpression &var_expr) {
     VarSymbol *var_symbol = static_cast<VarSymbol*>(var_expr.id.sym);
     temp_storage.push(var_symbol->local_id);
 }
 
-void IRVisitor::binopInstructions(string op, GenericRegister result){
+void IRVisitor::binopInstructions(std::string op, GenericRegister result){
     if (op == "+") {
         code.push_back(Instruction(Op::ADDQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR())));
         code.push_back(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(result, DIR())));
@@ -176,7 +180,7 @@ void IRVisitor::binopInstructions(string op, GenericRegister result){
 }
 
 
-void IRVisitor::postVisit(Rhs &op_exp) {
+void IRVisitor::postVisit(grammar::ast::Rhs &op_exp) {
     // future optimization: calculate immediate values immediately to optimize program.
     code.push_back(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR())));    
     code.push_back(Instruction(Op::PUSHQ, Arg(Register::R8, DIR())));
@@ -186,26 +190,26 @@ void IRVisitor::postVisit(Rhs &op_exp) {
     AstValue rhs = pop(temp_storage);
     AstValue lhs = pop(temp_storage);
 
-    if (holds_alternative<int>(lhs)) {
-        code.push_back(Instruction(Op::MOVQ, Arg(ImmediateValue(get<int>(lhs)), DIR()), Arg(Register::R8, DIR())));
-    } else if (holds_alternative<bool>(lhs)) {
-        bool bool_value = get<bool>(lhs);
+    if (std::holds_alternative<int>(lhs)) {
+        code.push_back(Instruction(Op::MOVQ, Arg(ImmediateValue(std::get<int>(lhs)), DIR()), Arg(Register::R8, DIR())));
+    } else if (std::holds_alternative<bool>(lhs)) {
+        bool bool_value = std::get<bool>(lhs);
         int int_value = bool_value ? 1 : 0;
         code.push_back(Instruction(Op::MOVQ, Arg(ImmediateValue(int_value), DIR()), Arg(Register::R8, DIR())));
-    } else if (holds_alternative<GenericRegister>(lhs)) {
-        code.push_back(Instruction(Op::MOVQ, Arg(get<GenericRegister>(lhs), DIR()), Arg(Register::R8, DIR())));
+    } else if (std::holds_alternative<GenericRegister>(lhs)) {
+        code.push_back(Instruction(Op::MOVQ, Arg(std::get<GenericRegister>(lhs), DIR()), Arg(Register::R8, DIR())));
     }
 
 
     GenericRegister result = GenericRegister(++op_exp.scope->registerCounter);
-    if (holds_alternative<int>(rhs)) {
-        code.push_back(Instruction(Op::MOVQ, Arg(ImmediateValue(get<int>(rhs)), DIR()), Arg(Register::R9, DIR())));
-    } else if (holds_alternative<bool>(rhs)) {
-        bool bool_value = get<bool>(rhs);
+    if (std::holds_alternative<int>(rhs)) {
+        code.push_back(Instruction(Op::MOVQ, Arg(ImmediateValue(std::get<int>(rhs)), DIR()), Arg(Register::R9, DIR())));
+    } else if (std::holds_alternative<bool>(rhs)) {
+        bool bool_value = std::get<bool>(rhs);
         int int_value = bool_value ? 1 : 0;
         code.push_back(Instruction(Op::MOVQ, Arg(ImmediateValue(int_value), DIR()), Arg(Register::R9, DIR())));
-    } else if (holds_alternative<GenericRegister>(rhs)) {
-        code.push_back(Instruction(Op::MOVQ, Arg(get<GenericRegister>(rhs), DIR()), Arg(Register::R9, DIR())));
+    } else if (std::holds_alternative<GenericRegister>(rhs)) {
+        code.push_back(Instruction(Op::MOVQ, Arg(std::get<GenericRegister>(rhs), DIR()), Arg(Register::R9, DIR())));
     }
     binopInstructions(op_exp.op, result);
     
@@ -214,35 +218,35 @@ void IRVisitor::postVisit(Rhs &op_exp) {
     code.push_back(Instruction(Op::POPQ, Arg(Register::R8, DIR())));
 }
 
-void IRVisitor::postVisit(PrintStatement &print) {
+void IRVisitor::postVisit(grammar::ast::PrintStatement &print) {
     AstValue value = pop(temp_storage);
-    if (holds_alternative<int>(value)) { 
-        code.push_back(Instruction(Op::PROCEDURE, Arg(Procedure::PRINT, DIR()), Arg(ImmediateValue(get<int>(value)), DIR())));
-    } else if (holds_alternative<bool>(value)) {
-        bool bool_value = get<bool>(value);
+    if (std::holds_alternative<int>(value)) { 
+        code.push_back(Instruction(Op::PROCEDURE, Arg(Procedure::PRINT, DIR()), Arg(ImmediateValue(std::get<int>(value)), DIR())));
+    } else if (std::holds_alternative<bool>(value)) {
+        bool bool_value = std::get<bool>(value);
         int int_value = bool_value ? 1 : 0;
         code.push_back(Instruction(Op::PROCEDURE, Arg(Procedure::PRINT, DIR()), Arg(ImmediateValue(int_value), DIR())));
-    } else if (holds_alternative<GenericRegister>(value)) {
-        code.push_back(Instruction(Op::PROCEDURE, Arg(Procedure::PRINT, DIR()), Arg(GenericRegister(get<GenericRegister>(value).local_id), DIR())));
+    } else if (std::holds_alternative<GenericRegister>(value)) {
+        code.push_back(Instruction(Op::PROCEDURE, Arg(Procedure::PRINT, DIR()), Arg(GenericRegister(std::get<GenericRegister>(value).local_id), DIR())));
     }
 }
 
 
 template<typename T>
-T IRVisitor::pop(stack<T>& myStack) {
+T IRVisitor::pop(std::stack<T>& myStack) {
     if (myStack.empty()) {
-        throw runtime_error("IR Attempting to pop from an empty stack");
+        throw std::runtime_error("Attempting to pop from an empty stack");
     }
-    T topElement = move(myStack.top());
+    T topElement = std::move(myStack.top());
     myStack.pop();
     return topElement;
 }
 
-IR intermediate_code_generation(Prog &prog) {
+IR intermediate_code_generation(grammar::ast::Prog &prog) {
     auto visitor = IRVisitor();
     auto traveler = TreeTraveler(visitor);
     traveler(prog);
-    return move(visitor.code);
+    return std::move(visitor.code);
 }
 
 

@@ -4,45 +4,43 @@
 IRL::IRL(long offset) : offset(offset) {}
 ImmediateValue::ImmediateValue(int v) : value(v) {}
 GenericRegister::GenericRegister(long i) : local_id(i) {}
-Label::Label(const string& l) : label(l) {}
+Label::Label(const std::string& l) : label(l) {}
 Arg::Arg(TargetType target, MemAccessType access_type) : target(target), access_type(access_type) {}
 
-Instruction::Instruction(Op op, optional<string> comment)
+Instruction::Instruction(Op op, std::optional<std::string> comment)
     : operation(op), comment(comment) {}
 
-Instruction::Instruction(Op op, Arg arg1, optional<string> comment)
+Instruction::Instruction(Op op, Arg arg1, std::optional<std::string> comment)
     : operation(op), comment(comment) { args.reserve(1); args.push_back(arg1); }
 
-Instruction::Instruction(Op op, Arg arg1, Arg arg2, optional<string> comment)
+Instruction::Instruction(Op op, Arg arg1, Arg arg2, std::optional<std::string> comment)
     : operation(op), comment(comment) { args.reserve(2); args.push_back(arg1); args.push_back(arg2); }
 
-
-
-ostream& operator<<(ostream& os, const Arg arg) {
-    if (holds_alternative<ImmediateValue>(arg.target)) {
-        os << "$" << get<ImmediateValue>(arg.target).value;
-    } else if (holds_alternative<Register>(arg.target)) {
-        if (holds_alternative<IND>(arg.access_type)) {
-            os << "(" << get<Register>(arg.target) << ")";
-        } else if (holds_alternative<IRL>(arg.access_type)) {
-            os << get<IRL>(arg.access_type).offset << "(" << get<Register>(arg.target) << ")";
-        } else if (holds_alternative<DIR>(arg.access_type)) {
-            os << get<Register>(arg.target);
+std::ostream& operator<<(std::ostream& os, const Arg arg) {
+    if (std::holds_alternative<ImmediateValue>(arg.target)) {
+        os << "$" << std::get<ImmediateValue>(arg.target).value;
+    } else if (std::holds_alternative<Register>(arg.target)) {
+        if (std::holds_alternative<IND>(arg.access_type)) {
+            os << "(" << std::get<Register>(arg.target) << ")";
+        } else if (std::holds_alternative<IRL>(arg.access_type)) {
+            os << std::get<IRL>(arg.access_type).offset << "(" << std::get<Register>(arg.target) << ")";
+        } else if (std::holds_alternative<DIR>(arg.access_type)) {
+            os << std::get<Register>(arg.target);
         } else {
             throw IRError("Unexpected access_type");
         }
-    } else if (holds_alternative<GenericRegister>(arg.target)) {
-        os << "Generic Register(" << get<GenericRegister>(arg.target).local_id << ")";
-    } else if (holds_alternative<Label>(arg.target)) {
-        os << get<Label>(arg.target).label;
-    } else if (holds_alternative<Procedure>(arg.target)) {
-        os << "Procedure" << get<Procedure>(arg.target);
+    } else if (std::holds_alternative<GenericRegister>(arg.target)) {
+        os << "Generic Register(" << std::get<GenericRegister>(arg.target).local_id << ")";
+    } else if (std::holds_alternative<Label>(arg.target)) {
+        os << std::get<Label>(arg.target).label;
+    } else if (std::holds_alternative<Procedure>(arg.target)) {
+        os << "Procedure" << std::get<Procedure>(arg.target);
     }
     return os;
 }
 
 
-ostream& operator<<(ostream& os, const Instruction &instruction) {
+std::ostream& operator<<(std::ostream& os, const Instruction &instruction) {
     os << instruction.operation;
     if (instruction.operation == Op::LABEL) {
         os << instruction.args[0];
@@ -54,7 +52,7 @@ ostream& operator<<(ostream& os, const Instruction &instruction) {
     return os << (instruction.comment ? "\t# " + instruction.comment.value() : "");
 }
 
-ostream& operator<<(ostream& os, const Op op) {
+std::ostream& operator<<(std::ostream& os, const Op op) {
     switch (op) {
         case Op::MOVQ:          os << "movq";       break;
         case Op::PUSHQ:          os << "pushq";       break;
@@ -91,7 +89,7 @@ ostream& operator<<(ostream& os, const Op op) {
     return os;
 }
 
-ostream& operator<<(ostream& os, const Register sp) {
+std::ostream& operator<<(std::ostream& os, const Register sp) {
     switch (sp) {
         case Register::RAX:      os << "%rax";       break;
         case Register::RBX:      os << "%rbx";       break;
@@ -116,7 +114,7 @@ ostream& operator<<(ostream& os, const Register sp) {
     return os;
 }
 
-ostream& operator<<(ostream& os, const Procedure procedure){
+std::ostream& operator<<(std::ostream& os, const Procedure procedure){
     switch (procedure) {
         case Procedure::CALLEE_RESTORE:     os << "CALLEE_RESTORE";     break;
         case Procedure::CALLEE_SAVE:        os << "CALLEE_SAVE";        break;
@@ -129,9 +127,9 @@ ostream& operator<<(ostream& os, const Procedure procedure){
 }
 
 
-ostream& operator<<(ostream& os, const IR ir) {
+std::ostream& operator<<(std::ostream& os, const IR ir) {
     for (auto instruction : ir) {
-        os << instruction << endl;
+        os << instruction << std::endl;
     }
     return os;
 }

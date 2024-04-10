@@ -1,14 +1,8 @@
 
 #include "visitor.hpp"
 #include "ast.hpp"
-//#include "error/compiler_error.hpp"
-#include <variant>
-#include <boost/spirit/home/x3/support/ast/variant.hpp>
-#include <iostream>
+// Included in Visitor.hpp>ast.hpp #include <boost/spirit/home/x3/support/ast/variant.hpp>
 
-using boost::apply_visitor;
-using namespace std;
-namespace x3 = boost::spirit::x3;
 
 
 // --- Adding new implementations for AST nodes ---
@@ -21,7 +15,7 @@ namespace x3 = boost::spirit::x3;
 
 // Handle forward AST by calling the operator on the undelying object.
 template <typename T>
-void TreeTraveler::operator()(x3::forward_ast<T> &ast) {
+void TreeTraveler::operator()(boost::spirit::x3::forward_ast<T> &ast) {
     (*this)(ast.get());
 }
 
@@ -32,45 +26,53 @@ void TreeTraveler::operator()(boost::optional<T> &opt) {
     }
 }
 
+template <typename T>
+void TreeTraveler::operator()(std::vector<T> &vec) {
+    for (auto &elem : vec) {
+        (*this)(elem);
+    }
+}
+
 // Variants
 template <>
-void TreeTraveler::operator()(Decl &decl) {
+void TreeTraveler::operator()(grammar::ast::Decl &decl) {
     apply_visitor(*this, decl);
 }
 
 template <>
-void TreeTraveler::operator()(Statement &statement) {
+void TreeTraveler::operator()(grammar::ast::Statement &statement) {
     apply_visitor(*this, statement);
 }
 
+
 template <>
-void TreeTraveler::operator()(Expression &exp) {
+void TreeTraveler::operator()(grammar::ast::Expression &exp) {
     apply_visitor(*this, exp);
 }
 
 template <>
-void TreeTraveler::operator()(BlockLine &blockLine) {
+void TreeTraveler::operator()(grammar::ast::BlockLine &blockLine) {
     visitor.preVisit(blockLine);
     apply_visitor(*this, blockLine);
     visitor.postVisit(blockLine);
 }
 
 template <>
-void TreeTraveler::operator()(Type &type) {
+void TreeTraveler::operator()(grammar::ast::Type &type) {
     visitor.preVisit(type);
     apply_visitor(*this, type);
     visitor.postVisit(type);
 }
 
 template <>
-void TreeTraveler::operator()(VarDeclStatement &decl) {
+void TreeTraveler::operator()(grammar::ast::VarDeclStatement &decl) {
     visitor.preVisit(decl);
     apply_visitor(*this, decl);
     visitor.postVisit(decl);
 }
 
 template <>
-void TreeTraveler::operator()(Parameter &parameter) {
+void TreeTraveler::operator()(grammar::ast::Parameter &parameter) {
     visitor.preVisit(parameter);
     apply_visitor(*this, parameter);
     visitor.postVisit(parameter);
@@ -78,7 +80,7 @@ void TreeTraveler::operator()(Parameter &parameter) {
 
 // Types
 template <>
-void TreeTraveler::operator()(PrimitiveType &type) {
+void TreeTraveler::operator()(grammar::ast::PrimitiveType &type) {
     visitor.preVisit(type);
     visitor.postVisit(type);
 }
@@ -97,7 +99,7 @@ void TreeTraveler::operator()(bool &value) {
 }
 
 template <>
-void TreeTraveler::operator()(Rhs &rhs) {
+void TreeTraveler::operator()(grammar::ast::Rhs &rhs) {
     visitor.preVisit(rhs);
     // The operator is not visited because it's a string
     (*this)(rhs.exp);
@@ -105,38 +107,36 @@ void TreeTraveler::operator()(Rhs &rhs) {
 }
 
 template <>
-void TreeTraveler::operator()(BinopExps &binop) {
+void TreeTraveler::operator()(grammar::ast::BinopExps &binop) {
     visitor.preVisit(binop);
     (*this)(binop.lhs);
     visitor.preRhsVisit(binop);
-    for(auto &rhs : binop.rhss) {
-        (*this)(rhs);
-    }
+    (*this)(binop.rhss);
     visitor.postVisit(binop);
 }
 
 template <>
-void TreeTraveler::operator()(Id &id) {
+void TreeTraveler::operator()(grammar::ast::Id &id) {
     visitor.preVisit(id);
     visitor.postVisit(id);
 }
 
 template <>
-void TreeTraveler::operator()(VarExpression &exp) {
+void TreeTraveler::operator()(grammar::ast::VarExpression &exp) {
     visitor.preVisit(exp);
     (*this)(exp.id);
     visitor.postVisit(exp);
 }
 
 template <>
-void TreeTraveler::operator()(ExpressionPar &expPar) {
+void TreeTraveler::operator()(grammar::ast::ExpressionPar &expPar) {
     visitor.preVisit(expPar);
     (*this)(expPar.exp);
     visitor.postVisit(expPar);
 }
 
 template <>
-void TreeTraveler::operator()(ArgumentList &argList) {
+void TreeTraveler::operator()(grammar::ast::ArgumentList &argList) {
     visitor.preVisit(argList);
     for (auto &arg : argList.arguments) {
         (*this)(arg);
@@ -145,7 +145,7 @@ void TreeTraveler::operator()(ArgumentList &argList) {
 }
 
 template <>
-void TreeTraveler::operator()(FunctionCall &funcCall) {
+void TreeTraveler::operator()(grammar::ast::FunctionCall &funcCall) {
     visitor.preVisit(funcCall);
     (*this)(funcCall.id);
     visitor.preArgumentListVisit(funcCall);
@@ -153,9 +153,46 @@ void TreeTraveler::operator()(FunctionCall &funcCall) {
     visitor.postVisit(funcCall);
 }
 
+// Arrays
+template <>
+void TreeTraveler::operator()(grammar::ast::ArrayType &arrayType) {
+    visitor.preVisit(arrayType);
+    (*this)(arrayType.type);
+    visitor.preIntVisit(arrayType);
+    (*this)(arrayType.dim);
+    visitor.postVisit(arrayType);
+}
+
+template <>
+void TreeTraveler::operator()(grammar::ast::ArrayExp &arrayExp) {
+    visitor.preVisit(arrayExp);
+    (*this)(arrayExp.primType);
+    visitor.preSizeVisit(arrayExp);
+    (*this)(arrayExp.sizes);
+    visitor.postVisit(arrayExp);
+}
+
+template <>
+void TreeTraveler::operator()(grammar::ast::ArrayIndex &arrayIndex) {
+    visitor.preVisit(arrayIndex);
+    (*this)(arrayIndex.id);
+    visitor.preIndexVisit(arrayIndex);
+    (*this)(arrayIndex.indices);
+    visitor.postVisit(arrayIndex);
+}
+
+template <>
+void TreeTraveler::operator()(grammar::ast::ArrayIndexAssign &ArrayIndexAssign) {
+    visitor.preVisit(ArrayIndexAssign);
+    (*this)(ArrayIndexAssign.index);
+    visitor.preArrayIndexVisit(ArrayIndexAssign);
+    (*this)(ArrayIndexAssign.exp);
+    visitor.postVisit(ArrayIndexAssign);
+}
+
 // Statements
 template <>
-void TreeTraveler::operator()(VarAssign &varAssign) {
+void TreeTraveler::operator()(grammar::ast::VarAssign &varAssign) {
     visitor.preVisit(varAssign);
     (*this)(varAssign.id);
     visitor.preExpVisit(varAssign);
@@ -164,7 +201,7 @@ void TreeTraveler::operator()(VarAssign &varAssign) {
 }
 
 template <>
-void TreeTraveler::operator()(Block &block) {
+void TreeTraveler::operator()(grammar::ast::Block &block) {
     visitor.preVisit(block);
     for (auto &blockLine : block.block_line) {
         (*this)(blockLine);
@@ -173,7 +210,7 @@ void TreeTraveler::operator()(Block &block) {
 }
 
 template <>
-void TreeTraveler::operator()(IfStatement &statement) {
+void TreeTraveler::operator()(grammar::ast::IfStatement &statement) {
     visitor.preVisit(statement);
     (*this)(statement.exp);
     visitor.preBlockVisit(statement);
@@ -182,14 +219,14 @@ void TreeTraveler::operator()(IfStatement &statement) {
 }
 
 template <>
-void TreeTraveler::operator()(ElseStatement &statement) {
+void TreeTraveler::operator()(grammar::ast::ElseStatement &statement) {
     visitor.preVisit(statement);
     (*this)(statement.block);
     visitor.postVisit(statement);
 }
 
 template <>
-void TreeTraveler::operator()(ConditionalStatement &statement) {
+void TreeTraveler::operator()(grammar::ast::ConditionalStatement &statement) {
     visitor.preVisit(statement);
     (*this)(statement.ifStatement);
     for (auto ifStatement : statement.elseIfs) {
@@ -201,21 +238,21 @@ void TreeTraveler::operator()(ConditionalStatement &statement) {
 }
 
 template <>
-void TreeTraveler::operator()(PrintStatement &print) {
+void TreeTraveler::operator()(grammar::ast::PrintStatement &print) {
     visitor.preVisit(print);
     (*this)(print.exp);
     visitor.postVisit(print);
 }
 
 template <>
-void TreeTraveler::operator()(ReturnStatement &ret) {
+void TreeTraveler::operator()(grammar::ast::ReturnStatement &ret) {
     visitor.preVisit(ret);
     (*this)(ret.exp);
     visitor.postVisit(ret);
 }
 
 template <>
-void TreeTraveler::operator()(WhileStatement &whileStatement) {
+void TreeTraveler::operator()(grammar::ast::WhileStatement &whileStatement) {
     visitor.preVisit(whileStatement);
     (*this)(whileStatement.exp);
     visitor.preBlockVisit(whileStatement);
@@ -224,7 +261,7 @@ void TreeTraveler::operator()(WhileStatement &whileStatement) {
 }
 
 template <>
-void TreeTraveler::operator()(StatementExpression &statement) {
+void TreeTraveler::operator()(grammar::ast::StatementExpression &statement) {
     visitor.preVisit(statement);
     (*this)(statement.exp);
     visitor.postVisit(statement);
@@ -232,7 +269,7 @@ void TreeTraveler::operator()(StatementExpression &statement) {
 
 
 template <>
-void TreeTraveler::operator()(VarDecl &decl) {
+void TreeTraveler::operator()(grammar::ast::VarDecl &decl) {
     visitor.preVisit(decl);
     (*this)(decl.type);
     visitor.preIdVisit(decl);
@@ -241,7 +278,7 @@ void TreeTraveler::operator()(VarDecl &decl) {
 }
 
 template <>
-void TreeTraveler::operator()(VarDeclAssign &decl) {
+void TreeTraveler::operator()(grammar::ast::VarDeclAssign &decl) {
     visitor.preVisit(decl);
     (*this)(decl.decl);
     visitor.preExpVisit(decl);
@@ -250,7 +287,7 @@ void TreeTraveler::operator()(VarDeclAssign &decl) {
 }
 
 template <>
-void TreeTraveler::operator()(ParameterList &parameterList) {
+void TreeTraveler::operator()(grammar::ast::ParameterList &parameterList) {
     visitor.preVisit(parameterList);
     for (auto &parameter : parameterList.parameter) {
         (*this)(parameter);
@@ -259,7 +296,7 @@ void TreeTraveler::operator()(ParameterList &parameterList) {
 }
 
 template <>
-void TreeTraveler::operator()(FuncDecl &decl) {
+void TreeTraveler::operator()(grammar::ast::FuncDecl &decl) {
     visitor.preVisit(decl);
     (*this)(decl.type);
     visitor.preIdVisit(decl);
@@ -272,7 +309,7 @@ void TreeTraveler::operator()(FuncDecl &decl) {
 }
 
 template <>
-void TreeTraveler::operator()(Prog &prog) {
+void TreeTraveler::operator()(grammar::ast::Prog &prog) {
     visitor.preVisit(prog);
     for (auto &decl : prog.decls) {
         (*this)(decl);

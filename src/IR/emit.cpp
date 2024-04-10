@@ -1,7 +1,5 @@
-#include <iostream>
+
 #include <fstream>
-#include <vector>
-#include <string>
 #include "emit.hpp"
 
 size_t unique_label_id = 0;
@@ -177,5 +175,5 @@ void emit_to_file(IR ir) {
 
 
 void emit(IR ir) {
-    emit_to_file(move(ir));
+    emit_to_file(std::move(ir));
 }
