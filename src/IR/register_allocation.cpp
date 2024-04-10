@@ -20,6 +20,8 @@ Instruction procedure_translate(Instruction instruction) {
                 throw IRError("Invalid Print Instruction found");
             }
             break;
+        default:
+            return instruction;
     }
 }
 

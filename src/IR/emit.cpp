@@ -41,8 +41,7 @@ string callerRestore(){
 
 
 string calleeSave() {
-    return R"(    pushq %rbp
-    pushq %rbx
+    return R"(    pushq %rbx
     pushq %r12
     pushq %r13
     pushq %r14
@@ -56,7 +55,6 @@ string calleeRestore() {
     popq %r13
     popq %r12
     popq %rbx
-    popq %rbp
 )";
 }
 
@@ -80,13 +78,24 @@ string procedure(Instruction instruction) {
     if (holds_alternative<Procedure>(instruction.args[0].target)) {
         switch (get<Procedure>(instruction.args[0].target)) {
             case Procedure::PRINT:
-
                 if (holds_alternative<ImmediateValue>(instruction.args[1].target)) {
                     return print_immediate_value(get<ImmediateValue>(instruction.args[1].target).value);
                 } else if (holds_alternative<Register>(instruction.args[1].target)) {
 
                     return print_stack_value(get<IRL>(instruction.args[1].access_type).offset);
+                } else {
+                    throw IRError("Not implemented yet");
                 }
+            case Procedure::CALLER_SAVE:
+                return callerSave();
+            case Procedure::CALLER_RESTORE:
+                return callerRestore();
+            case Procedure::CALLEE_SAVE:
+                return calleeSave();
+            case Procedure::CALLEE_RESTORE:
+                return calleeRestore();
+            default:
+                throw IRError("Not implemented yet");
         }
     } else {
         throw IRError("Procedure got an invalid argument in the instruction");
@@ -94,9 +103,9 @@ string procedure(Instruction instruction) {
 }
 
 string print_function() {
-    return R"(printNum:
+    return R"(
+    printNum:
 	movq %rdi, %rax # The number
-
 	movq $0, %r9 # Counter for chars to write
 	# Convert the number to chars
 .LprintNum_convertLoop:
@@ -139,6 +148,10 @@ void emit_to_file(IR ir) {
         outputFile << ".text\n";
         outputFile << ".globl _start\n";
         outputFile << "\n_start:\n";
+        outputFile << "\tcall main\n";
+        outputFile << "\tmovq $60, %rax\n";
+        outputFile << "\txorq %rdi, %rdi\n";
+        outputFile << "\tsyscall\n";
         for (const Instruction& instruction : ir) {
             // cout << instruction.operation << endl;
             switch (instruction.operation) {
@@ -146,16 +159,13 @@ void emit_to_file(IR ir) {
                     outputFile << procedure(instruction);
                     break;
                 case Op::LABEL:
-                    outputFile << instruction << "\n";
+                    outputFile << "\n" << instruction << ":\n";
                     break;
                 default: 
                     outputFile << "\t" << instruction << "\n";
             }
         }
-        outputFile << "\tmovq $60, %rax\n";
-        outputFile << "\txorq %rdi, %rdi\n";
-        outputFile << "\tsyscall\n";
-        outputFile << "\n";
+
         outputFile << print_function();
         outputFile << endl;
         outputFile.close();

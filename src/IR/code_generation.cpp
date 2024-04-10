@@ -7,25 +7,26 @@
 IRVisitor::IRVisitor() : Visitor() {}
 
 void IRVisitor::preVisit(FuncDecl &func_decl) {
-    // caller save registers
+    code.push_back(Instruction(Op::LABEL, Arg(Label(func_decl.id.id), DIR())));
     code.push_back(Instruction(Op::PUSHQ, Arg(Register::RBP, DIR())));
     code.push_back(Instruction(Op::MOVQ, Arg(Register::RSP, DIR()), Arg(Register::RBP, DIR())));
     code.push_back(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_SAVE, DIR())));
     vector<VarSymbol*> var_decls = func_decl.sym->symTab->get_var_symbols();
-    // code.push_back(Instruction(Op::SUBQ, Arg(ImmediateValue(8 * var_decls.size()), DIR()), Arg(Register::RSP, DIR())));
-    for (int i = 0; i < var_decls.size(); i++) {
+    for (long unsigned int i = 0; i < var_decls.size(); i++) {
         code.push_back(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR())));
     }
 }
 
 void IRVisitor::postVisit(FuncDecl &func_decl) {
+    code.push_back(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_RESTORE, DIR())));
     code.push_back(Instruction(Op::MOVQ, Arg(Register::RBP, DIR()), Arg(Register::RSP, DIR())));
     code.push_back(Instruction(Op::POPQ, Arg(Register::RBP, DIR())));
+    code.push_back(Instruction(Op::RET));
 }
 
 void IRVisitor::postVisit(FunctionCall &func_call) {
     code.push_back(Instruction(Op::PROCEDURE, Arg(Procedure::CALLER_SAVE, DIR())));
-    for (auto& arg : func_call.argument_list.arguments) {
+    for (long unsigned int i = 0; i < func_call.argument_list.arguments.size(); i++) {
         AstValue value = pop(temp_storage);
         if (std::holds_alternative<int>(value)) {
             code.push_back(Instruction(Op::PUSHQ, Arg(ImmediateValue(std::get<int>(value)), DIR())));
@@ -38,21 +39,29 @@ void IRVisitor::postVisit(FunctionCall &func_call) {
         }
     }
     
-    code.push_back(Instruction(Op::PUSHQ, Arg(Register::RBP, DIR())));
-    code.push_back(Instruction(Op::CALL, Arg(Label(func_call.id.id), DIR())));
     int callee_depth = static_cast<FuncSymbol*>(func_call.id.sym)->symTab->parentScope->depth;
     int caller_depth = func_call.id.scope->depth;
     int difference = caller_depth - callee_depth;
-    GenericRegister reg = GenericRegister(++func_call.id.scope->registerCounter);
-    GenericRegister reg2 = GenericRegister(++func_call.id.scope->registerCounter);
-    code.push_back(Instruction(Op::MOVQ, Arg(Register::RBP, DIR()), Arg(reg2, DIR())));
-    for (int i = 0; i < difference; i++) {
-        code.push_back(Instruction(Op::MOVQ, Arg(reg2, IRL(16)), Arg(reg, DIR())));
-        code.push_back(Instruction(Op::MOVQ, Arg(reg, DIR()), Arg(reg2, DIR())));
-    } // post loop reg2 contains scope where funtion was defined?
-    // do smth with final scope?
-    code.push_back(Instruction(Op::PUSHQ, Arg(reg2, DIR())));
+    // GenericRegister reg = GenericRegister(++func_call.id.scope->registerCounter);
+    // GenericRegister reg2 = GenericRegister(++func_call.id.scope->registerCounter);
+    code.push_back(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()))); // Make space for Static Link
+    code.push_back(Instruction(Op::PUSHQ, Arg(Register::R8, DIR()))); 
+    code.push_back(Instruction(Op::PUSHQ, Arg(Register::R9, DIR())));
+
+    code.push_back(Instruction(Op::MOVQ, Arg(Register::RBP, DIR()), Arg(Register::R8, DIR())));
+    for (auto i = 0; i < difference; i++) {
+        code.push_back(Instruction(Op::MOVQ, Arg(Register::R8, IRL(16)), Arg(Register::R9, DIR())));
+        code.push_back(Instruction(Op::MOVQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR())));
+    } 
+    code.push_back(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(Register::RSP, IRL(16)))); // Settting static link.
+    
+    code.push_back(Instruction(Op::POPQ, Arg(Register::R9, DIR())));
+    code.push_back(Instruction(Op::POPQ, Arg(Register::R8, DIR())));
+
+    
+    
     code.push_back(Instruction(Op::CALL, Arg(Label(func_call.id.id), DIR())));
+    code.push_back(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_RESTORE, DIR())));
 }
 
 void IRVisitor::postVisit(VarDeclAssign &var_decl_assign) {
