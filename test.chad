@@ -1,10 +1,12 @@
 
-int f() {
-    return 9+2+2+2+2;
-}
+
 
 int main() {
-    int x = f();
-    print(x);
+    int x = 2;
+    int f() {
+        print(x);
+        return 0;
+    }
+    f();
     return 0;
 }

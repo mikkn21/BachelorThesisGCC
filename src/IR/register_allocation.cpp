@@ -1,11 +1,19 @@
 #include "register_allocation.hpp"
 
 const int callee_offset = -40;
+const int arg_offset = 16;
 
 Instruction generic_translate(Instruction instruction) {
     for (auto &arg : instruction.args) {
         if (std::holds_alternative<GenericRegister>(arg.target)) {
-            arg = Arg(Register::RBP, IRL((std::get<GenericRegister>(arg.target).local_id)*(-8)+callee_offset));
+            auto id = std::get<GenericRegister>(arg.target).local_id;
+            if (id > 0) {
+                arg = Arg(Register::RBP, IRL((std::get<GenericRegister>(arg.target).local_id)*(-8)+callee_offset));
+            } else if (id < 0) {
+                arg = Arg(Register::RBP, IRL((std::get<GenericRegister>(arg.target).local_id)*(-8)+arg_offset));
+            } else {
+                throw IRError("Invalid Generic Register found");
+            }
         }
     }
     return instruction;
@@ -15,7 +23,14 @@ Instruction procedure_translate(Instruction instruction) {
     switch (std::get<Procedure>(instruction.args[0].target)) {
         case Procedure::PRINT:    
             if (std::holds_alternative<GenericRegister>(instruction.args[1].target)){
-                return Instruction(Op::PROCEDURE, instruction.args[0], Arg(Register::RBP, IRL((std::get<GenericRegister>(instruction.args[1].target).local_id)*(-8)+callee_offset)), instruction.comment);
+                auto id = std::get<GenericRegister>(instruction.args[1].target).local_id;
+                if (id > 0) {
+                    return Instruction(Op::PROCEDURE, instruction.args[0], Arg(Register::RBP, IRL((std::get<GenericRegister>(instruction.args[1].target).local_id)*(-8)+callee_offset)), instruction.comment);
+                } else if (id < 0) {
+                    return Instruction(Op::PROCEDURE, instruction.args[0], Arg(Register::RBP, IRL((std::get<GenericRegister>(instruction.args[1].target).local_id)*(-8)+arg_offset)), instruction.comment);
+                } else {
+                    throw IRError("Invalid Generic Register found");
+                }
             } else if (std::holds_alternative<ImmediateValue>(instruction.args[1].target)) {
                 return instruction;
             } else {

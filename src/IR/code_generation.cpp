@@ -7,6 +7,21 @@
 // #include <boost/spirit/home/x3/support/ast/apply_visitor.hpp>
 #include <iostream>
 const int callee_offset = -40;
+const int arg_offset = 16;
+
+std::vector<Instruction> static_link_instructions(int depth, int target_local_id, GenericRegister& result_register) {
+    std::vector<Instruction> instructions;
+    instructions.push_back(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()))); // make space on stack for generic register value
+
+    instructions.push_back(Instruction(Op::MOVQ, Arg(Register::RBP, IRL(-16)), Arg(Register::R8, DIR())));
+
+    for (auto i = 0; i < depth; i++) {
+        instructions.push_back(Instruction(Op::MOVQ, Arg(Register::R8, IRL(-16)), Arg(Register::R9, DIR())));
+        instructions.push_back(Instruction(Op::MOVQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR())));
+    }
+    instructions.push_back(Instruction(Op::MOVQ, Arg(Register::R8, IRL(target_local_id)), Arg(result_register, DIR())));
+    return instructions;
+}
 
 
 IRVisitor::IRVisitor() : Visitor() {}
@@ -49,6 +64,8 @@ void IRVisitor::postVisit(grammar::ast::FunctionCall &func_call) {
     GenericRegister result = GenericRegister(++func_call.id.scope->registerCounter); // register for the function result to be stored in
 
     code.push_back(Instruction(Op::PROCEDURE, Arg(Procedure::CALLER_SAVE, DIR())));
+
+    // add arguments to stack in reverse order
     for (long unsigned int i = 0; i < func_call.argument_list.arguments.size(); i++) {
         AstValue value = pop(temp_storage);
         if (std::holds_alternative<int>(value)) {
@@ -90,6 +107,8 @@ void IRVisitor::postVisit(grammar::ast::VarDeclAssign &var_decl_assign) {
     } else if (std::holds_alternative<GenericRegister>(value)) {
         code.push_back(Instruction(Op::MOVQ, Arg(std::get<GenericRegister>(value), DIR()), Arg(Register::R8, DIR())));
         code.push_back(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(GenericRegister(var_decl_assign.decl.sym->local_id), DIR())));
+    } else {
+        throw IRError("Unexpected type in VarDeclAssign");
     }
 }
 
@@ -103,7 +122,16 @@ void IRVisitor::preVisit(bool &b) {
 
 void IRVisitor::postVisit(grammar::ast::VarExpression &var_expr) {
     VarSymbol *var_symbol = static_cast<VarSymbol*>(var_expr.id.sym);
-    temp_storage.push(var_symbol->local_id);
+    int k = var_expr.id.scope->depth;
+    int l = 0;
+    
+    std::cout << var_symbol->varDecl->id << std::endl;
+    auto o = var_symbol->varDecl;
+    int difference = k - l;
+    GenericRegister result_register = GenericRegister(++var_expr.id.scope->registerCounter);
+    auto new_code = static_link_instructions(difference, var_symbol->local_id, result_register);
+    code.insert(code.end(), new_code.begin(), new_code.end());
+    temp_storage.push(result_register);
 }
 
 void IRVisitor::binopInstructions(std::string op, GenericRegister result){
@@ -208,7 +236,7 @@ void IRVisitor::postVisit(grammar::ast::PrintStatement &print) {
         int int_value = bool_value ? 1 : 0;
         code.push_back(Instruction(Op::PROCEDURE, Arg(Procedure::PRINT, DIR()), Arg(ImmediateValue(int_value), DIR())));
     } else if (std::holds_alternative<GenericRegister>(value)) {
-        code.push_back(Instruction(Op::PROCEDURE, Arg(Procedure::PRINT, DIR()), Arg(GenericRegister(std::get<GenericRegister>(value).local_id), DIR())));
+        code.push_back(Instruction(Op::PROCEDURE, Arg(Procedure::PRINT, DIR()), Arg(std::get<GenericRegister>(value), DIR())));
     }
 }
 
@@ -229,6 +257,5 @@ IR intermediate_code_generation(grammar::ast::Prog &prog) {
     traveler(prog);
     return std::move(visitor.code);
 }
-
 
 

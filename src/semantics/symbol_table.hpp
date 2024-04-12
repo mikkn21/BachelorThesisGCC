@@ -86,6 +86,7 @@ public:
 
     int depth;
     int registerCounter = 0;
+    int parameterCounter = 0;
 
     FuncSymbol *creator = nullptr;
 

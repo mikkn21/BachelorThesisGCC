@@ -4,7 +4,6 @@
 #include <iostream>
 #include <typeinfo>
 
-
 struct print_visitor {
     std::ostream& os;
     print_visitor(std::ostream& os) : os(os) {}
@@ -144,7 +143,19 @@ SymbolTable::~SymbolTable(){
 }
 
 void SymbolTable::insert(std::string key, VarSymbol* symbol) {
-    symbol->local_id = ++registerCounter;
+    if (symbol->varDecl->id.scope->creator != nullptr) {
+        auto& parameter_list = symbol->varDecl->id.scope->creator->parameters;
+        auto it = std::find(parameter_list.begin(), parameter_list.end(), symbol->type);
+
+        if (it != parameter_list.end()) {
+            symbol->local_id = --parameterCounter; // is a parameter
+        } else {
+            symbol->local_id = ++registerCounter; // is not a parameter, but a local variable
+        }
+    } else {
+            symbol->local_id = ++registerCounter; // is not a parameter, but a local variable
+    }
+
     entries.emplace(key, symbol); 
 }
 
