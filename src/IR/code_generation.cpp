@@ -64,12 +64,13 @@ void IRVisitor::postVisit(grammar::ast::FunctionCall &func_call) {
     int callee_depth = static_cast<FuncSymbol*>(func_call.id.sym)->symTab->parentScope->depth;
     int caller_depth = func_call.id.scope->depth;
     int difference = caller_depth - callee_depth;
-
+    
     code.push_back(Instruction(Op::MOVQ, Arg(Register::RBP, DIR()), Arg(Register::R8, DIR())));
     for (auto i = 0; i < difference; i++) {
         code.push_back(Instruction(Op::MOVQ, Arg(Register::R8, IRL(-16)), Arg(Register::R9, DIR())));
         code.push_back(Instruction(Op::MOVQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR())));
     } 
+
     code.push_back(Instruction(Op::PUSHQ, Arg(Register::R8, DIR()))); // Settting static link.
     code.push_back(Instruction(Op::CALL, Arg(Label(func_call.id.id), DIR())));
     code.push_back(Instruction(Op::ADDQ, Arg(ImmediateValue((func_call.argument_list.arguments.size()+1) * 8), DIR()), Arg(Register::RSP, DIR()))); // remove arguments and static æink from stack
