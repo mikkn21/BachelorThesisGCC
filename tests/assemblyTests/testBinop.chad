@@ -16,6 +16,8 @@ int main() {
     print(x>=y);
     print(x!=y);
     print(x==y);
+    print(m!=n);
+    print(m==n);
     
     return 0;
 }

@@ -1,6 +1,6 @@
 
 int f() {
-    return 23+2;
+    return 9+2+2+2+2;
 }
 
 int main() {

@@ -7,7 +7,7 @@
 
 namespace grammar::compiler {
     std::string getFileContent(std::string_view input) {
-        if(input.empty()) {
+        if (input.empty()) {
             std::cerr << "Error: filename is empty!" << std::endl;
             throw std::invalid_argument("Filename is empty"); 
         }

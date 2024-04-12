@@ -146,6 +146,7 @@ void emit_to_file(IR ir) {
         outputFile << ".text\n";
         outputFile << ".globl _start\n";
         outputFile << "\n_start:\n";
+        outputFile << "\tpushq %rbp\n";
         outputFile << "\tcall main\n";
         outputFile << "\tmovq $60, %rax\n";
         outputFile << "\txorq %rdi, %rdi\n";

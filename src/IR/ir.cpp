@@ -3,6 +3,7 @@
 
 IRL::IRL(long offset) : offset(offset) {}
 ImmediateValue::ImmediateValue(int v) : value(v) {}
+/// precondition: There is room on the stack for the new register
 GenericRegister::GenericRegister(long i) : local_id(i) {}
 Label::Label(const std::string& l) : label(l) {}
 Arg::Arg(TargetType target, MemAccessType access_type) : target(target), access_type(access_type) {}
