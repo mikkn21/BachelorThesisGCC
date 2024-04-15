@@ -1,5 +1,5 @@
 int main() {
-    if 9 < 3 {
+    if 2 < 3 {
         print(5);
     }
     return 0;

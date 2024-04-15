@@ -123,20 +123,20 @@ void IRVisitor::preVisit(bool &b) {
 }
 
 void IRVisitor::postVisit(grammar::ast::VarExpression &var_expr) {
-    VarSymbol *var_symbol = dynamic_cast<VarSymbol*>(var_expr.id.sym);
+    VarSymbol *var_symbol = dynamic_cast<VarSymbol*>(var_expr.idAccess.ids.back().sym);
     if (var_symbol->varDecl == nullptr) {
         std::cout << "is null ptr" << std::endl;
     } else {
         std::cout << "not null ptr: " << std::endl;
         std::cout << var_symbol->varDecl->id << std::endl;
     }
-    int k = var_expr.id.scope->depth;
+    int k = var_expr.idAccess.ids.back().scope->depth;
     int l = 0;
 
     auto o = var_symbol->varDecl;
 
     int difference = k - l;
-    GenericRegister result_register = GenericRegister(++var_expr.id.scope->registerCounter);
+    GenericRegister result_register = GenericRegister(++var_expr.idAccess.ids.back().scope->registerCounter);
     auto new_code = static_link_instructions(difference, var_symbol->local_id, result_register);
     code.insert(code.end(), new_code.begin(), new_code.end());
     temp_storage.push(result_register);
