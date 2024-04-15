@@ -149,6 +149,8 @@ BOOST_AUTO_TEST_CASE(ArrayMixedTypes2) {testTypeCheckString("int main() { int[1]
 BOOST_AUTO_TEST_CASE(IllegalIndexingWithFunction) {testTypeCheckString("int main() { int f () { return 0; } f[2]; return 0; } ", TestingOutcome::FAILED);}
 BOOST_AUTO_TEST_CASE(IllegalIndexingWithFunction2) {testTypeCheckString("int main() { int f () { return 0; } f()[2]; return 0; } ", TestingOutcome::FAILED);}
 BOOST_AUTO_TEST_CASE(IllegalIndexingWithClass) {testTypeCheckString("class T { } int main() { T[1]; return 0; } ", TestingOutcome::FAILED);}
+BOOST_AUTO_TEST_CASE(IndexingwithClass) {testTypeCheckString("class T { int x; } int main() { int[1] a = new int[5]; T b = new T(); a[b.x]; return 0; } ", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(IndexingwithClass2) {testTypeCheckString("class T { int x; } int main() { int[1] a = new int[5]; T b = new T(); int x = a[b.x]; return 0; } ", TestingOutcome::SUCCESS);}
 
 
 BOOST_AUTO_TEST_CASE(ArrayFromFile) {testTypeCheckFile("../tests/typeTests/arrayStuff.chad", TestingOutcome::FAILED);}
