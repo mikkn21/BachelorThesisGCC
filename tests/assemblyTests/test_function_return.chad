@@ -1,0 +1,14 @@
+int g() {
+    int x = 2+2;
+    return x;
+}
+
+int main () {
+    print(f());
+    return 0;
+}
+
+int f() {
+    return g()+2;
+}
+

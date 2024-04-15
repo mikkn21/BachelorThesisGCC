@@ -60,6 +60,7 @@ public:
     ~FuncSymbol() override;
     std::vector<SymbolType> parameters;
     SymbolType returnType;
+    grammar::ast::FuncDecl *funcDecl;
     SymbolTable *symTab;
     SymbolType toType() override;
 };
@@ -96,6 +97,7 @@ public:
 
     int depth;
     int registerCounter = 0;
+    int parameterCounter = 0;
 
     FuncSymbol *creator = nullptr;
 
