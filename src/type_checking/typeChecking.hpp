@@ -18,7 +18,7 @@
             : CompilerError("Attempting to pop from an empty stack") {}
     };
 
-    grammar::ast::Prog typeChecker(grammar::ast::Prog &prog, SymbolTable *globalScope);
+    void typeChecker(grammar::ast::Prog &prog, SymbolTable *globalScope);
 
 
 #endif //TYPE_CHECK_HPP

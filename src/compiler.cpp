@@ -60,7 +60,7 @@ namespace grammar::compiler {
             return obj;
         }
 
-        obj->ast = typeChecker(obj->ast, globalScope.get());
+        typeChecker(obj->ast, globalScope.get());
 
         if (options.stopAfter == StopAfterTypeCheck ) {
             return obj;
