@@ -20,6 +20,22 @@ public:
     virtual void preVisit(grammar::ast::Type &type) { }
     virtual void postVisit(grammar::ast::Type &type) { }
 
+    virtual void preVisit(grammar::ast::ClassType &type) { }
+    virtual void postVisit(grammar::ast::ClassType &type) { }
+
+    virtual void preVisit(grammar::ast::ClassDecl &classDecl) {}
+    virtual void preIdVisit(grammar::ast::ClassDecl &classDecl) {} 
+    virtual void postVisit(grammar::ast::ClassDecl &classDecl) {}
+
+    virtual void preVisit(grammar::ast::ObjInst &objInst) {}
+    virtual void preIdVisit(grammar::ast::ObjInst &objInst) {} 
+    virtual void postVisit(grammar::ast::ObjInst &objInst) {}
+
+    
+    virtual void preVisit(grammar::ast::IdAccess &idAccess) {}
+    virtual void postVisit(grammar::ast::IdAccess &idAccess) {}
+
+
     virtual void preVisit(grammar::ast::ArrayType &type) {}
     virtual void preIntVisit(grammar::ast::ArrayType &type) {} 
     virtual void postVisit(grammar::ast::ArrayType &type) {}

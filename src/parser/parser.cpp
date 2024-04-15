@@ -53,6 +53,11 @@ namespace grammar {
         const x3::rule<class eq_rule_rhs, ast::Rhs>  eq_rhs = "eq_rhs";
         const x3::rule<class logical_and_rule_rhs, ast::Rhs>  logical_and_rhs = "logical_and_rhs";
         const x3::rule<class logical_or_rule_rhs, ast::Rhs>  logical_or_rhs = "logical_or_rhs";
+
+        const x3::rule<class class_rule, ast::ClassDecl> class_decl = "class_decl";
+        const x3::rule<class obj_inst_rule, ast::ObjInst> obj_inst = "obj_inst";
+        const x3::rule<class class_type_rule, ast::ClassType> class_type = "class_type";
+        const x3::rule<class id_access_rule, ast::IdAccess> id_access = "id_access";
       
 
         const x3::rule<class id, ast::Id> id = "id";
@@ -122,14 +127,14 @@ namespace grammar {
 
         // Useable
         const auto primitive_type_def = x3::string("int") | x3::string("bool");
-        const auto type_def = array_type | primitive_type;
+        const auto type_def = array_type | primitive_type | class_type;
         const auto id_def = x3::raw[ x3::lexeme[( x3::char_("a-zA-Z_") >> * boost::spirit::x3::char_("a-zA-Z_0-9"))]] - (reservedkeywordsInstance >> ! x3::alnum) ;
-        const auto parameter_def = var_decl; // don't know if this is an issue since vardecl is declared later
+        const auto parameter_def = var_decl; 
         const auto parameter_list_def = -(parameter % ',');
-
+ 
         // --- Precedens stuff  
         const auto expression_par_def = ('(' >> expression) > ')';
-        const auto expression_base =  expression_par | function_call | array_index | array_exp | var_expression | x3::int_ | x3::bool_;
+        const auto expression_base =  expression_par | array_exp | obj_inst | function_call | array_index | var_expression | id_access | x3::int_ | x3::bool_;
 
         const auto expression_def = logical_or;
 
@@ -148,7 +153,7 @@ namespace grammar {
         const auto factor_rhs_def = mul_op > expression_base;
         // Precedens stuff ---
 
-        const auto var_expression_def = id;
+        const auto var_expression_def = id_access;
         
         const auto var_assign_def = (id >> '=' >> expression) > ";";
         const auto while_statement_def = optionalParExp("while") > block;
@@ -172,10 +177,14 @@ namespace grammar {
         const auto var_decl_statement_def = var_decl >> ';';
 
         const auto statement_expression_def = expression >> ';';
-        const auto statement_def = var_assign | var_decl_statement | var_decl_assign | conditional_statement | while_statement | array_index_assign | statement_expression | print_statement | return_statement;
-    
+        const auto statement_def = conditional_statement | while_statement | print_statement | return_statement | var_assign | var_decl_statement | var_decl_assign | array_index_assign | statement_expression;
 
-        const auto decl_def = var_decl_assign | var_decl_statement | func_decl;
+        const auto class_decl_def = x3::lit("class ") > id > '{' > *var_decl_statement > '}';
+        const auto obj_inst_def = x3::lit("new ") > id > '(' > argument_list > ')';
+        const auto class_type_def = id;
+        const auto id_access_def = id % '.' ;
+
+        const auto decl_def = var_decl_assign | var_decl_statement | func_decl | class_decl;
         const auto prog_def = *decl;
 
         const auto function_call_def = (id >> '('>> argument_list) > ')';
@@ -229,7 +238,11 @@ namespace grammar {
             var_decl_assign,
             if_statement,
             else_statement,
-            conditional_statement
+            conditional_statement,
+            class_decl,
+            obj_inst,
+            class_type,
+            id_access
         )
 
         grammar::ast::Prog parse(std::string_view src)

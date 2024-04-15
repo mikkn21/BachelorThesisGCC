@@ -78,10 +78,23 @@ void TreeTraveler::operator()(grammar::ast::Parameter &parameter) {
     visitor.postVisit(parameter);
 }
 
+template <>
+void TreeTraveler::operator()(grammar::ast::Id &id) {
+    visitor.preVisit(id);
+    visitor.postVisit(id);
+}
+
 // Types
 template <>
 void TreeTraveler::operator()(grammar::ast::PrimitiveType &type) {
     visitor.preVisit(type);
+    visitor.postVisit(type);
+}
+
+template <>
+void TreeTraveler::operator()(grammar::ast::ClassType &type) {
+    visitor.preVisit(type);
+    (*this)(type.id);
     visitor.postVisit(type);
 }
 
@@ -116,15 +129,16 @@ void TreeTraveler::operator()(grammar::ast::BinopExps &binop) {
 }
 
 template <>
-void TreeTraveler::operator()(grammar::ast::Id &id) {
-    visitor.preVisit(id);
-    visitor.postVisit(id);
+void TreeTraveler::operator()(grammar::ast::IdAccess &idAccess) {
+  visitor.preVisit(idAccess);
+  (*this)(idAccess.ids);
+  visitor.postVisit(idAccess);
 }
 
 template <>
 void TreeTraveler::operator()(grammar::ast::VarExpression &exp) {
     visitor.preVisit(exp);
-    (*this)(exp.id);
+    (*this)(exp.idAccess);
     visitor.postVisit(exp);
 }
 
@@ -152,6 +166,19 @@ void TreeTraveler::operator()(grammar::ast::FunctionCall &funcCall) {
     (*this)(funcCall.argument_list);
     visitor.postVisit(funcCall);
 }
+
+
+template <>
+void TreeTraveler::operator()(grammar::ast::ClassDecl &classDecl) {
+    visitor.preVisit(classDecl);
+    (*this)(classDecl.id);
+    visitor.preIdVisit(classDecl); 
+    for (auto &attr : classDecl.attr) {
+        (*this)(attr);
+    }
+    visitor.postVisit(classDecl);
+}
+
 
 // Arrays
 template <>
@@ -294,6 +321,17 @@ void TreeTraveler::operator()(grammar::ast::ParameterList &parameterList) {
     }
     visitor.postVisit(parameterList);
 }
+
+template <>
+void TreeTraveler::operator()(grammar::ast::ObjInst &objInst) {
+  visitor.preVisit(objInst);
+  (*this)(objInst.id);
+  visitor.preIdVisit(objInst);
+  (*this)(objInst.arguments); 
+  visitor.postVisit(objInst);
+}
+
+
 
 template <>
 void TreeTraveler::operator()(grammar::ast::FuncDecl &decl) {

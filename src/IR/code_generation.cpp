@@ -93,7 +93,7 @@ void IRVisitor::preVisit(bool &b) {
 }
 
 void IRVisitor::postVisit(grammar::ast::VarExpression &var_expr) {
-    VarSymbol *var_symbol = static_cast<VarSymbol*>(var_expr.id.sym);
+    VarSymbol *var_symbol = static_cast<VarSymbol*>(var_expr.idAccess.ids[0].sym);
     temp_storage.push(var_symbol->local_id);
 }
 

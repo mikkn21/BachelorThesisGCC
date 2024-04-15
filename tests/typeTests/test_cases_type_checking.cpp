@@ -146,4 +146,25 @@ BOOST_AUTO_TEST_CASE(ArrayIndex3) {testTypeCheckString("int main() { int[2] a = 
 BOOST_AUTO_TEST_CASE(ArrayMixedTypes) {testTypeCheckString("int main() { int[3] a = new int[1,2, true]; return 0; } ", TestingOutcome::FAILED);}
 BOOST_AUTO_TEST_CASE(ArrayMixedTypes2) {testTypeCheckString("int main() { int[1] a = new int[20]; a[15] = true; return 0; } ", TestingOutcome::FAILED);}
 
+
 BOOST_AUTO_TEST_CASE(ArrayFromFile) {testTypeCheckFile("../tests/typeTests/arrayStuff.chad", TestingOutcome::FAILED);}
+
+
+// Classes
+BOOST_AUTO_TEST_CASE(ClassNotDeclared) {testTypeCheckString("int main() { T a = new T();  return 0;}", TestingOutcome::FAILED);}
+BOOST_AUTO_TEST_CASE(NewClassArguments) {testTypeCheckString("int main() { class T { int x; } T a = new T(42);  return 0;}", TestingOutcome::FAILED);}
+BOOST_AUTO_TEST_CASE(SimpleClass) {testTypeCheckString("int main() { class T { } T a = new T(); return 0;}", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(SimpleClass2) {testTypeCheckString("class T { } int main() { T a = new T(); return 0;}", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(SimpleClass3) {testTypeCheckString("int main() { T a = new T(); class T { } return 0;}", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(SimpleClass4) {testTypeCheckString("int main() { T a = new T(); return 0;} class T { }", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(ClassNotExist) {testTypeCheckString("int main() { T a; return 0;}", TestingOutcome::FAILED);}
+BOOST_AUTO_TEST_CASE(ClassNotExist2) {testTypeCheckString("int main() { T a = new T(); return 0;}", TestingOutcome::FAILED);}
+
+// Dot operator 
+BOOST_AUTO_TEST_CASE(SimpleDot) {testTypeCheckString("int main() { class T { int x; } T a = new T(); return a.x;}", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(SimpleDot2) {testTypeCheckString("int main() { class T { E b; } class E { int x; } T a = new T(); return a.b.x;}", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(SimpleDot3) {testTypeCheckString("int main() { class T { bool x; } T a = new T(); bool y = a.x; return 0;}", TestingOutcome::SUCCESS);}
+// BOOST_AUTO_TEST_CASE(DotOpClassType) {testTypeCheckString(" class G { int y; } class T { G x; } T a = new T(); a.x.y = 2; ", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(SimpleDotFail) {testTypeCheckString("int main() { class T { int x; } T a = new T(); return a.y;}", TestingOutcome::FAILED);}
+BOOST_AUTO_TEST_CASE(SimpleDotFail2) {testTypeCheckString("int main() { class T {} T a = new T(); return a.x;}", TestingOutcome::FAILED);}
+BOOST_AUTO_TEST_CASE(SimpleDotFail3) {testTypeCheckString("int main() { class T { int x; } T a = new T(); return a.x.y;}", TestingOutcome::FAILED);}

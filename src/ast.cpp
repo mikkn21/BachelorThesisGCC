@@ -1,4 +1,5 @@
 #include <iostream>
+#include <ostream>
 #include "ast.hpp"
 
 
@@ -66,6 +67,30 @@ namespace grammar
             return os << ArrayIndexAssign.index << " = " << ArrayIndexAssign.exp << ';';
         }
 
+        std::ostream& operator<<(std::ostream& os, const ClassType &type) {
+            return os << type.id;
+        }
+
+        std::ostream& operator<<(std::ostream& os, const ClassDecl &ClassDecl) {
+            os << "class " << ClassDecl.id << " {\n";
+            for (const auto &attr : ClassDecl.attr) {
+                os << attr;
+            }
+            return os << "}";
+        }
+
+        
+         std::ostream& operator<<(std::ostream& os, const ObjInst &objInst) {
+            return os << "new " << objInst.id << "(" << objInst.arguments << ")" ;
+         }
+
+        std::ostream& operator<<(std::ostream& os, const IdAccess &dotOperator) {
+            for ( unsigned long i = 0; i < dotOperator.ids.size()-1; i++) {
+                os << dotOperator.ids[i] << ".";
+            }
+            return os << dotOperator.ids.back();
+         }
+
         std::ostream& operator<<(std::ostream& os, const grammar::ast::ArrayType &arrayType) {
             return os << arrayType.type << "[" << arrayType.dim << "]"; 
         }
@@ -99,7 +124,7 @@ namespace grammar
         }
 
         std::ostream& operator<<(std::ostream& os, const VarExpression &id) {
-            return os << id.id;
+            return os << id.idAccess;
         }
 
         std::ostream& operator<<(std::ostream& os, const FunctionCall &funcCall) {

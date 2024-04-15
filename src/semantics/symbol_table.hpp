@@ -19,41 +19,39 @@ struct BoolType {
 
 struct ArraySymbolType {
     std::shared_ptr<SymbolType> elementType;
-    // SymbolType *elementType; // ArrayType owns elementType
     int dimensions;
     bool operator==(const ArraySymbolType &other) const;
     std::string toString() const;
-    // ~ArraySymbolType();
+};
+
+struct ClassSymbolType {
+    ClassSymbol *symbol;
+    bool operator==(const ClassSymbolType &other) const;
+    std::string toString() const;
 };
 
 // TODO: Changed from std::variant to boost::variant
-struct SymbolType : public boost::variant<IntType, BoolType, ArraySymbolType /*, TypeAlias, ClassType*/ > {
+struct SymbolType : public boost::variant<IntType, BoolType, ArraySymbolType, ClassSymbolType /*, TypeAlias,*/ > {
     // IntType,
     // BoolType
     //ArrayType
     //Class, future implementation
-    using boost::variant<IntType, BoolType, ArraySymbolType>::variant;
-    using boost::variant<IntType, BoolType, ArraySymbolType>::operator=;
+    using boost::variant<IntType, BoolType, ArraySymbolType, ClassSymbolType>::variant;
+    using boost::variant<IntType, BoolType, ArraySymbolType, ClassSymbolType>::operator=;
     bool operator==(const SymbolType &other) const;
     bool operator!=(const SymbolType &other) const;
     std::string toString() const;
 };
 
-
-// struct ArrayType {
-//     SymbolType elementType;
-//     bool operator==(const ArrayType &other) const;
-//     std::string toString() const;
-// };
-
-
 SymbolType convertType(grammar::ast::Type type);
+SymbolType convertType(Symbol type);
 
 class SymbolTable;
 
 class Symbol{
 public:
     virtual ~Symbol() { }
+    virtual SymbolType toType() = 0;
 };
 
 class FuncSymbol : public Symbol{
@@ -63,6 +61,7 @@ public:
     std::vector<SymbolType> parameters;
     SymbolType returnType;
     SymbolTable *symTab;
+    SymbolType toType() override;
 };
 
 class VarSymbol : public Symbol {
@@ -72,9 +71,20 @@ public:
     SymbolType type;
     grammar::ast::VarDecl *varDecl;
     long local_id;
+    SymbolType toType() override;
 };
 
-// add class symbol and type symbol for aliasing, future implementation
+class ClassSymbol : public Symbol {
+public:
+    ClassSymbol(grammar::ast::ClassDecl *decl, SymbolTable *symbolTable);
+    ~ClassSymbol() override;
+    grammar::ast::ClassDecl *decl; // points to the class 
+    SymbolTable *symbolTable;
+    SymbolType toType() override;
+};
+
+
+// add type symbol for aliasing, future implementation
 
 class SymbolTable {
 private:
@@ -95,7 +105,7 @@ public:
 
     ~SymbolTable();
 
-    void insert(std::string key, FuncSymbol* symbol);
+    void insert(std::string key, Symbol* symbol);
     void insert(std::string key, VarSymbol* symbol);
 
     Symbol *findLocal(std::string key) const;

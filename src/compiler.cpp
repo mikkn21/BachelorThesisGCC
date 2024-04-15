@@ -1,6 +1,7 @@
 #include <fstream>
 #include "compiler.hpp"
 #include "parser/parser.hpp"
+#include "semantics/symbol_collection_phase2.hpp"
 #include "type_checking/typeChecking.hpp"
 #include "semantics/symbol_collection.hpp"
 
@@ -53,6 +54,7 @@ namespace grammar::compiler {
 
         std::unique_ptr<SymbolTable> globalScope = std::make_unique<SymbolTable>();
         symbol_collection(obj->ast, globalScope.get());
+        symbol_collection_phase2(obj->ast, globalScope.get());
 
         if (options.stopAfter == StopAfterSymbolCollection ) {
             return obj;
