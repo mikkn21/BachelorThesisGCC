@@ -289,11 +289,10 @@ private:
 }; 
 
 
-grammar::ast::Prog typeChecker(grammar::ast::Prog &prog, SymbolTable *globalScope) {
+void typeChecker(grammar::ast::Prog &prog, SymbolTable *globalScope) {
     auto visitor = TypeChecker(globalScope);
     auto traveler = TreeTraveler(visitor);
     traveler(prog);
-    return prog;
 }
 
 

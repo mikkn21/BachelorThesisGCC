@@ -1,12 +1,5 @@
-
-
-
+int x = 2;
 int main() {
-    int x = 2;
-    int f() {
-        print(x);
-        return 0;
-    }
-    f();
+    print(x);
     return 0;
 }
