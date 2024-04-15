@@ -202,7 +202,7 @@ void TreeTraveler::operator()(grammar::ast::ArrayExp &arrayExp) {
 template <>
 void TreeTraveler::operator()(grammar::ast::ArrayIndex &arrayIndex) {
     visitor.preVisit(arrayIndex);
-    (*this)(arrayIndex.id);
+    (*this)(arrayIndex.idAccess);
     visitor.preIndexVisit(arrayIndex);
     (*this)(arrayIndex.indices);
     visitor.postVisit(arrayIndex);

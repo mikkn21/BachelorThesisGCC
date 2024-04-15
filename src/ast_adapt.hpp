@@ -161,7 +161,7 @@ BOOST_FUSION_ADAPT_STRUCT(
 
 BOOST_FUSION_ADAPT_STRUCT(
     grammar::ast::ArrayIndex,
-    (grammar::ast::Id, id),
+    (grammar::ast::IdAccess, idAccess),
     (std::vector<grammar::ast::Expression>, indices)
 )
 

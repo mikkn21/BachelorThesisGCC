@@ -85,7 +85,7 @@ namespace grammar
         };
 
         struct ArrayIndex : LocationInfo {
-            Id id;
+            IdAccess idAccess;
             std::vector<Expression> indices; 
         public: 
             friend std::ostream& operator<<(std::ostream& os, const ArrayIndex &exp);

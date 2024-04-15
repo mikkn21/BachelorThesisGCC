@@ -59,7 +59,7 @@ namespace grammar
         }
 
         std::ostream& operator<<(std::ostream& os, const grammar::ast::ArrayIndex &arrayIndex) {
-            os << arrayIndex.id << "["; 
+            os << arrayIndex.idAccess << "["; 
             return printVec(os, arrayIndex.indices, ", ") << "]";
         }
 

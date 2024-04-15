@@ -201,7 +201,10 @@ private:
       
 
     void postVisit(grammar::ast::ArrayIndex &arrayIndex) override {
-        VarSymbol* sym = dynamic_cast<VarSymbol *>(arrayIndex.id.sym);
+        VarSymbol* sym = dynamic_cast<VarSymbol *>(arrayIndex.idAccess.ids.back().sym);
+        if (sym == nullptr) {
+            throw TypeCheckError("index was attempted on a non-variable", arrayIndex);
+        }
         
         if (auto *type = boost::get<ArraySymbolType>(&sym->type)) {
             if (static_cast<int>(arrayIndex.indices.size()) != type->dimensions) {

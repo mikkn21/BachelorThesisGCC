@@ -192,7 +192,7 @@ namespace grammar {
 
         const auto array_type_def = (primitive_type >> '[') > x3::int_ > ']'; // NOTE: Is literal int this is by choice
         const auto array_exp_def = (x3::lit("new ") >> primitive_type >> '[') > (expression % ',') > ']';
-        const auto array_index_def = (id >> '[') > (expression % ',') > ']';
+        const auto array_index_def = (id_access >> '[') > (expression % ',') > ']';
         const auto array_index_assign_def = (array_index >> '=') > expression > ';';
 
         BOOST_SPIRIT_DEFINE(

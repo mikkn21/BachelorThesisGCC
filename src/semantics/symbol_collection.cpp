@@ -94,15 +94,9 @@ public:
     }
 
     void postVisit(grammar::ast::ArrayIndex &index) override {
-        Symbol *symbol = currentSymbolTable->find(index.id.id);
+        Symbol *symbol = currentSymbolTable->find(index.idAccess.ids.front().id);
         if (symbol == nullptr) {
-            throw SemanticsError(index.id.id + " not declared in scope3", index);
-        }
-
-        if (auto varSymbol = dynamic_cast<VarSymbol *>(symbol)) {
-            index.id.sym = varSymbol;
-        } else {
-            throw SemanticsError("Attempted to index a non-variable", index);
+            throw SemanticsError(index.idAccess.ids.front().id + " not declared in scope3", index);
         }
     }
 };
