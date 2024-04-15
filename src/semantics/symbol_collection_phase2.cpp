@@ -84,7 +84,9 @@ public:
             if ( auto varSymbol = dynamic_cast<VarSymbol *>(symbol)) {
                 if (auto *classSymbolType = boost::get<ClassSymbolType>(&varSymbol->type)) {
                     currentScope = classSymbolType->symbol->symbolTable;
-                } 
+                } else if (i != idAccess.ids.size() - 1) {
+                    throw SemanticsError("Attempted to access a non-class", idAccess.ids[i]);
+                }
             }
         }  
     }
