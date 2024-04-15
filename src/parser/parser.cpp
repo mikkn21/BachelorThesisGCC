@@ -121,7 +121,7 @@ namespace grammar {
         const auto logical_or_op = x3::string("|");
 
         auto optionalParExp(std::string s) {
-            return x3::lit(s + " ") > expression | x3::lit(s) > expression_par;
+            return (x3::lit(s + " ") > expression) | (x3::lit(s) > expression_par);
         }
 
 
