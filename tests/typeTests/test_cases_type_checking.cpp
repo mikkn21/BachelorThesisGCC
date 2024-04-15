@@ -149,8 +149,9 @@ BOOST_AUTO_TEST_CASE(ArrayMixedTypes2) {testTypeCheckString("int main() { int[1]
 BOOST_AUTO_TEST_CASE(IllegalIndexingWithFunction) {testTypeCheckString("int main() { int f () { return 0; } f[2]; return 0; } ", TestingOutcome::FAILED);}
 BOOST_AUTO_TEST_CASE(IllegalIndexingWithFunction2) {testTypeCheckString("int main() { int f () { return 0; } f()[2]; return 0; } ", TestingOutcome::FAILED);}
 BOOST_AUTO_TEST_CASE(IllegalIndexingWithClass) {testTypeCheckString("class T { } int main() { T[1]; return 0; } ", TestingOutcome::FAILED);}
-BOOST_AUTO_TEST_CASE(IndexingwithClass) {testTypeCheckString("class T { int x; } int main() { int[1] a = new int[5]; T b = new T(); a[b.x]; return 0; } ", TestingOutcome::SUCCESS);}
-BOOST_AUTO_TEST_CASE(IndexingwithClass2) {testTypeCheckString("class T { int x; } int main() { int[1] a = new int[5]; T b = new T(); int x = a[b.x]; return 0; } ", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(IndexingWithClass) {testTypeCheckString("class T { int x; } int main() { int[1] a = new int[5]; T b = new T(); a[b.x]; return 0; } ", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(IndexingWithClass2) {testTypeCheckString("class T { int x; } int main() { int[1] a = new int[5]; T b = new T(); int x = a[b.x]; return 0; } ", TestingOutcome::SUCCESS);}
+
 
 
 BOOST_AUTO_TEST_CASE(ArrayFromFile) {testTypeCheckFile("../tests/typeTests/arrayStuff.chad", TestingOutcome::FAILED);}
@@ -170,6 +171,10 @@ BOOST_AUTO_TEST_CASE(ClassNotExist2) {testTypeCheckString("int main() { T a = ne
 BOOST_AUTO_TEST_CASE(SimpleDot) {testTypeCheckString("int main() { class T { int x; } T a = new T(); return a.x;}", TestingOutcome::SUCCESS);}
 BOOST_AUTO_TEST_CASE(SimpleDot2) {testTypeCheckString("int main() { class T { E b; } class E { int x; } T a = new T(); return a.b.x;}", TestingOutcome::SUCCESS);}
 BOOST_AUTO_TEST_CASE(SimpleDot3) {testTypeCheckString("int main() { class T { bool x; } T a = new T(); bool y = a.x; return 0;}", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(ReturnDotOp) {testTypeCheckString("int main() { class T { int x; } T a = new T(); return a.x; }", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(FuncWithClassProperty) {testTypeCheckString("class T {int y; } int main() { int f(int x) { return x; } T a = new T(); int x = f(a.y);  return a.y; } ", TestingOutcome::SUCCESS);}
+
+
 // BOOST_AUTO_TEST_CASE(DotOpClassType) {testTypeCheckString(" class G { int y; } class T { G x; } T a = new T(); a.x.y = 2; ", TestingOutcome::SUCCESS);}
 BOOST_AUTO_TEST_CASE(SimpleDotFail) {testTypeCheckString("int main() { class T { int x; } T a = new T(); return a.y;}", TestingOutcome::FAILED);}
 BOOST_AUTO_TEST_CASE(SimpleDotFail2) {testTypeCheckString("int main() { class T {} T a = new T(); return a.x;}", TestingOutcome::FAILED);}
