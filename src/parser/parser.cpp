@@ -155,7 +155,7 @@ namespace grammar {
 
         const auto var_expression_def = id_access;
         
-        const auto var_assign_def = (id >> '=' >> expression) > ";";
+        const auto var_assign_def = (id_access >> '=' >> expression) > ";";
         const auto while_statement_def = optionalParExp("while") > block;
 
       

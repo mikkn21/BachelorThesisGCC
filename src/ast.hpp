@@ -126,7 +126,7 @@ namespace grammar
         };
 
         struct VarAssign : LocationInfo {
-            Id id; 
+            IdAccess idAccess; 
             Expression exp;
         public:
             friend std::ostream& operator<<(std::ostream& os, const VarAssign &exp);

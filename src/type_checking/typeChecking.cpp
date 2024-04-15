@@ -82,7 +82,7 @@ private:
     }
     
     void postVisit(grammar::ast::VarAssign &varassign) override {
-        auto varSymbol = dynamic_cast<VarSymbol *>(varassign.id.sym);
+        auto varSymbol = dynamic_cast<VarSymbol *>(varassign.idAccess.ids.back().sym);
 
         auto t1 = varSymbol->type;
         auto t2 = pop(typeStack);

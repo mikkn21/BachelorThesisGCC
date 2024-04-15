@@ -167,7 +167,7 @@ BOOST_FUSION_ADAPT_STRUCT(
 
 BOOST_FUSION_ADAPT_STRUCT(
     grammar::ast::VarAssign,
-    (grammar::ast::Id, id),
+    (grammar::ast::IdAccess, idAccess),
     (grammar::ast::Expression, exp)
 )
 

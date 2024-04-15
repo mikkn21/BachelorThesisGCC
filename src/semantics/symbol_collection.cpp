@@ -18,11 +18,11 @@ public:
     }
 
     void preVisit(grammar::ast::VarAssign &varAssign) override {
-        Symbol *sym = currentSymbolTable->find(varAssign.id.id);
+        Symbol *sym = currentSymbolTable->find(varAssign.idAccess.ids.front().id);
         if (sym == nullptr) {
-            throw SemanticsError(varAssign.id.id + " not declared in scope4", varAssign);
+            throw SemanticsError(varAssign.idAccess.ids.front().id + " not declared in scope4", varAssign);
         }
-        varAssign.id.sym = sym;
+        varAssign.idAccess.ids.front().sym = sym;
     }
 
 

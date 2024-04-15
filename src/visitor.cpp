@@ -221,7 +221,7 @@ void TreeTraveler::operator()(grammar::ast::ArrayIndexAssign &ArrayIndexAssign) 
 template <>
 void TreeTraveler::operator()(grammar::ast::VarAssign &varAssign) {
     visitor.preVisit(varAssign);
-    (*this)(varAssign.id);
+    (*this)(varAssign.idAccess);
     visitor.preExpVisit(varAssign);
     (*this)(varAssign.exp);
     visitor.postVisit(varAssign);

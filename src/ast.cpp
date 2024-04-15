@@ -235,7 +235,7 @@ namespace grammar
         }
 
         std::ostream& operator<<(std::ostream& os, const grammar::ast::VarAssign &assign) {
-            return os << assign.id << " = " << assign.exp << ';' << "\n" ;
+            return os << assign.idAccess << " = " << assign.exp << ';' << "\n" ;
         }
 
         std::ostream& operator<<(std::ostream& os, const grammar::ast::WhileStatement &while_statement) {
