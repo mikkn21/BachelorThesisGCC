@@ -62,6 +62,7 @@ public:
     ~FuncSymbol() override;
     std::vector<SymbolType> parameters;
     SymbolType returnType;
+    grammar::ast::FuncDecl *funcDecl;
     SymbolTable *symTab;
 };
 

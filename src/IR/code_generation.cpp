@@ -1,7 +1,6 @@
 #include "code_generation.hpp"
 #include "../semantics/symbol_table.hpp"
 
-
 #include <string>
 // #include <boost/spirit/home/x3.hpp>
 // #include <boost/spirit/home/x3/support/ast/apply_visitor.hpp>
@@ -49,7 +48,8 @@ void IRVisitor::postVisit(grammar::ast::ReturnStatement &return_statement) {
 }
 
 void IRVisitor::preVisit(grammar::ast::FuncDecl &func_decl) {
-    code.push_back(Instruction(Op::LABEL, Arg(Label(func_decl.id.id), DIR())));
+    code.push_back(Instruction(Op::LABEL, Arg(Label(func_decl.label), DIR())));
+    std::cout << func_decl.label << std::endl;
     code.push_back(Instruction(Op::PUSHQ, Arg(Register::RBP, DIR())));
     code.push_back(Instruction(Op::MOVQ, Arg(Register::RSP, DIR()), Arg(Register::RBP, DIR())));
     code.push_back(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_SAVE, DIR())));
@@ -78,7 +78,7 @@ void IRVisitor::postVisit(grammar::ast::FunctionCall &func_call) {
             code.push_back(Instruction(Op::PUSHQ, Arg(std::get<GenericRegister>(value), DIR())));
         }
     }
-    int callee_depth = static_cast<FuncSymbol*>(func_call.id.sym)->symTab->parentScope->depth;
+    int callee_depth = dynamic_cast<FuncSymbol*>(func_call.id.sym)->symTab->parentScope->depth;
     int caller_depth = func_call.id.scope->depth;
     int difference = caller_depth - callee_depth;
     
@@ -89,7 +89,9 @@ void IRVisitor::postVisit(grammar::ast::FunctionCall &func_call) {
     } 
 
     code.push_back(Instruction(Op::PUSHQ, Arg(Register::R8, DIR()))); // Settting static link.
-    code.push_back(Instruction(Op::CALL, Arg(Label(func_call.id.id), DIR())));
+    std::string label = dynamic_cast<FuncSymbol*>(func_call.id.sym)->funcDecl->label;
+    std::cout << label << std::endl;
+    code.push_back(Instruction(Op::CALL, Arg(Label(label), DIR())));
     code.push_back(Instruction(Op::ADDQ, Arg(ImmediateValue((func_call.argument_list.arguments.size()+1) * 8), DIR()), Arg(Register::RSP, DIR()))); // remove arguments and static æink from stack
     code.push_back(Instruction(Op::MOVQ, Arg(Register::RAX, DIR()), Arg(result, DIR()))); // save result to a save register
     code.push_back(Instruction(Op::PROCEDURE, Arg(Procedure::CALLER_RESTORE, DIR())));
@@ -121,11 +123,18 @@ void IRVisitor::preVisit(bool &b) {
 }
 
 void IRVisitor::postVisit(grammar::ast::VarExpression &var_expr) {
-    VarSymbol *var_symbol = static_cast<VarSymbol*>(var_expr.id.sym);
+    VarSymbol *var_symbol = dynamic_cast<VarSymbol*>(var_expr.id.sym);
+    if (var_symbol->varDecl == nullptr) {
+        std::cout << "is null ptr" << std::endl;
+    } else {
+        std::cout << "not null ptr: " << std::endl;
+        std::cout << var_symbol->varDecl->id << std::endl;
+    }
     int k = var_expr.id.scope->depth;
     int l = 0;
 
     auto o = var_symbol->varDecl;
+
     int difference = k - l;
     GenericRegister result_register = GenericRegister(++var_expr.id.scope->registerCounter);
     auto new_code = static_link_instructions(difference, var_symbol->local_id, result_register);
@@ -239,6 +248,29 @@ void IRVisitor::postVisit(grammar::ast::PrintStatement &print) {
     }
 }
 
+
+
+void IRVisitor::preBlockVisit(grammar::ast::IfStatement &if_statement) {
+    code.push_back(Instruction(Op::LABEL, Arg(Label(if_statement.label), DIR())));
+    AstValue expr = pop(temp_storage);
+    if (std::holds_alternative<bool>(expr)) {
+        code.push_back(Instruction(Op::CMPQ, Arg(ImmediateValue(1), DIR()), Arg(ImmediateValue(std::get<bool>(expr)), DIR())));        
+    } else if (std::holds_alternative<GenericRegister>(expr)) {
+        code.push_back(Instruction(Op::CMPQ, Arg(ImmediateValue(1), DIR()), Arg(std::get<GenericRegister>(expr), DIR())));
+    } else {
+        throw IRError("Unexpected type in ConditionalStatement");
+    }
+
+    code.push_back(Instruction(Op::JNE, Arg(Label(if_statement.nextLabel), DIR())));
+}
+
+void IRVisitor::preVisit(grammar::ast::ElseStatement &else_statement) {
+    code.push_back(Instruction(Op::LABEL, Arg(Label(else_statement.label), DIR())));
+}
+
+void IRVisitor::postVisit(grammar::ast::ConditionalStatement &condStatement) {
+    code.push_back(Instruction(Op::LABEL, Arg(Label(condStatement.endifLabel), DIR())));
+}
 
 template<typename T>
 T IRVisitor::pop(std::stack<T>& myStack) {

@@ -1,5 +1,7 @@
-int x = 2;
 int main() {
-    print(x);
+    if 9 < 3 {
+        print(5);
+    }
     return 0;
 }
+

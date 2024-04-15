@@ -2,11 +2,6 @@
 #include <fstream>
 #include "emit.hpp"
 
-size_t unique_label_id = 0;
-
-string get_label(string name) {
-    return "L" + std::to_string(unique_label_id++) + "_" + name;
-}
 
 string callerSave(){
     return R"(    pushq %rax
@@ -102,7 +97,7 @@ string procedure(Instruction instruction) {
 
 string print_function() {
     return R"(
-    printNum:
+printNum:
 	movq %rdi, %rax # The number
 	movq $0, %r9 # Counter for chars to write
 	# Convert the number to chars
