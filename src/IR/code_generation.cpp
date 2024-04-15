@@ -124,12 +124,8 @@ void IRVisitor::postVisit(grammar::ast::VarExpression &var_expr) {
     VarSymbol *var_symbol = static_cast<VarSymbol*>(var_expr.id.sym);
     int k = var_expr.id.scope->depth;
     int l = 0;
-    
-    
-    std::cout << var_symbol->varDecl << std::endl;
-    std::cout << var_symbol->varDecl->id << std::endl;
+
     auto o = var_symbol->varDecl;
-    // auto o = var_symbol->varDecl->id; // ERROR: Heap use after free
     int difference = k - l;
     GenericRegister result_register = GenericRegister(++var_expr.id.scope->registerCounter);
     auto new_code = static_link_instructions(difference, var_symbol->local_id, result_register);
