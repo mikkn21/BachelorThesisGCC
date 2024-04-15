@@ -1,7 +1,7 @@
 #include "symbol_table.hpp"
-
 #include "semantics_error.hpp"
 #include <iostream>
+#include <stdexcept>
 #include <typeinfo>
 
 struct print_visitor {
@@ -34,9 +34,9 @@ struct SymbolTypeToStringVisitor {
     }
 };
 
-struct TypeConverterVisitor : boost::static_visitor<SymbolType> {
+struct AstTypeConverterVisitor : boost::static_visitor<SymbolType> {
 public: 
-    TypeConverterVisitor() = default; // TODO: Added this default constructor
+    AstTypeConverterVisitor() = default; // TODO: Added this default constructor
 
     SymbolType operator()(const grammar::ast::PrimitiveType &t) {
         auto const type = t.type;
@@ -52,18 +52,22 @@ public:
 
 
     SymbolType operator()(const grammar::ast::ArrayType &arrayType) {
-        // void* memory = ::operator new(sizeof(SymbolType));
         SymbolType type = (*this)(arrayType.type);
-        // SymbolType* typePtr = new(memory) SymbolType(type);
         return ArraySymbolType{std::make_shared<SymbolType>(type), arrayType.dim};
+    }
+
+    
+    SymbolType operator()(const grammar::ast::ClassType &astType) {  
+        auto classSymbol = dynamic_cast<ClassSymbol *>(astType.id.sym);
+        // NOTE: that classSymbol might be null if the class is defined after the type is used
+        return ClassSymbolType{classSymbol};
     }
 };
 
 bool SymbolType::operator==(const SymbolType &other) const {
-    // return visit(SymbolTypeEqualityVisitor{}, *this, other);
-    // TODO did this
     return boost::apply_visitor(SymbolTypeEqualityVisitor{}, *this, other);
 }
+
 
 bool SymbolType::operator!=(const SymbolType &other) const {
     return !(*this == other);
@@ -75,6 +79,10 @@ bool BoolType::operator==(const BoolType &other) const {
 
 bool IntType::operator==(const IntType &other) const {
     return true;
+}
+
+bool ClassSymbolType::operator==(const ClassSymbolType &other) const {
+    return symbol->decl->id.id == other.symbol->decl->id.id;
 }
 
 bool ArraySymbolType::operator==(const ArraySymbolType &other) const {
@@ -89,22 +97,20 @@ std::string IntType::toString() const {
     return "int";
 }
 
+std::string ClassSymbolType::toString() const {
+    return "class<" + symbol->decl->id.id + ">";
+}
+
 std::string ArraySymbolType::toString() const {
     return "Array of " + elementType->toString();
 }
 
-// ArraySymbolType::~ArraySymbolType() {
-//     delete elementType;
-// }
-
 std::string SymbolType::toString() const {
-    // TODO: Changed this
-    // return visit(SymbolTypeToStringVisitor{}, *this);
     return boost::apply_visitor(SymbolTypeToStringVisitor{}, *this);
 }
 
 SymbolType convertType(grammar::ast::Type type) {
-    auto visitor = TypeConverterVisitor{}; // TODO: Default constructor on TypeConverter makes this work
+    auto visitor = AstTypeConverterVisitor{};
     return boost::apply_visitor(visitor, type);
 }
 
@@ -121,13 +127,32 @@ FuncSymbol::FuncSymbol(grammar::ast::FuncDecl *funcDecl, SymbolTable *scope) : s
     scope->creator = this;
 }
 
+
+ClassSymbol::ClassSymbol(grammar::ast::ClassDecl *decl, SymbolTable *scope) : decl(decl), symbolTable(scope){ 
+}
+ 
 VarSymbol::VarSymbol(grammar::ast::VarDecl *varDecl) : varDecl(varDecl) {
     type = convertType(varDecl->type);
 }
 
+SymbolType FuncSymbol::toType() {
+    throw std::runtime_error("FuncSymbol cannot be converted to a SymbolType");
+}
+
+SymbolType ClassSymbol::toType() {
+    return ClassSymbolType{this};
+}
+
+SymbolType VarSymbol::toType() {
+    return type;
+}
 
 FuncSymbol::~FuncSymbol() {
     delete(symTab);
+}
+
+ClassSymbol::~ClassSymbol() {
+    delete(symbolTable);
 }
 
 // Outer-most scope
@@ -159,7 +184,7 @@ void SymbolTable::insert(std::string key, VarSymbol* symbol) {
     entries.emplace(key, symbol); 
 }
 
-void SymbolTable::insert(std::string key, FuncSymbol *symbol) {
+void SymbolTable::insert(std::string key, Symbol *symbol) {
     entries.emplace(key, symbol); 
 }
 

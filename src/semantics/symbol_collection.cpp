@@ -1,5 +1,6 @@
 #include "../visitor.hpp"
 #include "semantics_error.hpp"
+#include "symbol_table.hpp"
 #include "symbol_collection.hpp"
 
 size_t unique_label_id = 0;
@@ -29,21 +30,36 @@ public:
     void preVisit(grammar::ast::VarAssign &varAssign) override {
         Symbol *sym = currentSymbolTable->find(varAssign.id.id);
         if (sym == nullptr) {
-            throw SemanticsError(varAssign.id.id + " not declared in scope", varAssign);
+            throw SemanticsError(varAssign.id.id + " not declared in scope4", varAssign);
         }
         varAssign.id.sym = sym;
     }
 
+
+    void preVisit(grammar::ast::ClassDecl &classDecl) override {
+        if (currentSymbolTable->findLocal(classDecl.id.id)) {
+            throw SemanticsError(classDecl.id.id + " already declared in scope", classDecl);
+        }
+        SymbolTable *newSymbolTable = new SymbolTable(currentSymbolTable);
+        ClassSymbol *classSymbol = new ClassSymbol(&classDecl, newSymbolTable);
+        currentSymbolTable->insert(classDecl.id.id, classSymbol);
+        classDecl.scope = classSymbol;
+        classDecl.id.sym = classSymbol;
+        currentSymbolTable = classSymbol->symbolTable;
+    }
+
+
     void preVisit(grammar::ast::VarExpression &exp) override {
-        Symbol *sym = currentSymbolTable->find(exp.id.id);
+        grammar::ast::Id varId = exp.idAccess.ids[0];
+        Symbol *sym = currentSymbolTable->find(varId.id);
         if (sym != nullptr) {
             if (auto varSym = dynamic_cast<VarSymbol *>(sym)) {
-                exp.id.sym = varSym;
+                varId.sym = varSym;
             } else {
                 throw SemanticsError("Unknown symbol type was encountered", exp);
             }
         } else {
-            throw SemanticsError(exp.id.id + " not declared in scope", exp);
+            throw SemanticsError(varId.id + " not declared in scope2", exp);
         }
     }
 
@@ -58,11 +74,11 @@ public:
             throw SemanticsError(varDecl.id.id + " already declared in scope", varDecl);
         }
 
-        VarSymbol *variantSymbol = new VarSymbol(&varDecl);
-        
-        currentSymbolTable->insert(varDecl.id.id, variantSymbol);
-        varDecl.sym = variantSymbol;
-        varDecl.id.sym = variantSymbol;
+        VarSymbol *varSymbol = new VarSymbol(&varDecl);
+
+        currentSymbolTable->insert(varDecl.id.id, varSymbol);
+        varDecl.sym = varSymbol;
+        varDecl.id.sym = varSymbol;
     }
 
     void preVisit(grammar::ast::FuncDecl &funcDecl) override {
@@ -85,12 +101,21 @@ public:
         currentSymbolTable = currentSymbolTable->parentScope;
     }
 
+    void postVisit(grammar::ast::ClassDecl &decl) override {
+        currentSymbolTable = currentSymbolTable->parentScope;
+    }
+
     void postVisit(grammar::ast::ArrayIndex &index) override {
-        Symbol *sym = currentSymbolTable->find(index.id.id);
-        if (sym == nullptr) {
-            throw SemanticsError(index.id.id + " not declared in scope", index);
+        Symbol *symbol = currentSymbolTable->find(index.id.id);
+        if (symbol == nullptr) {
+            throw SemanticsError(index.id.id + " not declared in scope3", index);
         }
-        index.id.sym = sym;
+
+        if (auto varSymbol = dynamic_cast<VarSymbol *>(symbol)) {
+            index.id.sym = varSymbol;
+        } else {
+            throw SemanticsError("Attempted to index a non-variable", index);
+        }
     }
 
     void postVisit(grammar::ast::ConditionalStatement &condStatement) override {

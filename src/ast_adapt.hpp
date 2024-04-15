@@ -25,7 +25,7 @@ BOOST_FUSION_ADAPT_STRUCT(
 
 BOOST_FUSION_ADAPT_STRUCT(
     grammar::ast::VarExpression,
-    (grammar::ast::Id, id)
+    (grammar::ast::IdAccess, idAccess)
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
@@ -100,7 +100,7 @@ BOOST_FUSION_ADAPT_STRUCT(
 
 BOOST_FUSION_ADAPT_STRUCT(
     grammar::ast::VarDeclAssign,
-    (grammar::ast::VarDecl, decl)
+    (grammar::ast::VarDecl, decl),
     (grammar::ast::Expression, exp)
 )
 
@@ -122,6 +122,29 @@ BOOST_FUSION_ADAPT_STRUCT(
     grammar::ast::ArrayType,
     (grammar::ast::PrimitiveType, type),
     (int, dim)
+)
+
+BOOST_FUSION_ADAPT_STRUCT(
+    grammar::ast::ClassDecl,
+    (grammar::ast::Id, id),
+    (std::vector<grammar::ast::VarDeclStatement>, attr)
+)
+
+BOOST_FUSION_ADAPT_STRUCT(
+    grammar::ast::ClassType,
+    (grammar::ast::Id, id),
+)    
+
+
+BOOST_FUSION_ADAPT_STRUCT(
+    grammar::ast::ObjInst,
+    (grammar::ast::Id, id),
+    (grammar::ast::ArgumentList, arguments)
+)
+
+BOOST_FUSION_ADAPT_STRUCT(
+    grammar::ast::IdAccess,
+    (std::vector<grammar::ast::Id>, ids),
 )
 
 BOOST_FUSION_ADAPT_STRUCT(

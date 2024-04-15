@@ -7,6 +7,7 @@
 #include <vector>
 
 class FuncSymbol;
+class ClassSymbol;
 class VarSymbol;
 class Symbol;
 class SymbolTable;
@@ -33,11 +34,10 @@ namespace grammar
         struct ArrayType;
         struct ArrayExp;
         struct ArrayIndex;
-
+        struct ObjInst;
 
         struct Id : LocationInfo {
             std::string id;
-            // std::variant<std::monostate, VarSymbol*, FuncSymbol*> sym = std::monostate{}; // monostate tells us this can be empty since we can't use nullptr
             Symbol *sym = nullptr;
             SymbolTable *scope = nullptr;
             
@@ -45,9 +45,14 @@ namespace grammar
             friend std::ostream& operator<<(std::ostream& os, const Id &exp);
         };
 
+        struct IdAccess : public LocationInfo {
+            std::vector<Id> ids;  
+        public:
+            friend std::ostream& operator<<(std::ostream& os, const IdAccess &exp);
+        };
+
         struct VarExpression : LocationInfo {
-            Id id;
-            
+            IdAccess idAccess;
         public:
             friend std::ostream& operator<<(std::ostream& os, const VarExpression &exp);
         };
@@ -58,7 +63,7 @@ namespace grammar
             friend std::ostream& operator<<(std::ostream& os, const PrimitiveType &exp); 
         };
 
-        struct Expression : public boost::spirit::x3::variant<int, boost::spirit::x3::forward_ast<BinopExps>, bool, VarExpression, boost::spirit::x3::forward_ast<ExpressionPar>, boost::spirit::x3::forward_ast<FunctionCall>, boost::spirit::x3::forward_ast<ArrayExp>, boost::spirit::x3::forward_ast<ArrayIndex>>, LocationInfo {
+        struct Expression : public boost::spirit::x3::variant<int, boost::spirit::x3::forward_ast<BinopExps>, bool, VarExpression, boost::spirit::x3::forward_ast<ExpressionPar>, boost::spirit::x3::forward_ast<FunctionCall>, boost::spirit::x3::forward_ast<ArrayExp>, boost::spirit::x3::forward_ast<ArrayIndex>, boost::spirit::x3::forward_ast<ObjInst>, IdAccess>, LocationInfo {
             using base_type::base_type;   
             using base_type::operator=;
         public:
@@ -207,7 +212,13 @@ namespace grammar
             friend std::ostream& operator<<(std::ostream& os, const ArrayType &exp);
         };
 
-        struct Type : public boost::spirit::x3::variant<PrimitiveType, ArrayType>, LocationInfo {
+        struct ClassType : LocationInfo {
+            Id id;
+        public:
+            friend std::ostream& operator<<(std::ostream& os, const ArrayType &exp);
+        };
+
+        struct Type : public boost::spirit::x3::variant<PrimitiveType, ArrayType, ClassType>, LocationInfo {
             using base_type::base_type;   
             using base_type::operator=;
         public:
@@ -249,6 +260,8 @@ namespace grammar
             friend std::ostream& operator<<(std::ostream& os, const VarDeclStatement &exp);
         };
 
+
+
         // this is a variant because later it needs to be extended to include optional parameters
         struct Parameter : public boost::spirit::x3::variant<VarDecl>, LocationInfo {
             using base_type::base_type;  
@@ -269,7 +282,7 @@ namespace grammar
         public:
             friend std::ostream& operator<<(std::ostream& os, const ParameterList &exp);
         };
-         
+
 
         struct ArgumentList : LocationInfo {
             std::vector<Expression> arguments;
@@ -281,6 +294,23 @@ namespace grammar
             ArgumentList argument_list;
             friend std::ostream& operator<<(std::ostream& os, const FunctionCall &funcCall);
         };
+
+        struct ClassDecl : public LocationInfo {
+            Id id;
+            std::vector<VarDeclStatement> attr; 
+            ClassSymbol *scope = nullptr;
+        public:
+            friend std::ostream& operator<<(std::ostream& os, const ClassDecl &exp);
+        };
+
+        struct ObjInst : public LocationInfo {
+            Id id;
+            ArgumentList arguments;
+        public:
+            friend std::ostream& operator<<(std::ostream& os, const ObjInst &exp);
+        };
+
+
 
         struct FuncDecl : public LocationInfo { 
             FuncDecl();
@@ -305,7 +335,7 @@ namespace grammar
         };
 
 
-        struct Decl : public boost::spirit::x3::variant<VarDeclAssign, VarDeclStatement, FuncDecl/*, ClassDecl*/>, LocationInfo { 
+        struct Decl : public boost::spirit::x3::variant<VarDeclAssign, VarDeclStatement, FuncDecl, ClassDecl>, LocationInfo { 
             using base_type::base_type;  
             using base_type::operator=;
         public:

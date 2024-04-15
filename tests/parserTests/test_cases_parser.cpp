@@ -205,6 +205,27 @@ BOOST_AUTO_TEST_CASE(ArrExpFunc) {test_parse_string("int f() { return 1; } int[2
 BOOST_AUTO_TEST_CASE(ArrExpVar) {test_parse_string("int i = 1; int[2] a = new int[i, i]; ", TestingOutcome::SUCCESS);}
 
 
+// Class 
+BOOST_AUTO_TEST_CASE(SimpleClass) {test_parse_string("class T {  } ", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(ClassFail) {test_parse_string("class T { int x = 2;  } ", TestingOutcome::PARSE_FAILED);}
+BOOST_AUTO_TEST_CASE(ClassFail2) {test_parse_string("class if { int x;  } ", TestingOutcome::PARSE_FAILED);}
+BOOST_AUTO_TEST_CASE(SimpleClassWithEExp) {test_parse_string("class T { int x; int y;  } ", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(SimpleClassNested) {test_parse_string("class T { class E { } } ", TestingOutcome::PARSE_FAILED);}
+BOOST_AUTO_TEST_CASE(SimpleClassFunction) {test_parse_string("class T { int f(){return 0;} } ", TestingOutcome::PARSE_FAILED);}
+ 
+
+ // Obj instantiation
+BOOST_AUTO_TEST_CASE(SimpleObjInst) {test_parse_string("class T { } T a = new T();  ", TestingOutcome::SUCCESS);}
+ 
+
+ // test dot operator: 
+// BOOST_AUTO_TEST_CASE(DotOpSimple) {test_parse_string("int f() { a.x = 2; } ", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(DotLongChain) {test_parse_string("int f() { int x = a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u; } ", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(DotFail) {test_parse_string("int f() { int x = a.b. } ", TestingOutcome::PARSE_FAILED);}
+BOOST_AUTO_TEST_CASE(DotOpSimple2) {test_parse_string("int f() { int x = a.x; } ", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(DotMissingsemi) {test_parse_string("int f() { int x = a.x } ", TestingOutcome::PARSE_FAILED);}
+BOOST_AUTO_TEST_CASE(UsingComma) {test_parse_string("int f() { int x = a.x,y; } ", TestingOutcome::PARSE_FAILED);}
+
 
 // Testing files
 BOOST_AUTO_TEST_CASE(simple_file) {test_parse_file("../tests/parserTests/simple.chad", TestingOutcome::SUCCESS);}

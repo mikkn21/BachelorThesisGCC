@@ -19,3 +19,10 @@ BOOST_AUTO_TEST_CASE(VarAlreadyInScopeFail) {testSymbolCollectionString("int x =
 BOOST_AUTO_TEST_CASE(VarNotDeclaredInScopeFail) {testSymbolCollectionString("int f() { int x = 3; return 0;} int g(){int y = 1 + x; return 0;}", TestingOutcome::FAILED);}
 BOOST_AUTO_TEST_CASE(VarNotInitializedYetFail) {testSymbolCollectionString("int x = 0; int y = 5 + x;", TestingOutcome::SUCCESS);}
  
+
+ // ClassDecl
+BOOST_AUTO_TEST_CASE(ClassDeclardTwice) {testSymbolCollectionString("int main() { class T{ int x;} class T{ int y; }  return 0;}", TestingOutcome::FAILED);}
+BOOST_AUTO_TEST_CASE(ClassDoubleVar) {testSymbolCollectionString("class T { int x; int x; }", TestingOutcome::FAILED);}
+
+// Dotop 
+BOOST_AUTO_TEST_CASE(TypeDeclaredBeforeTypeIsCreated) {testSymbolCollectionString("int main() { T x; return 0; } class T {}", TestingOutcome::SUCCESS);}

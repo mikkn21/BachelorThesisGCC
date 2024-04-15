@@ -1,6 +1,4 @@
 #include <stack>
-#include <iostream>
-#include <variant>
 #include "typeChecking.hpp"
 #include "../visitor.hpp"
 #include "../semantics/symbol_table.hpp"
@@ -55,50 +53,38 @@ private:
 
     void postVisit(grammar::ast::FunctionCall &funcCall) override {
         Symbol *sym = funcCall.id.scope->find(funcCall.id.id);
-        if (sym != nullptr) {
-            if (dynamic_cast<VarSymbol *>(sym)) {
-                throw TypeCheckError(funcCall.id.id + " variable attempted to be used as a function", funcCall);
-            } else if (auto funcSym = dynamic_cast<FuncSymbol *>(sym)) {
-                funcCall.id.sym = funcSym;
-
-                if (funcCall.argument_list.arguments.size() != funcSym->parameters.size()) {
-                    throw TypeCheckError("Function call does not have the correct number of arguments", funcCall);
-                }
-
-                // Parameters
-                // We go backwards through the parameters because the arguments are pushed onto the stack in reverse order
-                for(int i = funcSym->parameters.size() - 1; i >= 0; i--) {
-                    SymbolType argType;
-                    try {
-                        argType = pop(typeStack);
-                    } catch (EmptyTypeStackError &e) {
-                        throw TypeCheckError("Not enough arguments for function call", funcCall);
-                    }
-
-                    auto paramType = funcSym->parameters[i];
-                    if (argType != paramType) {
-                        throw TypeCheckError("Argument type does not match parameter type", funcCall);
-                    }
-                }
-
-                typeStack.push(funcSym->returnType);
-            } else {
-                throw TypeCheckError("Unknown symbol type was encountered: " + std::to_string(reinterpret_cast<uintptr_t>(sym)), funcCall);
-            }
-        } else {
-            throw TypeCheckError(funcCall.id.id + " not declared in scope", funcCall);
+        // Symbol collection phase 2 checks that this sym is a FuncSymbol and not null
+        auto funcSym = static_cast<FuncSymbol *>(sym);
+        if (funcCall.argument_list.arguments.size() != funcSym->parameters.size()) {
+          throw TypeCheckError("Function call does not have the correct number of arguments",funcCall);
         }
+
+        // Parameters
+        // We go backwards through the parameters because the arguments are
+        // pushed onto the stack in reverse order
+        for (int i = funcSym->parameters.size() - 1; i >= 0; i--) {
+          SymbolType argType;
+          try {
+            argType = pop(typeStack);
+          } catch (EmptyTypeStackError &e) {
+            throw TypeCheckError("Not enough arguments for function call",
+                                 funcCall);
+          }
+
+          auto paramType = funcSym->parameters[i];
+          if (argType != paramType) {
+            throw TypeCheckError("Argument type does not match parameter type",
+                                 funcCall);
+          }
+        }
+
+        typeStack.push(funcSym->returnType);
     }
     
     void postVisit(grammar::ast::VarAssign &varassign) override {
-        // id 
-
-        if (varassign.id.sym == nullptr) {
-            throw TypeCheckError("Symbol not found", varassign);
-        }
         auto varSymbol = dynamic_cast<VarSymbol *>(varassign.id.sym);
+
         auto t1 = varSymbol->type;
-        // exp resault
         auto t2 = pop(typeStack);
 
         if (t1 != t2) {
@@ -109,7 +95,6 @@ private:
 
     // Check that the expression in the if statement evaluates to a bool
     // Checks both if and else if (since they are both if nodes in the ast)
-    // TODO: Check return statements? 
     void postVisit(grammar::ast::IfStatement &ifStatement) override {
         // exp
         auto t1 = pop(typeStack);
@@ -142,12 +127,27 @@ private:
     }
 
 
-    void preVisit(grammar::ast::VarExpression &varExp) override {
-        if (varExp.id.sym == nullptr) {
-            throw TypeCheckError("Symbol not found", varExp);
+
+    void postVisit(grammar::ast::IdAccess &idAccess) override {
+        // check that the first |ids| - 1 are classes
+        for (unsigned long i = 0; i < idAccess.ids.size()-1; i++){
+            // TODO: Pointer might not be correct.
+
+            SymbolType symType = idAccess.ids[i].sym->toType();
+            if (VarSymbol *varSymbol = dynamic_cast<VarSymbol *>(idAccess.ids[i].sym)) {
+                ClassSymbolType *classType = boost::get<ClassSymbolType>(&varSymbol->type);
+                if (classType == nullptr) {
+                    throw TypeCheckError ("Property " + idAccess.ids[i].id + " is not an object", idAccess.ids[i]);
+                } 
+            }
         }
-        auto varSymbol = dynamic_cast<VarSymbol *>(varExp.id.sym);
-        typeStack.push(varSymbol->type);
+        // the last id in ids can be either a class or a variable
+    }
+
+
+    void postVisit(grammar::ast::VarExpression &varExp) override {
+        grammar::ast::Id lastId = varExp.idAccess.ids.back();
+        typeStack.push(lastId.sym->toType());
     }
 
     void preVisit(grammar::ast::BlockLine &blockLine) override {
@@ -195,34 +195,27 @@ private:
         }
 
         auto symbolType = convertType(grammar::ast::Type(exp.primType));
-        // void* memory = ::operator new(sizeof(SymbolType));
-        // SymbolType* symbolTypePtr = new(memory) SymbolType(symbolType);
         typeStack.push(ArraySymbolType{std::make_shared<SymbolType>(symbolType), static_cast<int>(exp.sizes.size())});
     }
 
+      
 
     void postVisit(grammar::ast::ArrayIndex &arrayIndex) override {
-        if (arrayIndex.id.sym == nullptr) {
-        }
-        if (auto sym = dynamic_cast<VarSymbol *>(arrayIndex.id.sym)) {
-            if (auto *type = boost::get<ArraySymbolType>(&sym->type)) {
-                if (static_cast<int>(arrayIndex.indices.size()) != type->dimensions) {
-                    throw TypeCheckError("Index was attempted on an incompatible type", arrayIndex);
-                }
-
-                if (!areAllInts(arrayIndex.indices)) {
-                    throw TypeCheckError("Array index must be an int", arrayIndex);
-                }
-
-                typeStack.push(*type->elementType.get());
-            } else {
-                throw TypeCheckError("Index was attempted on an incompatible type", arrayIndex);
+        VarSymbol* sym = dynamic_cast<VarSymbol *>(arrayIndex.id.sym);
+        
+        if (auto *type = boost::get<ArraySymbolType>(&sym->type)) {
+            if (static_cast<int>(arrayIndex.indices.size()) != type->dimensions) {
+                throw TypeCheckError("Indicies does not match dimensions of array", arrayIndex);
             }
+
+            if (!areAllInts(arrayIndex.indices)) {
+                throw TypeCheckError("Array index must be an int", arrayIndex);
+            }
+
+            typeStack.push(*type->elementType.get());
         } else {
-          // TODO: Make a better msg
-          throw TypeCheckError("I DUNNO MAN", arrayIndex);
-          
-        }
+            throw TypeCheckError("Index was attempted on an incompatible type", arrayIndex);
+        }          
     }
 
     void postVisit(grammar::ast::ArrayIndexAssign &assign) override {
@@ -274,6 +267,18 @@ private:
             typeStack.push(BoolType());
         } else {
             typeStack.push(lhsType);
+        }
+    }
+
+    void postVisit(grammar::ast::ObjInst &inst) override {
+        if (inst.arguments.arguments.size() > 0) {
+            throw TypeCheckError("Object instantiation does not take arguments", inst);
+        }
+        
+        if (auto classSymbol = dynamic_cast<ClassSymbol *>(inst.id.sym)) {
+            typeStack.push(ClassSymbolType{classSymbol});
+        } else {
+            throw TypeCheckError("Has to be a class", inst);
         }
     }
 
