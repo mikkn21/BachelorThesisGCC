@@ -126,12 +126,14 @@ public:
             elseIf.label = generate_unique_label("else_if_statement");
         }
 
+        condStatement.endIfLabel = generate_unique_label("endif_statement");
+        condStatement.ifStatement.endIfLabel = condStatement.endIfLabel;
+
         // Set the nextLabel of each else-if statement to the label of the next else-if statement
         for (auto i = 1; i < condStatement.elseIfs.size(); i++) {
             condStatement.elseIfs[i - 1].nextLabel = condStatement.elseIfs[i].label;
-        }
-
-        condStatement.endifLabel = generate_unique_label("endif_statement");
+            condStatement.elseIfs[i - 1].endIfLabel = condStatement.endIfLabel;
+        }        
 
         if (condStatement.conditionalElse) {
             condStatement.conditionalElse->label = generate_unique_label("else_statement");
@@ -140,7 +142,7 @@ public:
             condStatement.ifStatement.nextLabel = (condStatement.elseIfs.size() > 0) ? condStatement.elseIfs.back().nextLabel : condStatement.conditionalElse->label;
         } else {
             // Set the nextLabel of the if statement or the last else-if statement to the endif label
-            condStatement.ifStatement.nextLabel = (condStatement.elseIfs.size() > 0) ? condStatement.elseIfs.back().nextLabel : condStatement.endifLabel;
+            condStatement.ifStatement.nextLabel = (condStatement.elseIfs.size() > 0) ? condStatement.elseIfs.back().nextLabel : condStatement.endIfLabel;
         }
     }
 };

@@ -264,12 +264,16 @@ void IRVisitor::preBlockVisit(grammar::ast::IfStatement &if_statement) {
     code.push_back(Instruction(Op::JNE, Arg(Label(if_statement.nextLabel), DIR())));
 }
 
+void IRVisitor::postVisit(grammar::ast::IfStatement &if_statement) {
+    code.push_back(Instruction(Op::JMP, Arg(Label(if_statement.endIfLabel), DIR())));
+}
+
 void IRVisitor::preVisit(grammar::ast::ElseStatement &else_statement) {
     code.push_back(Instruction(Op::LABEL, Arg(Label(else_statement.label), DIR())));
 }
 
 void IRVisitor::postVisit(grammar::ast::ConditionalStatement &condStatement) {
-    code.push_back(Instruction(Op::LABEL, Arg(Label(condStatement.endifLabel), DIR())));
+    code.push_back(Instruction(Op::LABEL, Arg(Label(condStatement.endIfLabel), DIR())));
 }
 
 template<typename T>

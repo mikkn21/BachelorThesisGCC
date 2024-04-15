@@ -185,6 +185,7 @@ namespace grammar
             Block block;
             std::string label;
             std::string nextLabel;
+            std::string endIfLabel;
         public:
             friend std::ostream& operator<<(std::ostream& os, const IfStatement &exp);
         };
@@ -200,7 +201,7 @@ namespace grammar
             IfStatement ifStatement;
             std::vector<IfStatement> elseIfs; 
             boost::optional<ElseStatement> conditionalElse;
-            std::string endifLabel;
+            std::string endIfLabel;
         public:
             friend std::ostream& operator<<(std::ostream& os, const ConditionalStatement &exp);
         };

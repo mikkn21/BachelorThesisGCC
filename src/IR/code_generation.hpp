@@ -21,6 +21,7 @@ public:
     void postVisit(grammar::ast::FunctionCall &func_call) override;
     void postVisit(grammar::ast::ReturnStatement &return_statement) override;
     void preBlockVisit(grammar::ast::IfStatement &if_statement) override;
+    void postVisit(grammar::ast::IfStatement &ifStatement) override;
     void preVisit(grammar::ast::ElseStatement &else_statement) override;
     void postVisit(grammar::ast::ConditionalStatement &conditional_statement) override;
 
