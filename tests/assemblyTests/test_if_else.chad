@@ -1,0 +1,30 @@
+int main(){
+    if (2 < 3) {
+        print(2);
+    }
+
+    if (2 > 3) {
+
+    }
+    else {
+        print(3);
+    }
+
+    if (2 > 3) {
+
+    }
+    else if (3 < 5){
+        print(3);
+    }
+
+    if (2 > 3){
+
+    }
+    else if (3 > 5){
+
+    }
+    else {
+        print(5);
+    }
+    return 0;
+}
