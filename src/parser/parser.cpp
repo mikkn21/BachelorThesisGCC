@@ -17,7 +17,10 @@
 
 #include <boost/spirit/home/x3/core/parse.hpp>
 
+
 #include <sys/resource.h>
+
+#include <iostream>
 
 
 
@@ -38,66 +41,75 @@ namespace grammar {
 	       }
         };
 
+        #define RULE(ast, name) \
+            struct name##_rule : LocationHandler { }; \
+            const x3::rule<struct name##_rule, ast> name = #name ;
 
-        // Rules up here:
-        const x3::rule<class factor_rule, ast::BinopExps>  factor = "factor";      
-        const x3::rule<class term_rule, ast::BinopExps>  term = "term";
-        const x3::rule<class comp_rule, ast::BinopExps>  comp = "comp";      
-        const x3::rule<class eq_rule, ast::BinopExps>  eq = "eq";
-        const x3::rule<class logical_and_rule, ast::BinopExps>  logical_and = "logical_and";
-        const x3::rule<class logical_or_rule, ast::BinopExps>  logical_or = "logical_or";
+        RULE(ast::BinopExps, factor)
+        RULE(ast::BinopExps, term)
+        RULE(ast::BinopExps, comp)
+        RULE(ast::BinopExps, eq)
+        RULE(ast::BinopExps, logical_and)
+        RULE(ast::BinopExps, logical_or)
 
-        const x3::rule<class factor_rule_rhs, ast::Rhs>  factor_rhs = "factor_rhs";      
-        const x3::rule<class term_rule_rhs, ast::Rhs>  term_rhs = "term_rhs";
-        const x3::rule<class comp_rule_rhs, ast::Rhs>  comp_rhs = "comp_rhs";      
-        const x3::rule<class eq_rule_rhs, ast::Rhs>  eq_rhs = "eq_rhs";
-        const x3::rule<class logical_and_rule_rhs, ast::Rhs>  logical_and_rhs = "logical_and_rhs";
-        const x3::rule<class logical_or_rule_rhs, ast::Rhs>  logical_or_rhs = "logical_or_rhs";
+        RULE(ast::Rhs, factor_rhs)
+        RULE(ast::Rhs, term_rhs)
+        RULE(ast::Rhs, comp_rhs)
+        RULE(ast::Rhs, eq_rhs)
+        RULE(ast::Rhs, logical_and_rhs)
+        RULE(ast::Rhs, logical_or_rhs)
 
-        const x3::rule<class class_rule, ast::ClassDecl> class_decl = "class_decl";
-        const x3::rule<class obj_inst_rule, ast::ObjInst> obj_inst = "obj_inst";
-        const x3::rule<class class_type_rule, ast::ClassType> class_type = "class_type";
-        const x3::rule<class id_access_rule, ast::IdAccess> id_access = "id_access";
+        RULE(ast::ClassDecl, class_decl)
+        RULE(ast::ObjInst, obj_inst)
+        RULE(ast::ClassType, class_type)
+        RULE(ast::IdAccess, id_access)
 
-        const x3::rule<class break_rule, ast::BreakStatement> break_statement = "break";
-        const x3::rule<class continue_rule, ast::ContinueStatement> continue_statement = "continue";
+        RULE(ast::BreakStatement, break_statement)
+        RULE(ast::ContinueStatement, continue_statement)
 
-        const x3::rule<class id, ast::Id> id = "id";
-        const x3::rule<class primitive_type, ast::PrimitiveType> primitive_type = "primitive_type";
-        const x3::rule<class block_line, ast::BlockLine> block_line = "block_line";
-        const x3::rule<class block, ast::Block> block = "block";
-        const x3::rule<class type, ast::Type> type = "type";
-        const x3::rule<class var_decl, ast::VarDecl> var_decl = "var_decl";
-        const x3::rule<class var_decl_assign, ast::VarDeclAssign> var_decl_assign = "var_decl_assign";
-        const x3::rule<class var_decl_statement, ast::VarDeclStatement> var_decl_statement = "var_decl_statement";
-        const x3::rule<class parameter, ast::Parameter> parameter = "parameter";
-        const x3::rule<class parameter_list, ast::ParameterList> parameter_list = "parameter_list";
-        const x3::rule<class func_decl, ast::FuncDecl> func_decl = "func_decl";
-        const x3::rule<class var_assign, ast::VarAssign> var_assign = "var_assign";
-        const x3::rule<class while_statement, ast::WhileStatement> while_statement = "while_statement";
-        const x3::rule<class decl, ast::Decl> decl = "decl";
-        const x3::rule<class prog, ast::Prog> prog = "prog";
-        const x3::rule<class expression,  ast::Expression> expression = "expression";
-        const x3::rule<class expression_par, ast::ExpressionPar> expression_par = "expression_par";
-        const x3::rule<class function_call, ast::FunctionCall> function_call = "function_call";
-        const x3::rule<class argument_list, ast::ArgumentList> argument_list = "argument_list";
-        const x3::rule<class statement_expression, ast::StatementExpression> statement_expression = "statement_expression";
-        const x3::rule<class statement, ast::Statement> statement = "statement";
-        const x3::rule<class print_statement, ast::PrintStatement> print_statement = "print_statement";
-        const x3::rule<class return_statement, ast::ReturnStatement> return_statement = "return_statement";
-        const x3::rule<class var_expression, ast::VarExpression> var_expression =  "var_expression";
+        RULE(ast::Id, id)
+        RULE(ast::PrimitiveType, primitive_type)
+        RULE(ast::BlockLine, block_line)
+        RULE(ast::Block, block)
 
-        const x3::rule<class array_type, ast::ArrayType> array_type = "array_type";
-        const x3::rule<class array_index, ast::ArrayIndex> array_index = "array_index";
-        const x3::rule<class array_exp, ast::ArrayExp> array_exp = "array_exp";
-        const x3::rule<class array_index_assign, ast::ArrayIndexAssign> array_index_assign = "array_index_assign";
+        RULE(ast::Type, type)
+        RULE(ast::VarDecl, var_decl)
+        RULE(ast::VarDeclAssign, var_decl_assign)
+        RULE(ast::VarDeclStatement, var_decl_statement)
 
-        const x3::rule<class if_statement, ast::IfStatement> if_statement =  "if_statement";
-        const x3::rule<class else_statement, ast::ElseStatement> else_statement =  "else_statement";
-        const x3::rule<class conditional_statement, ast::ConditionalStatement> conditional_statement =  "conditional_statement";
+        RULE(ast::Parameter, parameter)
+        RULE(ast::ParameterList, parameter_list)
 
+        RULE(ast::FuncDecl, func_decl)
+        RULE(ast::VarAssign, var_assign)
+        RULE(ast::WhileStatement, while_statement)
+
+        RULE(ast::Decl, decl)
+        RULE(ast::Prog, prog)
+        RULE(ast::Expression, expression)
+        RULE(ast::ExpressionPar, expression_par)
+
+        RULE(ast::FunctionCall, function_call)
+        RULE(ast::ArgumentList, argument_list)
+        RULE(ast::StatementExpression, statement_expression)
+        RULE(ast::Statement, statement)
+
+        RULE(ast::PrintStatement, print_statement)
+        RULE(ast::ReturnStatement, return_statement)
+        RULE(ast::VarExpression, var_expression)
+
+        RULE(ast::ArrayType, array_type)
+        RULE(ast::ArrayIndex, array_index)
+        RULE(ast::ArrayExp, array_exp)
+        RULE(ast::ArrayIndexAssign, array_index_assign)
+
+        RULE(ast::IfStatement, if_statement)
+        RULE(ast::ElseStatement, else_statement)
+        RULE(ast::ConditionalStatement, conditional_statement)
         
+        #undef RULE
 
+       
         struct reservedkeywords : x3::symbols<std::string> {
             reservedkeywords() {
                 add("if", "if")

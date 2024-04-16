@@ -17,7 +17,7 @@ namespace grammar {
 
     
     grammar::ast::Prog parse(std::string_view src);
-    extern const boost::spirit::x3::rule<class prog, ast::Prog> prog;
+    extern const boost::spirit::x3::rule<struct prog_rule, ast::Prog> prog;
 
     class SyntaxError : public CompilerError {
     public:
