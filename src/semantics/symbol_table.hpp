@@ -44,7 +44,6 @@ struct SymbolType : public boost::variant<IntType, BoolType, ArraySymbolType, Cl
 };
 
 SymbolType convertType(grammar::ast::Type type);
-SymbolType convertType(Symbol type);
 
 class SymbolTable;
 
