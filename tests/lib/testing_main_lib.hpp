@@ -11,10 +11,21 @@ enum class TestingOutcome {
 };
 
 /// @brief Tests the main function of the Giga Chad compiler.
-/// @param flags The flags to compile the file with.
+/// @param flags The flags to compile with.
 /// @param filename File path is always the same, thus only the filename is needed
 void testMain(std::string flags, std::string filename, TestingOutcome expectedOutcome);
+
+/// @brief Tests if the compiled file i.e., chad.s exists after compilation
+/// @param flags The flags to compile with.
+/// @param filename File path is always the same, thus only the filename is needed
+/// @param expectedOutcome The expected outcome of the test
 void testFileExists(std::string flags, std::string filename, TestingOutcome expectedOutcome);
-void testOutput(std::string flags, std::string filename, std::string expected_output, TestingOutcome expectedOutcome);
+
+/// @brief Tests the output of the compiled file against the expected output
+/// @param flags The flags to compile  with.
+/// @param filename File path is always the same, thus only the filename is needed
+/// @param expectedOutput The expected output of the compiled file
+/// @param expectedOutcome The expected outcome of the test
+void testOutput(std::string flags, std::string filename, std::string expectedOutput, TestingOutcome expectedOutcome);
 
 #endif // MAIN_TEST_LIB_HPP
