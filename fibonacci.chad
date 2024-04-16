@@ -8,6 +8,6 @@ int fibonacci(int n) {
 }
 
 int main() {
-    print(fibonacci(7));
+    print(fibonacci(39));
     return 0;
 }
