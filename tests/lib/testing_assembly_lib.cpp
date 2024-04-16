@@ -1,11 +1,7 @@
-#include "../../src/ast.hpp"
-#include <sstream>
-#include "../../src/parser/parser.hpp"
 #include "../../src/compiler.hpp"
-#include <string>
 #include "testing_parse_lib.hpp"
 
-string remove_whitespace(const string& str) {
+string remove_whitespace(const std::string& str) {
     string result;
     remove_copy_if(str.begin(), str.end(), 
                         back_inserter(result),
@@ -13,12 +9,12 @@ string remove_whitespace(const string& str) {
     return result;
 }
 
-bool equal_ignore_whitespaces(const string& str1, const string& str2) {
+bool equal_ignore_whitespaces(const std::string& str1, const std::string& str2) {
     return (remove_whitespace(str1) == remove_whitespace(str2));
 }
 
 template<typename Compiler>
-void test_assembly(string input, string expected_output, Compiler compiler) {
+void test_assembly(std::string input, std::string expected_output, Compiler compiler) {
     cout << "\n----------------------" << endl;
     grammar::compiler::CompilerOptions options = grammar::compiler::CompilerOptions();
     
@@ -33,7 +29,7 @@ void test_assembly(string input, string expected_output, Compiler compiler) {
         return;
     }
     // compile assembly file called chad.s here, and run it to check the output is correct with expected_output
-    string assembly_file = "chad.s";
+    std::string assembly_file = "chad.s";
     // Assemble the assembly file
     std::string assemble_cmd = "as --gstabs " + assembly_file + " -o chad.o";
     int assemble_result = system(assemble_cmd.c_str());
@@ -66,11 +62,11 @@ void test_assembly(string input, string expected_output, Compiler compiler) {
     remove("chad");
 }
 
-void test_assembly_file(string input, string expected_outpout) {
+void test_assembly_file(std::string input, std::string expected_outpout) {
     test_assembly(input, expected_outpout, grammar::compiler::compileFromFile);
 }
 
-void test_assembly_string(string input, string expected_outpout) {
+void test_assembly_string(std::string input,std::string expected_outpout) {
     test_assembly(input, expected_outpout, grammar::compiler::compileFromString);
 }
 
