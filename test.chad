@@ -1,11 +1,10 @@
-
-int c = 2;
-int f(int x) {
-    return c+x;
-}
-
 int main() {
 
-    print(f(5));
+    if (2 > 3) {
+
+    } else if (3 < 5) {
+        print(3);
+    }
+
     return 0;
 }
