@@ -8,10 +8,33 @@ class SymbolCollectionVisitor : public Visitor {
 private:
     SymbolTable *currentSymbolTable; // Has to be a pointer, not a reference!!!
 
+    // How many loops we are inside of currently
+    int insideLoopCount = 0;
+
 
 public: 
 
     SymbolCollectionVisitor(SymbolTable *symTab) : Visitor(), currentSymbolTable(symTab) { }
+
+    void preVisit(grammar::ast::WhileStatement &whileStatement) override {
+        insideLoopCount++;
+    }
+
+    void postVisit(grammar::ast::WhileStatement &whileStatement) override {
+        insideLoopCount--;
+    }
+
+    void preVisit(grammar::ast::BreakStatement &breakStatement) override {
+        if (insideLoopCount <= 0) {
+            throw SemanticsError("Break statement outside of loop", breakStatement);
+        }
+    }
+
+    void preVisit(grammar::ast::ContinueStatement &continueStatement) override {
+        if (insideLoopCount <= 0) {
+            throw SemanticsError("Continue statement outside of loop", continueStatement);
+        }
+    }
 
     void preVisit(grammar::ast::Id &id) override {
         id.scope = currentSymbolTable;

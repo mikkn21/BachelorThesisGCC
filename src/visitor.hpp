@@ -65,6 +65,12 @@ public:
     virtual void preVisit(grammar::ast::Rhs &rhs) { }
     virtual void postVisit(grammar::ast::Rhs &rhs) { }
 
+    virtual void preVisit(grammar::ast::BreakStatement &brk) { }
+    virtual void postVisit(grammar::ast::BreakStatement &brk) { }
+
+    virtual void preVisit(grammar::ast::ContinueStatement &cont) { }
+    virtual void postVisit(grammar::ast::ContinueStatement &cont) { }
+
     virtual void preVisit(grammar::ast::VarExpression &exp) { }
     virtual void postVisit(grammar::ast::VarExpression &exp) { }
 

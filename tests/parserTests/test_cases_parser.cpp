@@ -237,3 +237,11 @@ BOOST_AUTO_TEST_CASE(TestFuncCallBeforeFunc) {test_parse_file("../tests/parserTe
 BOOST_AUTO_TEST_CASE(TestFuncCallAfterFunc) {test_parse_file("../tests/parserTests/funcCall2.chad", TestingOutcome::SUCCESS);}
 BOOST_AUTO_TEST_CASE(TestFuncCallComplex) {test_parse_file("../tests/parserTests/funcCallComplex.chad", TestingOutcome::SUCCESS);}
 BOOST_AUTO_TEST_CASE(TestFuncCallWeird) {test_parse_file("../tests/parserTests/funcCallfuncParam.chad", TestingOutcome::SUCCESS);}
+
+
+// Break and continue
+BOOST_AUTO_TEST_CASE(BreakTest) {test_parse_string(" int f () { while false { break; } } " , TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(ContinueTest) {test_parse_string(" int f () { while false { continue; } } " , TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(BreakAsId) {test_parse_string(" int f () { int break = 4; } " , TestingOutcome::PARSE_FAILED);}
+BOOST_AUTO_TEST_CASE(ContinueAsId) {test_parse_string(" int f () { int continue = 4; } " , TestingOutcome::PARSE_FAILED);}
+BOOST_AUTO_TEST_CASE(breakcontinueFile) {test_parse_file("../tests/parserTests/breakcontinue.chad", TestingOutcome::SUCCESS);}

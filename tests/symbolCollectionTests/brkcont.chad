@@ -1,0 +1,23 @@
+int main() {
+
+    int x = 4;
+    while x < 4 {
+        while true {
+            while true {
+                while true {
+                    while true {
+                        while true { 
+                            break;
+                        }
+                        break;
+                    }
+                    break;
+                }
+                break;
+            }
+            continue;
+        }
+        continue;
+    }
+    return 0;
+}

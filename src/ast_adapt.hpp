@@ -1,9 +1,14 @@
 #ifndef MGRAMMAR_AST_ADAPT_HPP
 #define MGRAMMAR_AST_ADAPT_HPP 
 
+#include <boost/fusion/adapted/struct/adapt_struct.hpp>
 #include <boost/fusion/include/io.hpp>
 #include <boost/fusion/include/adapt_struct.hpp>
 #include "ast.hpp"
+
+BOOST_FUSION_ADAPT_STRUCT(grammar::ast::BreakStatement)
+
+BOOST_FUSION_ADAPT_STRUCT(grammar::ast::ContinueStatement)
 
 BOOST_FUSION_ADAPT_STRUCT(
     grammar::ast::BinopExps,

@@ -45,6 +45,16 @@ namespace grammar
             friend std::ostream& operator<<(std::ostream& os, const Id &exp);
         };
 
+        struct BreakStatement : public LocationInfo {
+        public:
+            friend std::ostream& operator<<(std::ostream& os, const BreakStatement &exp);
+        };
+
+        struct ContinueStatement : public LocationInfo {
+        public:
+            friend std::ostream& operator<<(std::ostream& os, const ContinueStatement &exp);
+        };
+
         struct IdAccess : public LocationInfo {
             std::vector<Id> ids;  
         public:
@@ -145,7 +155,7 @@ namespace grammar
             friend std::ostream& operator<<(std::ostream& os, const StatementExpression &exp);
         };
 
-        struct Statement : public boost::spirit::x3::variant<VarAssign, boost::spirit::x3::forward_ast<VarDeclAssign>, boost::spirit::x3::forward_ast<VarDeclStatement>, WhileStatement,StatementExpression, ArrayIndexAssign, PrintStatement, ReturnStatement, boost::spirit::x3::forward_ast<ConditionalStatement>>, LocationInfo {
+        struct Statement : public boost::spirit::x3::variant<VarAssign, boost::spirit::x3::forward_ast<VarDeclAssign>, boost::spirit::x3::forward_ast<VarDeclStatement>, WhileStatement,StatementExpression, ArrayIndexAssign, PrintStatement, ReturnStatement, boost::spirit::x3::forward_ast<ConditionalStatement>, BreakStatement, ContinueStatement>, LocationInfo {
             using base_type::base_type;  
             using base_type::operator=;
         public:

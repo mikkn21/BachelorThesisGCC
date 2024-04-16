@@ -46,6 +46,14 @@ namespace grammar
             return os << "[" << location_info.line << ", " << location_info.column << "]";
         };
         
+        std::ostream& operator<<(std::ostream& os, const grammar::ast::BreakStatement &brk) {
+            return os << "break;";
+        };
+
+        std::ostream& operator<<(std::ostream& os, const grammar::ast::ContinueStatement &continue_statement) {
+            return os << "continue;";
+        };
+        
         std::ostream& operator<<(std::ostream& os, const grammar::ast::BinopExps &exp) {
             os << exp.lhs; 
             for (unsigned long i = 0; i < exp.rhss.size(); i++) {

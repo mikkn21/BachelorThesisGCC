@@ -58,7 +58,9 @@ namespace grammar {
         const x3::rule<class obj_inst_rule, ast::ObjInst> obj_inst = "obj_inst";
         const x3::rule<class class_type_rule, ast::ClassType> class_type = "class_type";
         const x3::rule<class id_access_rule, ast::IdAccess> id_access = "id_access";
-      
+
+        const x3::rule<class break_rule, ast::BreakStatement> break_statement = "break";
+        const x3::rule<class continue_rule, ast::ContinueStatement> continue_statement = "continue";
 
         const x3::rule<class id, ast::Id> id = "id";
         const x3::rule<class primitive_type, ast::PrimitiveType> primitive_type = "primitive_type";
@@ -101,6 +103,8 @@ namespace grammar {
                 add("if", "if")
                     ("else", "else")
                     ("while", "while")
+                    ("break", "break")
+                    ("continue", "continue")
                     ("return", "return")
                     ("int", "int")
                     ("bool", "bool")
@@ -177,7 +181,10 @@ namespace grammar {
         const auto var_decl_statement_def = var_decl >> ';';
 
         const auto statement_expression_def = expression >> ';';
-        const auto statement_def = conditional_statement | while_statement | print_statement | return_statement | var_assign | var_decl_statement | var_decl_assign | array_index_assign | statement_expression;
+        const auto statement_def = conditional_statement | while_statement | print_statement | return_statement | break_statement | continue_statement | var_assign | var_decl_statement | var_decl_assign | array_index_assign | statement_expression;
+
+        const auto break_statement_def = x3::lit("break") > ';';
+        const auto continue_statement_def = x3::lit("continue") > ';';
 
         const auto class_decl_def = x3::lit("class ") > id > '{' > *var_decl_statement > '}';
         const auto obj_inst_def = x3::lit("new ") > id > '(' > argument_list > ')';
@@ -242,7 +249,9 @@ namespace grammar {
             class_decl,
             obj_inst,
             class_type,
-            id_access
+            id_access,
+            break_statement,
+            continue_statement
         )
 
         grammar::ast::Prog parse(std::string_view src)

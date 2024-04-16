@@ -287,6 +287,18 @@ void TreeTraveler::operator()(grammar::ast::WhileStatement &whileStatement) {
     visitor.postVisit(whileStatement);
 }
 
+template <> 
+void TreeTraveler::operator()(grammar::ast::ContinueStatement &cont) {
+    visitor.preVisit(cont);
+    visitor.postVisit(cont);
+}
+
+template <>
+void TreeTraveler::operator()(grammar::ast::BreakStatement &brk) {
+    visitor.preVisit(brk);
+    visitor.postVisit(brk);
+}
+
 template <>
 void TreeTraveler::operator()(grammar::ast::StatementExpression &statement) {
     visitor.preVisit(statement);
