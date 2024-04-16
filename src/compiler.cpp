@@ -65,7 +65,7 @@ namespace grammar::compiler {
         if (options.stopAfter == StopAfterTypeCheck ) {
             return obj;
         }
-        obj->ir = intermediate_code_generation(obj->ast); 
+        obj->ir = intermediate_code_generation(obj->ast, globalScope.get()); 
 
         if (options.printCodeGeneration){
             std::cout << "CodeGen:\n" << obj->ir << std::endl;

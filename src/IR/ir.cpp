@@ -85,7 +85,8 @@ std::ostream& operator<<(std::ostream& os, const Op op) {
         case Op::SETNE:         os << "setne";       break;
         case Op::SETLE:         os << "setle";       break;
         case Op::SETGE:         os << "setge";       break;
-        default:                os << "Unknown";    break;
+        case Op::SYSCALL:       os << "syscall";    break;
+        default:                throw IRError("Invalid operation");    break;
     }
     return os;
 }
@@ -110,7 +111,7 @@ std::ostream& operator<<(std::ostream& os, const Register sp) {
         case Register::R13:      os << "%r13";       break;
         case Register::R14:      os << "%r14";       break;
         case Register::R15:      os << "%r15";       break;
-        default:                 os << "Unknown";    break;
+        default:                 throw IRError("Invalid Register");    break;
     }
     return os;
 }
@@ -122,7 +123,7 @@ std::ostream& operator<<(std::ostream& os, const Procedure procedure){
         case Procedure::CALLER_RESTORE:     os << "CALLER_RESTORE";     break;
         case Procedure::CALLER_SAVE:        os << "CALLER_SAVE";        break;
         case Procedure::PRINT:              os << "PRINT";              break;
-        default:                            os << "Unknown";            break;
+        default:                            throw IRError("Invalid Procedure");            break;
     }
     return os;
 }

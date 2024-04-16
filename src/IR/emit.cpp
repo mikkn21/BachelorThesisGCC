@@ -141,11 +141,11 @@ void emit_to_file(IR ir) {
         outputFile << ".text\n";
         outputFile << ".globl _start\n";
         outputFile << "\n_start:\n";
-        outputFile << "\tpushq %rbp\n";
-        outputFile << "\tcall main\n";
-        outputFile << "\tmovq $60, %rax\n";
-        outputFile << "\txorq %rdi, %rdi\n";
-        outputFile << "\tsyscall\n";
+        //outputFile << "\tpushq %rbp\n";
+        // outputFile << "\tcall main\n";
+        // outputFile << "\tmovq $60, %rax\n";
+        // outputFile << "\txorq %rdi, %rdi\n";
+        // outputFile << "\tsyscall\n";
         for (const Instruction& instruction : ir) {
             // cout << instruction.operation << endl;
             switch (instruction.operation) {
