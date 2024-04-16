@@ -50,7 +50,6 @@ void IRVisitor::postVisit(grammar::ast::ReturnStatement &return_statement) {
 void IRVisitor::preVisit(grammar::ast::FuncDecl &func_decl) {
     code.new_scope();
     code.push(Instruction(Op::LABEL, Arg(Label(func_decl.label), DIR())));
-    // std::cout << func_decl.label << std::endl;
     code.push(Instruction(Op::PUSHQ, Arg(Register::RBP, DIR())));
     code.push(Instruction(Op::MOVQ, Arg(Register::RSP, DIR()), Arg(Register::RBP, DIR())));
     code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_SAVE, DIR())));
@@ -281,6 +280,7 @@ void IRVisitor::postVisit(grammar::ast::ConditionalStatement &condStatement) {
 
 
 void IRVisitor::preVisit(grammar::ast::Prog &prog) {
+    code.push(Instruction(Op::MOVQ, Arg(Register::RSP, DIR()), Arg(Register::RBP, DIR()))); // set rbp
     code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_SAVE, DIR())));
     // std::cout << globalScope->get_var_symbols().size() << std::endl;
     for (auto var : globalScope->get_var_symbols()) {
@@ -289,6 +289,7 @@ void IRVisitor::preVisit(grammar::ast::Prog &prog) {
 }
 
 void IRVisitor::postVisit(grammar::ast::Prog &prog) {
+    code.push(Instruction(Op::PUSHQ, Arg(Register::RBP, DIR()))); // Settting static link.
     code.push(Instruction(Op::CALL, Arg(Label("main"), DIR())));
     code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(60), DIR()), Arg(Register::RAX, DIR())));
     code.push(Instruction(Op::XORQ, Arg(Register::RDI, DIR()), Arg(Register::RDI, DIR())));
