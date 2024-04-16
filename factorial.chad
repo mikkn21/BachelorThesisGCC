@@ -1,0 +1,12 @@
+
+int factorial(int n) {
+    if n == 1 {
+        return 1;
+    }
+    return n*factorial(n-1);
+}
+
+int main() {
+    print(factorial(16));
+    return 0;
+}
