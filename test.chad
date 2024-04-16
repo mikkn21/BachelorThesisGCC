@@ -1,15 +1,11 @@
 
-int x = 5;
+int c = 2;
+int f(int x) {
+    return c+x;
+}
 
 int main() {
 
-    f();
-    int f() {
-        print(x);
-        return 0;
-    }
-
-
+    print(f(5));
     return 0;
 }
-
