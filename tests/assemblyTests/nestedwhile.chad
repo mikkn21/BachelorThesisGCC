@@ -1,0 +1,17 @@
+int main() {
+
+    int x = 0;
+    int y = 0;
+    int z = 0;
+    while( x < 4) {
+        while ( y < 4) {
+            while (z < 4) {
+                print(x);
+                z = z + 1;
+                x = x + 1;
+                y = y + 1;
+            }
+        }
+    }
+    return 0;
+}

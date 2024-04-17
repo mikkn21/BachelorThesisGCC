@@ -289,14 +289,14 @@ void IRVisitor::postVisit(grammar::ast::PrintStatement &print) {
 
 // TODO: Decide if we allow break/continue in functions 
 void IRVisitor::postVisit(grammar::ast::BreakStatement &breakStatement) {
-    grammar::ast::WhileStatement *currentWhileloop = pop(while_stack);
+    grammar::ast::WhileStatement *currentWhileloop = while_stack.top();
     std::string endLabel = currentWhileloop->end_label;
     code.push(Instruction(Op::JMP, Arg(Label(endLabel), DIR())));
 }
 
 // TODO: Decide if we allow break/continue in functions 
 void IRVisitor::postVisit(grammar::ast::ContinueStatement &continueStatement) {
-    grammar::ast::WhileStatement *currentWhileloop = pop(while_stack);
+    grammar::ast::WhileStatement *currentWhileloop = while_stack.top();
     std::string startLabel = currentWhileloop->start_label;
     code.push(Instruction(Op::JMP, Arg(Label(startLabel), DIR())));
 }
@@ -320,10 +320,7 @@ void IRVisitor::preBlockVisit(grammar::ast::WhileStatement &while_statement) {
 }
 
 void IRVisitor::postVisit(grammar::ast::WhileStatement &while_statement) {
-    if (!(while_stack.empty())) {
-            pop(while_stack); // if no break/continue statement was found, pop the whileloop from the stack 
-    }
-
+    pop(while_stack); 
     code.push(Instruction(Op::JMP, Arg(Label(while_statement.start_label), DIR())));
     code.push(Instruction(Op::LABEL, Arg(Label(while_statement.end_label), DIR())));
 }

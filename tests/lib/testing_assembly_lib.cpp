@@ -63,7 +63,8 @@ void test_assembly(std::string input, std::string expected_output, Compiler comp
 }
 
 void test_assembly_file(std::string input, std::string expected_outpout) {
-    test_assembly(input, expected_outpout, grammar::compiler::compileFromFile);
+    std::string filepath = "../tests/assemblyTests/" + input;
+    test_assembly(filepath, expected_outpout, grammar::compiler::compileFromFile);
 }
 
 void test_assembly_string(std::string input,std::string expected_outpout) {
