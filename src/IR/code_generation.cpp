@@ -294,7 +294,7 @@ void IRVisitor::preVisit(grammar::ast::Prog &prog) {
     code.push(Instruction(Op::MOVQ, Arg(Register::RSP, DIR()), Arg(Register::RBP, DIR()), "set rbp for global scope")); // set rbp
     code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_SAVE, DIR())));
     // std::cout << globalScope->get_var_symbols().size() << std::endl;
-    for (auto var : globalScope->get_var_symbols()) {
+    for (int i = 0 ; i < globalScope->get_var_symbols().size(); i++) {  // change was made here
         code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR())));
     }
 }

@@ -1,8 +1,12 @@
 int main() {
     if(false){
-        print(2);
-    } else if (false) {
         print(3);
+    } else if (true) {
+        int f (){
+            print(2);
+            return 0;
+        }
+        f();
     } else {
         print(5);
     }
