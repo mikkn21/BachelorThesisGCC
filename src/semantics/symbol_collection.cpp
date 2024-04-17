@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <iostream>
 #include "symbol_collection.hpp"
+#include <iostream>
 
 size_t unique_label_id = 0;
 
@@ -14,7 +15,6 @@ std::string generate_unique_label(std::string name) {
     return name;
     
 }
-
 
 class SymbolCollectionVisitor : public Visitor {
 private:
@@ -149,19 +149,27 @@ public:
         condStatement.ifStatement.endIfLabel = condStatement.endIfLabel;
 
         // Set the nextLabel of each else-if statement to the label of the next else-if statement
-        for (int i = 1; i < static_cast<int>(condStatement.elseIfs.size()); i++) {
+        for (auto i = 1; i < condStatement.elseIfs.size(); i++) {
             condStatement.elseIfs[i - 1].nextLabel = condStatement.elseIfs[i].label;
             condStatement.elseIfs[i - 1].endIfLabel = condStatement.endIfLabel;
-        }        
+        }
 
         if (condStatement.conditionalElse) {
             condStatement.conditionalElse->label = generate_unique_label("else_statement");
-
+            if (condStatement.elseIfs.size() > 0){
+                condStatement.elseIfs.back().nextLabel = condStatement.conditionalElse->label;
+                condStatement.elseIfs.back().endIfLabel = condStatement.endIfLabel;
+            }
             // Set the nextLabel of the if statement or the last else-if statement to the else statement label
-            condStatement.ifStatement.nextLabel = (condStatement.elseIfs.size() > 0) ? condStatement.elseIfs.back().nextLabel : condStatement.conditionalElse->label;
+            condStatement.ifStatement.nextLabel = (condStatement.elseIfs.size() > 0) ? condStatement.elseIfs.back().label : condStatement.conditionalElse->label;
         } else {
+            if (condStatement.elseIfs.size() > 0){
+                std::cout << "setting next label to endif" << std::endl;
+                condStatement.elseIfs.back().nextLabel = condStatement.endIfLabel;
+                condStatement.elseIfs.back().endIfLabel = condStatement.endIfLabel;
+            }
             // Set the nextLabel of the if statement or the last else-if statement to the endif label
-            condStatement.ifStatement.nextLabel = (condStatement.elseIfs.size() > 0) ? condStatement.elseIfs.back().nextLabel : condStatement.endIfLabel;
+            condStatement.ifStatement.nextLabel = (condStatement.elseIfs.size() > 0) ? condStatement.elseIfs.back().label : condStatement.endIfLabel;
         }
     }
 };

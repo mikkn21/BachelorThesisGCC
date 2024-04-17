@@ -14,7 +14,7 @@ int main(){
 
     }
     else if (3 < 5){
-        print(3);
+        print(4);
     }
 
     if (2 > 3){

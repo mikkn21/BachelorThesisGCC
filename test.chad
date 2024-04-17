@@ -1,16 +1,14 @@
 int main() {
-
-    class T {
-
-    }
-
-    if (false) {
-        
+    if(false){
+        print(3);
     } else if (true) {
-        int x = 2;
+        int f (){
+            print(2);
+            return 0;
+        }
+        f();
+    } else {
+        print(5);
     }
-
-
-    
     return 0;
 }

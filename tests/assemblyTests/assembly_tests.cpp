@@ -10,5 +10,5 @@ BOOST_AUTO_TEST_CASE(Precedence) {test_assembly_file("../tests/assemblyTests/tes
 BOOST_AUTO_TEST_CASE(FunctionCall) {test_assembly_file("../tests/assemblyTests/test_function_call.chad","5");}
 BOOST_AUTO_TEST_CASE(FunctionReturn) {test_assembly_file("../tests/assemblyTests/test_function_return.chad","6");}
 BOOST_AUTO_TEST_CASE(FunctionParamter) {test_assembly_file("../tests/assemblyTests/test_function_parameters.chad","12");}
-// BOOST_AUTO_TEST_CASE(IfElse) {test_assembly_file("../tests/assemblyTests/test_if_else.chad","2\n3\n3\n5");}
+//BOOST_AUTO_TEST_CASE(IfElse) {test_assembly_file("../tests/assemblyTests/test_if_else.chad","2\n3\n4\n5");}
 BOOST_AUTO_TEST_CASE(While) {test_assembly_file("../tests/assemblyTests/test_while.chad","2\n3\n4");}
