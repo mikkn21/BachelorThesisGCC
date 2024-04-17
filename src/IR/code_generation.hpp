@@ -51,7 +51,7 @@ private:
     std::stack<AstValue> temp_storage;
 
     int new_register();
-    void binopInstructions(std::string op, GenericRegister result);
+    //void binopInstructions(std::string op, GenericRegister result);
 
     template<typename T>
     T pop(std::stack<T>& myStack);

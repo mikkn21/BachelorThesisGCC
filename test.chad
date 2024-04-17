@@ -1,10 +1,10 @@
 int main() {
-
-    if (2 > 3) {
-
-    } else if (3 < 5) {
+    if(false){
+        print(2);
+    } else if (false) {
         print(3);
+    } else {
+        print(5);
     }
-
     return 0;
 }
