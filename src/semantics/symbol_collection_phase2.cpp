@@ -1,6 +1,7 @@
 #include "../visitor.hpp"
 #include "semantics_error.hpp"
 #include "symbol_table.hpp"
+#include <iostream>
 #include "symbol_collection_phase2.hpp"
 
 
@@ -56,7 +57,7 @@ public:
             throw SemanticsError("A non-class was used as a class", classType);
         }
     }
-
+    
     void postVisit(grammar::ast::VarDecl &varDecl) override {
         SymbolType symbolType = convertType(varDecl.type);
         varDecl.sym->type = symbolType;

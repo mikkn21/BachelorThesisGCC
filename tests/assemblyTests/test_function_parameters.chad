@@ -1,0 +1,9 @@
+
+int f(int x, int y) {
+    return x+y;
+}
+
+int main() {
+    print(f(5, 7));
+    return 0;
+}

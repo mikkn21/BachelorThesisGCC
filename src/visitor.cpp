@@ -152,9 +152,7 @@ void TreeTraveler::operator()(grammar::ast::ExpressionPar &expPar) {
 template <>
 void TreeTraveler::operator()(grammar::ast::ArgumentList &argList) {
     visitor.preVisit(argList);
-    for (auto &arg : argList.arguments) {
-        (*this)(arg);
-    }
+    (*this)(argList.arguments);
     visitor.postVisit(argList);
 }
 
@@ -173,9 +171,7 @@ void TreeTraveler::operator()(grammar::ast::ClassDecl &classDecl) {
     visitor.preVisit(classDecl);
     (*this)(classDecl.id);
     visitor.preIdVisit(classDecl); 
-    for (auto &attr : classDecl.attr) {
-        (*this)(attr);
-    }
+    (*this)(classDecl.attr);
     visitor.postVisit(classDecl);
 }
 
@@ -230,9 +226,7 @@ void TreeTraveler::operator()(grammar::ast::VarAssign &varAssign) {
 template <>
 void TreeTraveler::operator()(grammar::ast::Block &block) {
     visitor.preVisit(block);
-    for (auto &blockLine : block.block_line) {
-        (*this)(blockLine);
-    }
+    (*this)(block.block_line);
     visitor.postVisit(block);
 }
 
@@ -256,9 +250,7 @@ template <>
 void TreeTraveler::operator()(grammar::ast::ConditionalStatement &statement) {
     visitor.preVisit(statement);
     (*this)(statement.ifStatement);
-    for (auto ifStatement : statement.elseIfs) {
-        (*this)(ifStatement);
-    }
+    (*this)(statement.elseIfs);
     visitor.preElseVisit(statement);
     (*this)(statement.conditionalElse);
     visitor.postVisit(statement);
@@ -328,9 +320,7 @@ void TreeTraveler::operator()(grammar::ast::VarDeclAssign &decl) {
 template <>
 void TreeTraveler::operator()(grammar::ast::ParameterList &parameterList) {
     visitor.preVisit(parameterList);
-    for (auto &parameter : parameterList.parameter) {
-        (*this)(parameter);
-    }
+    (*this)(parameterList.parameter);
     visitor.postVisit(parameterList);
 }
 
@@ -361,9 +351,7 @@ void TreeTraveler::operator()(grammar::ast::FuncDecl &decl) {
 template <>
 void TreeTraveler::operator()(grammar::ast::Prog &prog) {
     visitor.preVisit(prog);
-    for (auto &decl : prog.decls) {
-        (*this)(decl);
-    }
+    (*this)(prog.decls);
     visitor.postVisit(prog);
 }
 

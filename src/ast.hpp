@@ -145,6 +145,8 @@ namespace grammar
         struct WhileStatement : LocationInfo {
             Expression exp; 
             boost::spirit::x3::forward_ast<Block> block;
+            std::string start_label;
+            std::string end_label;
         public:
             friend std::ostream& operator<<(std::ostream& os, const WhileStatement &exp);
         };
@@ -193,12 +195,16 @@ namespace grammar
         struct IfStatement : public LocationInfo {
             Expression exp;
             Block block;
+            std::string label;
+            std::string nextLabel;
+            std::string endIfLabel;
         public:
             friend std::ostream& operator<<(std::ostream& os, const IfStatement &exp);
         };
 
         struct ElseStatement : public LocationInfo {
             Block block;
+            std::string label;
         public:
             friend std::ostream& operator<<(std::ostream& os, const ElseStatement &exp);
         };
@@ -207,6 +213,7 @@ namespace grammar
             IfStatement ifStatement;
             std::vector<IfStatement> elseIfs; 
             boost::optional<ElseStatement> conditionalElse;
+            std::string endIfLabel;
         public:
             friend std::ostream& operator<<(std::ostream& os, const ConditionalStatement &exp);
         };
@@ -327,6 +334,7 @@ namespace grammar
             ParameterList parameter_list;  
             Block block; 
             FuncSymbol *sym = nullptr;
+            std::string label;
         public:
             friend std::ostream& operator<<(std::ostream& os, const FuncDecl &exp);
         };

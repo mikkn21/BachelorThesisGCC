@@ -8,7 +8,7 @@
 
 namespace grammar::compiler {
     std::string getFileContent(std::string_view input) {
-        if(input.empty()) {
+        if (input.empty()) {
             std::cerr << "Error: filename is empty!" << std::endl;
             throw std::invalid_argument("Filename is empty"); 
         }
@@ -65,7 +65,7 @@ namespace grammar::compiler {
         if (options.stopAfter == StopAfterTypeCheck ) {
             return obj;
         }
-        obj->ir = intermediate_code_generation(obj->ast); 
+        obj->ir = intermediate_code_generation(obj->ast, globalScope.get()); 
 
         if (options.printCodeGeneration){
             std::cout << "CodeGen:\n" << obj->ir << std::endl;

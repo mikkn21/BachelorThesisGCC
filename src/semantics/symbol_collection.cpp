@@ -1,7 +1,19 @@
 #include "../visitor.hpp"
 #include "semantics_error.hpp"
 #include "symbol_table.hpp"
+#include <cstddef>
+#include <iostream>
 #include "symbol_collection.hpp"
+
+size_t unique_label_id = 0;
+
+std::string generate_unique_label(std::string name) {
+    if (name != "main") {
+        return "L"+ std::to_string(unique_label_id++) + "_" + name;
+    }
+    return name;
+    
+}
 
 
 class SymbolCollectionVisitor : public Visitor {
@@ -17,6 +29,8 @@ public:
     SymbolCollectionVisitor(SymbolTable *symTab) : Visitor(), currentSymbolTable(symTab) { }
 
     void preVisit(grammar::ast::WhileStatement &whileStatement) override {
+        whileStatement.start_label = generate_unique_label("while_statement");
+        whileStatement.end_label = generate_unique_label("end_while_statement");
         insideLoopCount++;
     }
 
@@ -47,7 +61,6 @@ public:
         }
         varAssign.idAccess.ids.front().sym = sym;
     }
-
 
     void preVisit(grammar::ast::ClassDecl &classDecl) override {
         if (currentSymbolTable->findLocal(classDecl.id.id)) {
@@ -88,7 +101,6 @@ public:
         }
 
         VarSymbol *varSymbol = new VarSymbol(&varDecl);
-
         currentSymbolTable->insert(varDecl.id.id, varSymbol);
         varDecl.sym = varSymbol;
         varDecl.id.sym = varSymbol;
@@ -101,10 +113,12 @@ public:
 
         SymbolTable *newSymbolTable = new SymbolTable(currentSymbolTable);
         FuncSymbol *funcSymbol = new FuncSymbol(&funcDecl, newSymbolTable);
+        funcSymbol->funcDecl = &funcDecl;
 
         currentSymbolTable->insert(funcDecl.id.id, funcSymbol);
         funcDecl.sym = funcSymbol;
         funcDecl.id.sym = funcSymbol;
+        funcDecl.label = generate_unique_label(funcDecl.id.id);
         currentSymbolTable = newSymbolTable; // Note that no object is changed, only pointers.
     }
 
@@ -120,6 +134,34 @@ public:
         Symbol *symbol = currentSymbolTable->find(index.idAccess.ids.front().id);
         if (symbol == nullptr) {
             throw SemanticsError(index.idAccess.ids.front().id + " not declared in scope3", index);
+        }
+    }
+
+    void postVisit(grammar::ast::ConditionalStatement &condStatement) override {
+        condStatement.ifStatement.label = generate_unique_label("if_statement");
+
+        // Assign labels to else-if statements
+        for (auto& elseIf : condStatement.elseIfs) {
+            elseIf.label = generate_unique_label("else_if_statement");
+        }
+
+        condStatement.endIfLabel = generate_unique_label("endif_statement");
+        condStatement.ifStatement.endIfLabel = condStatement.endIfLabel;
+
+        // Set the nextLabel of each else-if statement to the label of the next else-if statement
+        for (int i = 1; i < static_cast<int>(condStatement.elseIfs.size()); i++) {
+            condStatement.elseIfs[i - 1].nextLabel = condStatement.elseIfs[i].label;
+            condStatement.elseIfs[i - 1].endIfLabel = condStatement.endIfLabel;
+        }        
+
+        if (condStatement.conditionalElse) {
+            condStatement.conditionalElse->label = generate_unique_label("else_statement");
+
+            // Set the nextLabel of the if statement or the last else-if statement to the else statement label
+            condStatement.ifStatement.nextLabel = (condStatement.elseIfs.size() > 0) ? condStatement.elseIfs.back().nextLabel : condStatement.conditionalElse->label;
+        } else {
+            // Set the nextLabel of the if statement or the last else-if statement to the endif label
+            condStatement.ifStatement.nextLabel = (condStatement.elseIfs.size() > 0) ? condStatement.elseIfs.back().nextLabel : condStatement.endIfLabel;
         }
     }
 };

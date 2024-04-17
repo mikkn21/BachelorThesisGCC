@@ -10,6 +10,13 @@ BOOST_AUTO_TEST_CASE(SameSymandFuncName) {testSymbolCollectionFile("../tests/sym
 BOOST_AUTO_TEST_CASE(ParamExistsInSymbolTable) {testSymbolCollectionFile("../tests/symbolCollectionTests/paramExists.chad", TestingOutcome::SUCCESS);}
 
 
+// test else if where phase 2 sets sym: 
+BOOST_AUTO_TEST_CASE(vardeclinelseif) {testSymbolCollectionString("int main() { if(false) {} else if(true) { int x = 2; }   return 0;}", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(functioninelseif) {testSymbolCollectionString("int main() { if(false) {} else if(true) { int f() { return 0;} }   return 0;}", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(classObjinelseif) {testSymbolCollectionString("class T {} int main() { if(false) {} else if(true) { T a = new T(); }   return 0;}", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(classChaininelseif) {testSymbolCollectionString("class T { H x;} class H { int y;}  int main() { T a = new T(); if(false) {} else if(true) { int b = a.x.y; } return 0;}", TestingOutcome::SUCCESS);}
+
+
 BOOST_AUTO_TEST_CASE(SimpleVarDeclStatementTest) {testSymbolCollectionString("int f() { int x; return x;}", TestingOutcome::SUCCESS);}
 
 BOOST_AUTO_TEST_CASE(RedeclareVariableInScopeFail) {testSymbolCollectionString("int f() { int x = 3; int x = 4; return 0;}", TestingOutcome::FAILED);}
