@@ -161,15 +161,14 @@ public:
                 condStatement.elseIfs.back().endIfLabel = condStatement.endIfLabel;
             }
             // Set the nextLabel of the if statement or the last else-if statement to the else statement label
-            condStatement.ifStatement.nextLabel = (condStatement.elseIfs.size() > 0) ? condStatement.elseIfs.back().label : condStatement.conditionalElse->label;
+            condStatement.ifStatement.nextLabel = (condStatement.elseIfs.size() > 0) ? condStatement.elseIfs.front().label : condStatement.conditionalElse->label;
         } else {
             if (condStatement.elseIfs.size() > 0){
-                std::cout << "setting next label to endif" << std::endl;
                 condStatement.elseIfs.back().nextLabel = condStatement.endIfLabel;
                 condStatement.elseIfs.back().endIfLabel = condStatement.endIfLabel;
             }
             // Set the nextLabel of the if statement or the last else-if statement to the endif label
-            condStatement.ifStatement.nextLabel = (condStatement.elseIfs.size() > 0) ? condStatement.elseIfs.back().label : condStatement.endIfLabel;
+            condStatement.ifStatement.nextLabel = (condStatement.elseIfs.size() > 0) ? condStatement.elseIfs.front().label : condStatement.endIfLabel;
         }
     }
 };

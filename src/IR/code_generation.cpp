@@ -325,17 +325,20 @@ void IRVisitor::postVisit(grammar::ast::WhileStatement &while_statement) {
     code.push(Instruction(Op::LABEL, Arg(Label(while_statement.end_label), DIR())));
 }
 
-void IRVisitor::preBlockVisit(grammar::ast::IfStatement &if_statement) {
+void IRVisitor::preVisit(grammar::ast::IfStatement &if_statement) {
     code.push(Instruction(Op::LABEL, Arg(Label(if_statement.label), DIR())));
+}
+
+void IRVisitor::preBlockVisit(grammar::ast::IfStatement &if_statement) {
     AstValue expr = pop(temp_storage);
     if (std::holds_alternative<bool>(expr)) {
-        code.push(Instruction(Op::CMPQ, Arg(ImmediateValue(1), DIR()), Arg(ImmediateValue(std::get<bool>(expr)), DIR())));        
+        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(std::get<bool>(expr)), DIR()), Arg(Register::RAX, DIR())));
+        code.push(Instruction(Op::CMPQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RAX, DIR())));        
     } else if (std::holds_alternative<GenericRegister>(expr)) {
         code.push(Instruction(Op::CMPQ, Arg(ImmediateValue(1), DIR()), Arg(std::get<GenericRegister>(expr), DIR())));
     } else {
         throw IRError("Unexpected type in ConditionalStatement");
     }
-
     code.push(Instruction(Op::JNE, Arg(Label(if_statement.nextLabel), DIR())));
 }
 
