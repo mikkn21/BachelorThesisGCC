@@ -22,6 +22,7 @@ class IRVisitor : public Visitor {
 public:
     FunctionOrderManager code;
     SymbolTable* globalScope;
+    std::stack<grammar::ast::WhileStatement*> while_stack;
 
     IRVisitor(SymbolTable* globalScope);
 
@@ -50,8 +51,7 @@ public:
     void postVisit(grammar::ast::BreakStatement &breakStatement) override;
     void postVisit(grammar::ast::ContinueStatement &continueStatement) override;
 
-    void preVisit(grammar::ast::ArrayExp &arr) override; 
-    void postVisit(grammar::ast::ArrayExp &arr) override;
+    void postVisit(grammar::ast::ArrayInitExp &arr) override;
 
 private:
     std::vector<std::string> function_container;

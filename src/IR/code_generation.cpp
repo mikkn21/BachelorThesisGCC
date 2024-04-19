@@ -6,11 +6,10 @@
 // #include <boost/spirit/home/x3.hpp>
 // #include <boost/spirit/home/x3/support/ast/apply_visitor.hpp>
 #include <iostream>
+#include <numeric>
+#include <ranges>
 const int callee_offset = -40;
 const int arg_offset = 16;
-
-
-std::stack<grammar::ast::WhileStatement*> while_stack;
 
 /// Expects there to be space on the stack for the result register taken as input. 
 /// uses register R8 and R9, so should be saved before use
@@ -275,14 +274,22 @@ void IRVisitor::postVisit(grammar::ast::Rhs &op_exp) {
 }
 
 
-void IRVisitor::preVisit(grammar::ast::ArrayExp &arr) {
-    // for ( auto &size : arr.sizes) {
-    
+void IRVisitor::postVisit(grammar::ast::ArrayInitExp &arr) {
+    // int productOfDims = 1; 
+    // GenericRegister productOfDims = GenericRegister(++arr.scope->registerCounter);
+    // for (auto dim : arr.sizes) {
+    //     AstValue value = pop(temp_storage);
+    //     if (std::holds_alternative<int>(value)) {
+    //         productOfDims *= std::get<int>(value);
+    //    } else if (std::holds_alternative<GenericRegister>(value)) {
+    //         code.push(Instruction(Op::MOVQ, Arg(std::get<GenericRegister>(value), DIR()), Arg(productOfDims, DIR())));
+    //         code.push(Instruction(Op::IMULQ, Arg(Register::R8, DIR()), Arg(ImmediateValue(productOfDims), DIR())));
+    //         productOfDims = 0;
+    //     } else {
+    //         throw IRError("Unexpected type in ArrayInitExp");
+    //     }
     // }
-}
-
-void IRVisitor::postVisit(grammar::ast::ArrayExp &arr) {
-    
+    // int memSize = arr.sizes.size() * 8 + productOfDims * 8;
 }
 
 

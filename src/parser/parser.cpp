@@ -100,7 +100,8 @@ namespace grammar {
 
         RULE(ast::ArrayType, array_type)
         RULE(ast::ArrayIndex, array_index)
-        RULE(ast::ArrayExp, array_exp)
+        RULE(ast::ArrayIndexExp, array_index_exp)
+        RULE(ast::ArrayInitExp, array_init_exp)
         RULE(ast::ArrayIndexAssign, array_index_assign)
 
         RULE(ast::IfStatement, if_statement)
@@ -150,7 +151,7 @@ namespace grammar {
  
         // --- Precedens stuff  
         const auto expression_par_def = ('(' >> expression) > ')';
-        const auto expression_base =  expression_par | array_exp | obj_inst | function_call | array_index | var_expression | id_access | x3::int_ | x3::bool_;
+        const auto expression_base =  expression_par | array_init_exp | obj_inst | function_call | array_index_exp | var_expression | id_access | x3::int_ | x3::bool_;
 
         const auto expression_def = logical_or;
 
@@ -210,7 +211,8 @@ namespace grammar {
         const auto argument_list_def = -(expression % ',');
 
         const auto array_type_def = (primitive_type >> '[') > x3::int_ > ']'; // NOTE: Is literal int this is by choice
-        const auto array_exp_def = (x3::lit("new ") >> primitive_type >> '[') > (expression % ',') > ']';
+        const auto array_init_exp_def = (x3::lit("new ") >> primitive_type >> '[') > (expression % ',') > ']';
+        const auto array_index_exp_def = array_index;
         const auto array_index_def = (id_access >> '[') > (expression % ',') > ']';
         const auto array_index_assign_def = (array_index >> '=') > expression > ';';
 
@@ -237,8 +239,9 @@ namespace grammar {
             parameter_list,
             func_decl,
             array_type,
-            array_exp,
+            array_init_exp,
             array_index,
+            array_index_exp,
             array_index_assign,
             var_assign,
             while_statement,
