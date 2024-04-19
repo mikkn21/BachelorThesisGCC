@@ -51,12 +51,23 @@ string calleeRestore() {
 )";
 }
 
-/// @brief Allocates memory on the heap. 
+/// @brief Allocates memory on the heap using an immediate value.
 /// @param size The size of the memory to allocate.
 /// @return The assembly code for allocating memory.
-string allocateMemory(int size) {
+string allocateMemoryImmediateValue(int size) {
     string s = callerSave() + ""
     "\tmovq $" + std::to_string(size) + ", %rdi\n"
+    "\tcall allocate\n"
+    "" + callerRestore();
+    return s;
+}
+
+/// @brief Allocates memory on the heap using a stack value.
+/// @param offset The offset of the memory to allocate.
+/// @return The assembly code for allocating memory.
+string allocateMemoryStackValue(long offset) {
+    string s = callerSave() + ""
+    "\tmovq " + std::to_string(offset) + "(%rbp), %rdi\n"
     "\tcall allocate\n"
     "" + callerRestore();
     return s;
@@ -85,16 +96,15 @@ string procedure(Instruction instruction) {
                 if (holds_alternative<ImmediateValue>(instruction.args[1].target)) {
                     return printImmediateValue(get<ImmediateValue>(instruction.args[1].target).value);
                 } else if (holds_alternative<Register>(instruction.args[1].target)) {
-
                     return printStackValue(get<IRL>(instruction.args[1].access_type).offset);
                 } else {
                     throw IRError("Not implemented yet");
                 }
             case Procedure::MEM_ALLOC:
                 if (holds_alternative<ImmediateValue>(instruction.args[1].target)) {
-                    return allocateMemory(get<ImmediateValue>(instruction.args[1].target).value);
+                    return allocateMemoryImmediateValue(get<ImmediateValue>(instruction.args[1].target).value);
                 } else if (holds_alternative<Register>(instruction.args[1].target)) {
-                    return allocateMemory(get<IRL>(instruction.args[1].access_type).offset);
+                    return allocateMemoryStackValue(get<IRL>(instruction.args[1].access_type).offset);
                 } else {
                     throw IRError("You done goofed.");
                 }

@@ -8,6 +8,7 @@
 #include <iostream>
 #include <numeric>
 #include <ranges>
+#include <vector>
 const int callee_offset = -40;
 const int arg_offset = 16;
 
@@ -273,24 +274,53 @@ void IRVisitor::postVisit(grammar::ast::Rhs &op_exp) {
     temp_storage.push(result);  
 }
 
+TargetType getTarget(AstValue value) {
+    if (std::holds_alternative<int>(value)) {
+        return ImmediateValue(std::get<int>(value));
+    } else if (std::holds_alternative<bool>(value)) {
+        return ImmediateValue(std::get<bool>(value));
+    } else if (std::holds_alternative<GenericRegister>(value)) {
+        return std::get<GenericRegister>(value);
+    } else {
+        throw IRError("Unexpected type in getTarget");
+    }
+}
 
 void IRVisitor::postVisit(grammar::ast::ArrayInitExp &arr) {
-    // int productOfDims = 1; 
-    // GenericRegister productOfDims = GenericRegister(++arr.scope->registerCounter);
-    // for (auto dim : arr.sizes) {
-    //     AstValue value = pop(temp_storage);
-    //     if (std::holds_alternative<int>(value)) {
-    //         productOfDims *= std::get<int>(value);
-    //    } else if (std::holds_alternative<GenericRegister>(value)) {
-    //         code.push(Instruction(Op::MOVQ, Arg(std::get<GenericRegister>(value), DIR()), Arg(productOfDims, DIR())));
-    //         code.push(Instruction(Op::IMULQ, Arg(Register::R8, DIR()), Arg(ImmediateValue(productOfDims), DIR())));
-    //         productOfDims = 0;
-    //     } else {
-    //         throw IRError("Unexpected type in ArrayInitExp");
-    //     }
-    // }
-    // int memSize = arr.sizes.size() * 8 + productOfDims * 8;
+    std::vector<AstValue> sizes;
+    for (auto size : arr.sizes) {
+        sizes.push_back(pop(temp_storage));
+    }
+
+
+    TargetType memSize = Register::RDI;
+
+    code.push(Instruction(Op::PUSHQ, Arg(memSize, DIR()), "Save that shit"));
+
+    code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(8), DIR()), Arg(memSize, DIR()), "initialize memory size" ));
+    for (auto value : sizes) {
+        code.push(Instruction(Op::IMULQ, Arg(getTarget(value), DIR()), Arg(memSize, DIR()), "calculate memory"));
+    }
+    code.push(Instruction(Op::ADDQ, Arg(ImmediateValue(arr.sizes.size() * 8), DIR()), Arg(memSize, DIR()), "found size of memory"));
+    
+    // allocate memory
+    code.push(Instruction(Op::PROCEDURE, Arg(Procedure::MEM_ALLOC, DIR()), Arg(memSize, DIR()), "allocate memory of found memory size"));
+    
+    GenericRegister arrayStart = GenericRegister(++arr.scope->registerCounter);
+    code.push(Instruction(Op::MOVQ, Arg(Register::RAX, DIR()), Arg(arrayStart, DIR()), "Save array pointer in generic register" ));
+
+    // Set the size of each dimension of  the array
+    for (int i = 0; i < sizes.size(); i++) {
+        code.push(Instruction(Op::MOVQ, Arg(getTarget(sizes[i]), DIR()), Arg(arrayStart, IRL(i * 8)), "set size of dimension " + std::to_string(i + 1)));
+    }
+    // set the array pointer to point to the first element of the array
+    code.push(Instruction(Op::SUBQ, Arg(ImmediateValue(sizes.size() * 8), DIR()), Arg(arrayStart, DIR()), "set array pointer to point to first element" ));
+
+    code.push(Instruction(Op::POPQ, Arg(memSize, DIR()), "pop that shit"));
+    
+    temp_storage.push(arrayStart);
 }
+
 
 
 void IRVisitor::postVisit(grammar::ast::PrintStatement &print) {

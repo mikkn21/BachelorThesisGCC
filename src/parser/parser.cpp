@@ -175,12 +175,10 @@ namespace grammar {
         const auto var_assign_def = (id_access >> '=' >> expression) > ";";
         const auto while_statement_def = optionalParExp("while") > block;
 
-      
         const auto print_statement_def = x3::lit("print") > '(' > expression > ')' > ';';
         const auto return_statement_def = optionalParExp("return") > ';';
         const auto block_line_def = statement | decl;
         const auto block_def = '{' > *block_line > '}';
-
 
         const auto else_if = x3::lit("else ") >> if_statement;
         const auto conditional_statement_def = if_statement > *(else_if) > -else_statement;
