@@ -321,7 +321,8 @@ void IRVisitor::preVisit(grammar::ast::WhileStatement &while_statement) {
 void IRVisitor::preBlockVisit(grammar::ast::WhileStatement &while_statement) {
     AstValue expr = pop(temp_storage);
     if (std::holds_alternative<bool>(expr)) {
-        code.push(Instruction(Op::CMPQ, Arg(ImmediateValue(1), DIR()), Arg(ImmediateValue(std::get<bool>(expr)), DIR())));        
+        code.push(Instruction(Op::MOVQ, Arg(std::get<GenericRegister>(expr), DIR()), Arg(Register::RAX, DIR())));
+        code.push(Instruction(Op::CMPQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RAX, DIR())));        
     } else if (std::holds_alternative<GenericRegister>(expr)) {
         code.push(Instruction(Op::CMPQ, Arg(ImmediateValue(1), DIR()), Arg(std::get<GenericRegister>(expr), DIR())));
     } else {

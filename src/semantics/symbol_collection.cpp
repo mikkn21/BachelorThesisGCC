@@ -71,6 +71,7 @@ public:
         currentSymbolTable->insert(classDecl.id.id, classSymbol);
         classDecl.scope = classSymbol;
         classDecl.id.sym = classSymbol;
+        //classDecl.label = generate_unique_label(classDecl.id.id);
         currentSymbolTable = classSymbol->symbolTable;
     }
 
