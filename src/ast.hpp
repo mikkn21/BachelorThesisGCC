@@ -349,6 +349,7 @@ namespace grammar
         struct ArrayInitExp : LocationInfo {
             PrimitiveType primType;
             std::vector<Expression> sizes; 
+            SymbolTable *scope = nullptr;
         public: 
             friend std::ostream& operator<<(std::ostream& os, const ArrayInitExp &exp);
         };

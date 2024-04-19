@@ -54,6 +54,10 @@ public:
         id.scope = currentSymbolTable;
     }
 
+    void preVisit(grammar::ast::ArrayInitExp &init) override {
+        init.scope = currentSymbolTable;
+    }
+
     void preVisit(grammar::ast::VarAssign &varAssign) override {
         Symbol *sym = currentSymbolTable->find(varAssign.idAccess.ids.front().id);
         if (sym == nullptr) {
