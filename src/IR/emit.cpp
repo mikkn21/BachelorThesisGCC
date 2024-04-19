@@ -51,7 +51,18 @@ string calleeRestore() {
 )";
 }
 
-string print_immediate_value(int number) {
+/// @brief Allocates memory on the heap. 
+/// @param size The size of the memory to allocate.
+/// @return The assembly code for allocating memory.
+string allocateMemory(int size) {
+    string s = callerSave() + ""
+    "\tmovq $" + std::to_string(size) + ", %rdi\n"
+    "\tcall allocate\n"
+    "" + callerRestore();
+    return s;
+}
+
+string printImmediateValue(int number) {
     string s = callerSave() + ""
     "\tmovq $" + std::to_string(number) + ", %rdi\n"
     "\tcall printNum\n"
@@ -59,7 +70,7 @@ string print_immediate_value(int number) {
     return s;
 }
 
-string print_stack_value(long offset) {
+string printStackValue(long offset) {
     string s = callerSave() + ""
     "\tmovq " + std::to_string(offset) + "(%rbp), %rdi\n"
     "\tcall printNum\n"
@@ -72,12 +83,20 @@ string procedure(Instruction instruction) {
         switch (get<Procedure>(instruction.args[0].target)) {
             case Procedure::PRINT:
                 if (holds_alternative<ImmediateValue>(instruction.args[1].target)) {
-                    return print_immediate_value(get<ImmediateValue>(instruction.args[1].target).value);
+                    return printImmediateValue(get<ImmediateValue>(instruction.args[1].target).value);
                 } else if (holds_alternative<Register>(instruction.args[1].target)) {
 
-                    return print_stack_value(get<IRL>(instruction.args[1].access_type).offset);
+                    return printStackValue(get<IRL>(instruction.args[1].access_type).offset);
                 } else {
                     throw IRError("Not implemented yet");
+                }
+            case Procedure::MEM_ALLOC:
+                if (holds_alternative<ImmediateValue>(instruction.args[1].target)) {
+                    return allocateMemory(get<ImmediateValue>(instruction.args[1].target).value);
+                } else if (holds_alternative<Register>(instruction.args[1].target)) {
+                    return allocateMemory(get<IRL>(instruction.args[1].access_type).offset);
+                } else {
+                    throw IRError("You done goofed.");
                 }
             case Procedure::CALLER_SAVE:
                 return callerSave();
@@ -95,7 +114,7 @@ string procedure(Instruction instruction) {
     }
 }
 
-string print_function() {
+string printFunction() {
     return R"(
 printNum:
 	movq %rdi, %rax # The number
@@ -131,6 +150,27 @@ printNum:
 )";
 }
 
+/// @brief  A naive memory allocator that simply retrieves some new space from the OS. It is not possible to deallocate the memory again.
+/// @return The assembly code for the memory allocator.
+string memmoryAllocatorFunction() {
+    return R"(
+allocate:
+    push %rdi
+    # 1. Find the current end of the data segment.
+    movq $12, %rax          # brk
+    xorq %rdi, %rdi         # 0 means we retrieve the current end.
+    syscall
+    # 2. Add the amount of memory we want to allocate.
+    pop %rdi                # the argument
+    push %rax               # current end, which is where the allocated memory will start
+    addq %rax, %rdi         # compute the new end
+    movq $12, %rax          # brk
+    syscall
+    pop %rax                # the old end, which is the address of our allocated memory
+    ret
+
+)";
+}
 
 void emit_to_file(IR ir) {
 
@@ -160,7 +200,8 @@ void emit_to_file(IR ir) {
             }
         }
 
-        outputFile << print_function();
+        outputFile << printFunction();
+        outputFile << memmoryAllocatorFunction();
         outputFile << endl;
         outputFile.close();
     } else {

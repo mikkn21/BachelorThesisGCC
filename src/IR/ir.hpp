@@ -41,7 +41,7 @@ struct Label {
 };
 
 enum class Procedure {
-    CALLEE_SAVE, CALLEE_RESTORE, CALLER_SAVE, CALLER_RESTORE, PRINT, 
+    CALLEE_SAVE, CALLEE_RESTORE, CALLER_SAVE, CALLER_RESTORE, PRINT, MEM_ALLOC,
 };
 
 using TargetType = std::variant<ImmediateValue, Register, GenericRegister, Label, Procedure>;

@@ -274,6 +274,18 @@ void IRVisitor::postVisit(grammar::ast::Rhs &op_exp) {
     temp_storage.push(result);  
 }
 
+
+void IRVisitor::preVisit(grammar::ast::ArrayExp &arr) {
+    // for ( auto &size : arr.sizes) {
+    
+    // }
+}
+
+void IRVisitor::postVisit(grammar::ast::ArrayExp &arr) {
+    
+}
+
+
 void IRVisitor::postVisit(grammar::ast::PrintStatement &print) {
     AstValue value = pop(temp_storage);
     if (std::holds_alternative<int>(value)) { 
