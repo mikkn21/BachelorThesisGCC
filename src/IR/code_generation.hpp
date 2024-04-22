@@ -50,6 +50,8 @@ public:
     void postVisit(grammar::ast::BreakStatement &breakStatement) override;
     void postVisit(grammar::ast::ContinueStatement &continueStatement) override;
 
+    void postVisit(grammar::ast::ObjInst &obj) override;
+
     void preVisit(grammar::ast::ArrayExp &arr) override; 
     void postVisit(grammar::ast::ArrayExp &arr) override;
 

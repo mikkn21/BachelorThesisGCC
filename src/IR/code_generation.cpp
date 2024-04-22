@@ -379,6 +379,18 @@ void IRVisitor::pushStandardFunctions() {
     pushMemAllocFunction();
 }
 
+void IRVisitor::postVisit(grammar::ast::ObjInst &obj){
+    auto attrs = dynamic_cast<ClassSymbol*>(obj.id.sym)->symbolTable->get_var_symbols();
+    GenericRegister resultRegister = GenericRegister(++dynamic_cast<ClassSymbol*>(obj.id.sym)->symbolTable->registerCounter);
+    code.push(Instruction(Op::PROCEDURE, Arg(Procedure::MEM_ALLOC, DIR()), Arg(ImmediateValue(attrs.size() * 8), DIR())));
+    code.push(Instruction(Op::MOVQ, Arg(Register::RAX, DIR()), Arg(resultRegister, DIR()))); 
+    for (int i = 0 ; i < attrs.size() ; ++i) {
+        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(0), DIR()), Arg(resultRegister, IRL(8*(i+1)))));
+    }
+    // above should be done after having allocated some memory and gotten a pointer
+    temp_storage.push(resultRegister); // final line, nothing below this
+}
+
 void IRVisitor::postVisit(grammar::ast::Prog &prog) {
     code.push(Instruction(Op::PUSHQ, Arg(Register::RBP, DIR()), "setting static link")); // Settting static link.
     code.push(Instruction(Op::CALL, Arg(Label("main"), DIR())));
