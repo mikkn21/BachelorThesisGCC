@@ -4,14 +4,11 @@
 #include "../semantics/symbol_table.hpp"
 
 class TypeChecker : public Visitor {
-    
 
     // the current function we are inside of
     FuncSymbol* func = nullptr;
     bool hasFuncReturned = false;
 
-    
-   
     // The stack of types
     std::stack<SymbolType> typeStack = std::stack<SymbolType>();    
     std::vector<SymbolType> FuncCallArgs = std::vector<SymbolType>();

@@ -1,12 +1,6 @@
 int main() {
-    if (1 > 5) {
-        print(2);
-    } else if (2 < 5){
-        print(3);
-    } else if (3 < 5) {
+    if(5 > 3){
         print(5);
-    } else {
-        print(7);
     }
     return 0;
 }
