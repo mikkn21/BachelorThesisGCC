@@ -384,8 +384,8 @@ void IRVisitor::pushPrintFunction() {
     code.push(Instruction(Op::LABEL, Arg(Label("printNum"), DIR())));
     code.push(Instruction(Op::MOVQ, Arg(Register::RDI, DIR()), Arg(Register::RAX, DIR()), "The number"));
     code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(0), DIR()), Arg(Register::R9, DIR()), "Counter for chars to write"));
-    code.push(Instruction(Op::NOTHING, "Convert the number to chars"));
     code.push(Instruction(Op::LABEL, Arg(Label(convertLoopLabel), DIR())));
+    code.push(Instruction(Op::NOTHING, "Convert the number to chars"));
     code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(0), DIR()), Arg(Register::RDX, DIR())));
     code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(10), DIR()), Arg(Register::RCX, DIR())));
     code.push(Instruction(Op::IDIVQ, Arg(Register::RCX, DIR())));
@@ -394,8 +394,8 @@ void IRVisitor::pushPrintFunction() {
     code.push(Instruction(Op::ADDQ, Arg(ImmediateValue(1), DIR()), Arg(Register::R9, DIR())));
     code.push(Instruction(Op::CMPQ, Arg(ImmediateValue(0), DIR()), Arg(Register::RAX, DIR())));
     code.push(Instruction(Op::JNE, Arg(Label(convertLoopLabel), DIR())));
-    code.push(Instruction(Op::NOTHING, "Print the number to stdout"));
     code.push(Instruction(Op::LABEL, Arg(Label(printLoopLabel), DIR())));
+    code.push(Instruction(Op::NOTHING, "Print the number to stdout"));
     code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RAX, DIR()), "sys_write"));
     code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RDI, DIR()), "stdout"));
     code.push(Instruction(Op::MOVQ, Arg(Register::RSP, DIR()), Arg(Register::RSI, DIR()), "buf"));
@@ -415,7 +415,20 @@ void IRVisitor::pushPrintFunction() {
 }
 
 void IRVisitor::pushMemAllocFunction() {
-
+    code.push(Instruction(Op::LABEL, Arg(Label("allocate"), DIR())));
+    code.push(Instruction(Op::PUSHQ, Arg(Register::RDI, DIR())));
+    code.push(Instruction(Op::NOTHING, "1. Find the current end of the data segment."));
+    code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(12), DIR()), Arg(Register::RAX, DIR()), "brk"));
+    code.push(Instruction(Op::XORQ, Arg(Register::RDI, DIR()), Arg(Register::RDI, DIR()), "0 means we retrieve the current end"));
+    code.push(Instruction(Op::SYSCALL));
+    code.push(Instruction(Op::NOTHING, "2. Add the amount of memory we want to allocate."));
+    code.push(Instruction(Op::POPQ, Arg(Register::RDI, DIR()), "the argument"));
+    code.push(Instruction(Op::PUSHQ, Arg(Register::RAX, DIR()), "current end, which is where the allocated memory will start"));
+    code.push(Instruction(Op::ADDQ, Arg(Register::RAX, DIR()), Arg(Register::RDI, DIR()), "compute the new end"));
+    code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(12), DIR()), Arg(Register::RAX, DIR()), "brk"));
+    code.push(Instruction(Op::SYSCALL));
+    code.push(Instruction(Op::POPQ, Arg(Register::RAX, DIR()), "the old end, which is the address of our allocated memory"));
+    code.push(Instruction(Op::RET));
 }
 
 void IRVisitor::pushStandardFunctions() {
