@@ -3,20 +3,41 @@
 const int callee_offset = -40;
 const int arg_offset = 16;
 
-Instruction generic_translate(Instruction instruction) {
-    for (auto &arg : instruction.args) {
+std::vector<Instruction> generic_translate(Instruction instruction) {
+    std::vector<Instruction> instructions;
+    Instruction translated_instruction = Instruction(instruction.operation, instruction.comment);
+    std::vector<Register> registers = {Register::R11, Register::R12};
+    std::cout << instruction << std::endl;
+    // Translates generic registers to concrete registers.
+    for (size_t i = 0; i < instruction.args.size(); i++) {
+        auto arg = instruction.args[i];
         if (std::holds_alternative<GenericRegister>(arg.target)) {
             auto id = std::get<GenericRegister>(arg.target).local_id;
-            if (id > 0) {
-                arg = Arg(Register::RBP, IRL((std::get<GenericRegister>(arg.target).local_id)*(-8)+callee_offset));
-            } else if (id < 0) {
-                arg = Arg(Register::RBP, IRL((std::get<GenericRegister>(arg.target).local_id)*(-8)+arg_offset));
-            } else {
+            if (id == 0) {
                 throw IRError("Invalid Generic Register found");
             }
+            long offset = std::get<GenericRegister>(arg.target).local_id*(-8) + ( id > 0 ? callee_offset : arg_offset);
+            instructions.push_back(Instruction(Op::PUSHQ, Arg(registers[i], DIR()), "save for Generic Register Translation"));
+            instructions.push_back(Instruction(Op::MOVQ, Arg(Register::RBP, IRL(offset)), Arg(registers[i], DIR()), "Generic Register Translation 2"));
+            translated_instruction.args.push_back(Arg(registers[i], DIR()));
+        } else {
+            translated_instruction.args.push_back(arg);
         }
     }
-    return instruction;
+    std::cout << translated_instruction << std::endl;
+    instructions.push_back(translated_instruction);
+
+    for (size_t i = instruction.args.size(); i > 0; i--) {
+        auto j = i-1;
+        auto arg = instruction.args[j];
+        if (std::holds_alternative<GenericRegister>(arg.target)) {
+            auto id = std::get<GenericRegister>(arg.target).local_id;
+            long offset = std::get<GenericRegister>(arg.target).local_id*(-8) + ( id > 0 ? callee_offset : arg_offset);
+            instructions.push_back(Instruction(Op::MOVQ, Arg(registers[j], DIR()), Arg(Register::RBP, IRL(offset)), "move result back to Generic Register"));
+            instructions.push_back(Instruction(Op::POPQ, Arg(registers[j], DIR()), "restore after Generic Register operation"));
+        } 
+    }
+    return instructions;
 }
 
 Instruction procedure_translate(Instruction instruction) {
@@ -56,7 +77,10 @@ IR register_allocation(IR old_ir) {
             ir.push_back(procedure_translate(instruction));
             break;
         default:
-            ir.push_back(generic_translate(instruction));
+            {
+                std::vector<Instruction> translated_instructions = generic_translate(instruction);
+                ir.insert(ir.end(), translated_instructions.begin(), translated_instructions.end());
+            }
             break;
         }
     }
