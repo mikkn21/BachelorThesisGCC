@@ -377,12 +377,60 @@ void IRVisitor::preVisit(grammar::ast::Prog &prog) {
     }
 }
 
+void IRVisitor::pushPrintFunction() {
+    std::string convertLoopLabel = ".LprintNum_convertLoop";
+    std::string printLoopLabel = ".LprintNum_printLoop";
+    std::string printNewlineLabel = ".print_newline";
+    code.push(Instruction(Op::LABEL, Arg(Label("printNum"), DIR())));
+    code.push(Instruction(Op::MOVQ, Arg(Register::RDI, DIR()), Arg(Register::RAX, DIR()), "The number"));
+    code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(0), DIR()), Arg(Register::R9, DIR()), "Counter for chars to write"));
+    code.push(Instruction(Op::NOTHING, "Convert the number to chars"));
+    code.push(Instruction(Op::LABEL, Arg(Label(convertLoopLabel), DIR())));
+    code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(0), DIR()), Arg(Register::RDX, DIR())));
+    code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(10), DIR()), Arg(Register::RCX, DIR())));
+    code.push(Instruction(Op::IDIVQ, Arg(Register::RCX, DIR())));
+    code.push(Instruction(Op::ADDQ, Arg(ImmediateValue(48), DIR()), Arg(Register::RDX, DIR()), "'0' is 48"));
+    code.push(Instruction(Op::PUSHQ, Arg(Register::RDX, DIR())));
+    code.push(Instruction(Op::ADDQ, Arg(ImmediateValue(1), DIR()), Arg(Register::R9, DIR())));
+    code.push(Instruction(Op::CMPQ, Arg(ImmediateValue(0), DIR()), Arg(Register::RAX, DIR())));
+    code.push(Instruction(Op::JNE, Arg(Label(convertLoopLabel), DIR())));
+    code.push(Instruction(Op::NOTHING, "Print the number to stdout"));
+    code.push(Instruction(Op::LABEL, Arg(Label(printLoopLabel), DIR())));
+    code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RAX, DIR()), "sys_write"));
+    code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RDI, DIR()), "stdout"));
+    code.push(Instruction(Op::MOVQ, Arg(Register::RSP, DIR()), Arg(Register::RSI, DIR()), "buf"));
+    code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RDX, DIR()), "len"));
+    code.push(Instruction(Op::SYSCALL));
+    code.push(Instruction(Op::ADDQ, Arg(ImmediateValue(8), DIR()), Arg(Register::RSP, DIR()), "len"));
+    code.push(Instruction(Op::ADDQ, Arg(ImmediateValue(-1), DIR()), Arg(Register::R9, DIR()), "len"));
+    code.push(Instruction(Op::JNE, Arg(Label(printLoopLabel), DIR())));
+    code.push(Instruction(Op::NOTHING, "Print newline"));
+    code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RAX, DIR()), "sys_write"));
+    code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RDI, DIR()), "stdout"));
+    code.push(Instruction(Op::MOVQ, Arg(ImmediateData("newline"), DIR()), Arg(Register::RSI, DIR()), "buf"));
+    code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RDX, DIR()), "len"));
+    code.push(Instruction(Op::SYSCALL));
+    code.push(Instruction(Op::RET));
+
+}
+
+void IRVisitor::pushMemAllocFunction() {
+
+}
+
+void IRVisitor::pushStandardFunctions() {
+    pushPrintFunction();
+    pushMemAllocFunction();
+}
+
 void IRVisitor::postVisit(grammar::ast::Prog &prog) {
     code.push(Instruction(Op::PUSHQ, Arg(Register::RBP, DIR()), "setting static link")); // Settting static link.
     code.push(Instruction(Op::CALL, Arg(Label("main"), DIR())));
     code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(60), DIR()), Arg(Register::RAX, DIR())));
     code.push(Instruction(Op::XORQ, Arg(Register::RDI, DIR()), Arg(Register::RDI, DIR())));
     code.push(Instruction(Op::SYSCALL));
+    
+    pushStandardFunctions();
 }
 
 template<typename T>

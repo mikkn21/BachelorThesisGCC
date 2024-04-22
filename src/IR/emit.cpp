@@ -200,7 +200,7 @@ void emit_to_file(IR ir) {
             }
         }
 
-        outputFile << printFunction();
+        // outputFile << printFunction();
         outputFile << memmoryAllocatorFunction();
         outputFile << endl;
         outputFile.close();
