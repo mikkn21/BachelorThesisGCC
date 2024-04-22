@@ -18,7 +18,7 @@ std::vector<Instruction> generic_translate(Instruction instruction) {
             }
             long offset = std::get<GenericRegister>(arg.target).local_id*(-8) + ( id > 0 ? callee_offset : arg_offset);
             instructions.push_back(Instruction(Op::PUSHQ, Arg(registers[i], DIR()), "save for Generic Register Translation"));
-            instructions.push_back(Instruction(Op::MOVQ, Arg(Register::RBP, IRL(offset)), Arg(registers[i], DIR()), "Generic Register Translation 2"));
+            instructions.push_back(Instruction(Op::MOVQ, Arg(Register::RBP, IRL(offset)), Arg(registers[i], DIR()), "Generic Register Translation"));
             translated_instruction.args.push_back(Arg(registers[i], DIR()));
         } else {
             translated_instruction.args.push_back(arg);
