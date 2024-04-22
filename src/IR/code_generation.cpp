@@ -93,6 +93,17 @@ std::vector<Instruction> binopInstructions(std::string op, GenericRegister resul
     return code;
 }
 
+TargetType getTarget(AstValue value) {
+    if (std::holds_alternative<int>(value)) {
+        return ImmediateValue(std::get<int>(value));
+    } else if (std::holds_alternative<bool>(value)) {
+        return ImmediateValue(std::get<bool>(value));
+    } else if (std::holds_alternative<GenericRegister>(value)) {
+        return std::get<GenericRegister>(value);
+    } else {
+        throw IRError("Unexpected type in getTarget");
+    }
+}
 
 IRVisitor::IRVisitor(SymbolTable* globalScope) : globalScope(globalScope), Visitor() {}
 
