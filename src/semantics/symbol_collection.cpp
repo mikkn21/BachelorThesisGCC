@@ -4,7 +4,18 @@
 #include <cstddef>
 #include <iostream>
 #include "symbol_collection.hpp"
-#include <iostream>
+#include <stack>
+#include <stdexcept>
+
+template<typename T>
+T pop(std::stack<T>& myStack) {
+    if (myStack.empty()) {
+        throw std::runtime_error("stack is empty");
+    }
+    T topElement = std::move(myStack.top()); 
+    myStack.pop();
+    return topElement;
+} 
 
 size_t unique_label_id = 0;
 
@@ -20,8 +31,9 @@ class SymbolCollectionVisitor : public Visitor {
 private:
     SymbolTable *currentSymbolTable; // Has to be a pointer, not a reference!!!
 
-    // How many loops we are inside of currently
-    int insideLoopCount = 0;
+    // How many loops we are inside of currently in the current function.
+    // There is one number for each function.
+    std::stack<int> insideLoopCountStack = std::stack<int>();
 
 
 public: 
@@ -31,21 +43,21 @@ public:
     void preVisit(grammar::ast::WhileStatement &whileStatement) override {
         whileStatement.start_label = generate_unique_label("while_statement");
         whileStatement.end_label = generate_unique_label("end_while_statement");
-        insideLoopCount++;
+        insideLoopCountStack.top()++;
     }
 
     void postVisit(grammar::ast::WhileStatement &whileStatement) override {
-        insideLoopCount--;
+        insideLoopCountStack.top()--;
     }
 
     void preVisit(grammar::ast::BreakStatement &breakStatement) override {
-        if (insideLoopCount <= 0) {
+        if (insideLoopCountStack.top() <= 0) {
             throw SemanticsError("Break statement outside of loop", breakStatement);
         }
     }
 
     void preVisit(grammar::ast::ContinueStatement &continueStatement) override {
-        if (insideLoopCount <= 0) {
+        if (insideLoopCountStack.top() <= 0) {
             throw SemanticsError("Continue statement outside of loop", continueStatement);
         }
     }
@@ -111,6 +123,7 @@ public:
         if (currentSymbolTable->findLocal(funcDecl.id.id)) {
             throw SemanticsError(funcDecl.id.id + " already declared in scope", funcDecl);
         }
+        insideLoopCountStack.push(0);
 
         SymbolTable *newSymbolTable = new SymbolTable(currentSymbolTable);
         FuncSymbol *funcSymbol = new FuncSymbol(&funcDecl, newSymbolTable);
@@ -125,6 +138,7 @@ public:
 
     void postVisit(grammar::ast::FuncDecl &funcDecl) override {
         currentSymbolTable = currentSymbolTable->parentScope;
+        pop(insideLoopCountStack);
     }
 
     void postVisit(grammar::ast::ClassDecl &decl) override {
