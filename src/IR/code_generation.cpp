@@ -178,14 +178,31 @@ VarSymbol *getVarSymbol(Symbol *symbol) {
         throw IRError("Attempted to use a symbol as a VarSymbol, despite not being one");
     }
 }
-
+//lmao
 void IRVisitor::postVisit(grammar::ast::VarAssign &varAssign) {
     //AstValue value = pop(temp_storage);
-    auto target = getTarget(pop(temp_storage));
-    VarSymbol *varSymbol = getVarSymbol(varAssign.idAccess.ids.back().sym);
-    int local_id = varSymbol->local_id;
-    code.push(Instruction(Op::MOVQ, Arg(target, DIR()), Arg(Register::R8, DIR())));
-    code.push(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(GenericRegister(local_id), DIR())));
+    auto value = getTarget(pop(temp_storage));
+    auto temp = varAssign.idAccess.ids;
+
+    std::vector<VarSymbol*> varSymbols;
+    for (auto id : temp) {
+        varSymbols.push_back(getVarSymbol(id.sym));
+    }
+
+    if (temp.size() > 1) {
+        code.push(Instruction(Op::MOVQ, Arg(Register::RBP, DIR()), Arg(Register::R8, DIR())));
+        for (int i = 0; i < varSymbols.size(); i++) {
+            code.push(Instruction(Op::MOVQ, Arg(Register::R8, IRL(varSymbols[i]->local_id * 8)), Arg(Register::R9, DIR())));
+            code.push(Instruction(Op::MOVQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR())));
+        } // by the end of this loop the scope / block of data where varAssign.idAccess.back() is located should be in R8
+        //code.push(Instruction(Op::MOVQ, Arg(value, DIR()), Arg(Register::R8, IRL(varSymbols.back()->local_id * 8))));
+        // potential other / correct solution:
+        code.push(Instruction(Op::MOVQ, Arg(value, DIR()), Arg(Register::R8, IND()))); // This assumes that i goes to varSymbols.size(), not -1.
+    } else {
+        int local_id = varSymbols.back()->local_id;
+        code.push(Instruction(Op::MOVQ, Arg(value, DIR()), Arg(Register::R8, DIR())));
+        code.push(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(GenericRegister(local_id), DIR())));
+    }
 }
 
 void IRVisitor::postVisit(grammar::ast::VarDeclAssign &var_decl_assign) {
@@ -380,11 +397,18 @@ void IRVisitor::pushStandardFunctions() {
 }
 
 void IRVisitor::postVisit(grammar::ast::ObjInst &obj){
-    auto attrs = dynamic_cast<ClassSymbol*>(obj.id.sym)->symbolTable->get_var_symbols();
+    std::cout << "postvisit objinst" << std::endl;
+    auto temp = dynamic_cast<ClassSymbol*>(obj.id.sym)->symbolTable;
+    auto attrs = temp->get_var_symbols();
     GenericRegister resultRegister = GenericRegister(++dynamic_cast<ClassSymbol*>(obj.id.sym)->symbolTable->registerCounter);
     code.push(Instruction(Op::PROCEDURE, Arg(Procedure::MEM_ALLOC, DIR()), Arg(ImmediateValue(attrs.size() * 8), DIR())));
     code.push(Instruction(Op::MOVQ, Arg(Register::RAX, DIR()), Arg(resultRegister, DIR()))); 
     for (int i = 0 ; i < attrs.size() ; ++i) {
+        std::cout << "attr: " << attrs[i]->varDecl->id.id << std::endl;
+        std::cout << "index: " << getVarSymbol(temp->findLocal(attrs[i]->varDecl->id.id))->local_id << std::endl;
+        // The fucky above line indicates how to find the offset of a variable.
+        // This is useful as it should be able to be multiplied by 8 to get the offset necessary to access the variable.
+        // Which should be run in a loop over idAccess in varAssign
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(0), DIR()), Arg(resultRegister, IRL(8*(i+1)))));
     }
     // above should be done after having allocated some memory and gotten a pointer

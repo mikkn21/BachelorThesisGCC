@@ -1,9 +1,15 @@
 class F {
     int x;
+    int z;
+    int m;
+    int o;
+    int y;
 }
 
 int main() {
-    F f;
+    F f = new F();
     print(2);
+    f.x = 3;
+    print(5);
     return 0;
 }
