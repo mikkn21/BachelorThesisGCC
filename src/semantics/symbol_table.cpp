@@ -215,7 +215,7 @@ Symbol *SymbolTable::find(std::string key) const {
 std::vector<VarSymbol*> SymbolTable::get_var_symbols() {
     std::vector<VarSymbol*> var_symbols;
     for (auto var : entries) {
-        if (VarSymbol* var_casted =  dynamic_cast<VarSymbol*>(var.second)) {
+        if (VarSymbol* var_casted = dynamic_cast<VarSymbol*>(var.second)) {
             var_symbols.push_back(var_casted);
         } 
     }
