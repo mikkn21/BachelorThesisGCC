@@ -52,6 +52,9 @@ public:
     void postVisit(grammar::ast::ContinueStatement &continueStatement) override;
 
     void postVisit(grammar::ast::ArrayInitExp &arr) override;
+    void postVisit(grammar::ast::ArrayIndex &index) override;
+    void postVisit(grammar::ast::ArrayIndexExp &index) override;
+    void postVisit(grammar::ast::ArrayIndexAssign &assign) override;
 
 private:
     std::vector<std::string> function_container;

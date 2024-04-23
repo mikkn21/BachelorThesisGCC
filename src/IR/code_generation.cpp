@@ -237,7 +237,6 @@ void IRVisitor::postVisit(grammar::ast::ArrayInitExp &arr) {
         sizes.push_back(pop(temp_storage));
     }
 
-
     TargetType memSize = Register::RDI;
 
     code.push(Instruction(Op::PUSHQ, Arg(memSize, DIR()), "Save that shit"));
@@ -251,6 +250,7 @@ void IRVisitor::postVisit(grammar::ast::ArrayInitExp &arr) {
     // allocate memory
     code.push(Instruction(Op::PROCEDURE, Arg(Procedure::MEM_ALLOC, DIR()), Arg(memSize, DIR()), "allocate memory of found memory size"));
     
+    code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()))); // make space on stack for generic register value
     GenericRegister arrayStart = GenericRegister(++arr.scope->registerCounter);
     code.push(Instruction(Op::MOVQ, Arg(Register::RAX, DIR()), Arg(arrayStart, DIR()), "Save array pointer in generic register" ));
 
@@ -259,7 +259,7 @@ void IRVisitor::postVisit(grammar::ast::ArrayInitExp &arr) {
         code.push(Instruction(Op::MOVQ, Arg(getTarget(sizes[i]), DIR()), Arg(arrayStart, IRL(i * 8)), "set size of dimension " + std::to_string(i + 1)));
     }
     // set the array pointer to point to the first element of the array
-    code.push(Instruction(Op::SUBQ, Arg(ImmediateValue(sizes.size() * 8), DIR()), Arg(arrayStart, DIR()), "set array pointer to point to first element" ));
+    code.push(Instruction(Op::ADDQ, Arg(ImmediateValue(sizes.size() * 8), DIR()), Arg(arrayStart, DIR()), "set array pointer to point to first element" ));
 
     code.push(Instruction(Op::POPQ, Arg(memSize, DIR()), "pop that shit"));
     
@@ -267,6 +267,64 @@ void IRVisitor::postVisit(grammar::ast::ArrayInitExp &arr) {
 }
 
 
+void IRVisitor::postVisit(grammar::ast::ArrayIndex &index) {
+    std::vector<TargetType> index_targets;
+    for (size_t i = 0; i < index.indices.size(); i++) {
+        index_targets.push_back(getTarget(pop(temp_storage)));
+    }
+
+    // TODO: Check valid index
+    // TODO: Make sure arrays are also 0-initialized at the beginning of their scope
+
+    // Static link
+    SymbolTable *scope = index.idAccess.ids.front().scope;
+    VarSymbol *target_symbol = getVarSymbol(index.idAccess.ids.back().sym);
+    int target_depth = target_symbol->varDecl->id.scope->depth;
+    int current_depth = scope->depth;
+    int difference = current_depth - target_depth;
+    // std::cout << "current depth: " << current_depth << "target depth: " << target_depth << "difference: " << difference << std::endl;
+    code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()))); // make space on stack for generic register value
+    GenericRegister array_ptr = GenericRegister(++scope->registerCounter);
+    auto static_linking_code = static_link_instructions(difference, target_symbol->local_id, array_ptr);
+    for (auto instruction : static_linking_code) {
+        code.push(instruction);
+    }
+
+    // Get a pointer to the correct index
+    code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()))); // make space on stack for generic register value
+    code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()))); // make space on stack for generic register value
+    code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()))); // make space on stack for generic register value
+    GenericRegister index_address = GenericRegister(++scope->registerCounter);
+    GenericRegister intermediate_product = GenericRegister(++scope->registerCounter);
+    GenericRegister intermediate_value = GenericRegister(++scope->registerCounter);
+    // NOTE: indexTargets are in reverse order such that the last index is first
+    code.push(Instruction(Op::MOVQ, Arg(array_ptr, DIR()), Arg(index_address, DIR()), "Initialize the index address"));
+    code.push(Instruction(Op::ADDQ, Arg(index_targets.front(), DIR()), Arg(index_address, DIR()), "Add the first index to the address"));
+    // code.push(Instruction(Op::IMULQ, Arg(ImmediateValue(8), DIR()), Arg(index_address, DIR()), "Translate the first index to byte address"));
+    code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(intermediate_product, DIR()), "Initialize the product"));
+    for (size_t i = 1; i < index.indices.size(); i++) {
+        code.push(Instruction(Op::IMULQ, Arg(array_ptr, IRL(-i * 8)), Arg(intermediate_product, DIR()), "Multiply with the previous product"));
+        code.push(Instruction(Op::MOVQ, Arg(index_targets[i], DIR()), Arg(intermediate_value, DIR()), "Initialize the intermediate value"));
+        // code.push(Instruction(Op::IMULQ, Arg(intermediate_product, DIR()), Arg(intermediate_value, DIR()), "Multiply the intermediate value and product"));
+        code.push(Instruction(Op::IMULQ, Arg(ImmediateValue(8), DIR()), Arg(intermediate_value, DIR()), "Translate the intermediate value to a byte address"));
+        code.push(Instruction(Op::ADDQ, Arg(intermediate_value, DIR()), Arg(index_address, DIR()), "Add the intermediate value to the address"));
+    }
+
+    temp_storage.push(index_address);
+}
+
+void IRVisitor::postVisit(grammar::ast::ArrayIndexExp &index_exp) {
+    TargetType index_ptr = getTarget(pop(temp_storage));
+    GenericRegister result = GenericRegister(++index_exp.index.idAccess.ids.front().scope->registerCounter);
+    code.push(Instruction(Op::MOVQ, Arg(index_ptr, IND()), Arg(result, DIR()), "Unwrap the index pointer"));
+    temp_storage.push(result);
+}
+
+void IRVisitor::postVisit(grammar::ast::ArrayIndexAssign &assign) {
+    TargetType value = getTarget(pop(temp_storage));
+    TargetType index_ptr = getTarget(pop(temp_storage));
+    code.push(Instruction(Op::MOVQ, Arg(value, DIR()), Arg(index_ptr, IND()), "Assign the value to the array index"));
+}
 
 void IRVisitor::postVisit(grammar::ast::PrintStatement &print) {
     auto target = getTarget(pop(temp_storage));

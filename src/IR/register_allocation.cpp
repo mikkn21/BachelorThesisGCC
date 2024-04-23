@@ -50,6 +50,8 @@ Instruction procedureTranslateOneArgument(Instruction instruction, std::string e
         }
     } else if (std::holds_alternative<ImmediateValue>(instruction.args[1].target)) {
         return instruction;
+    } else if (std::holds_alternative<Register>(instruction.args[1].target)) {
+        return instruction;
     } else {
         throw IRError(error);
     }

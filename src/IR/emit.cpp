@@ -1,5 +1,6 @@
 
 #include <fstream>
+#include <string>
 #include "emit.hpp"
 
 
@@ -73,6 +74,16 @@ string allocateMemoryStackValue(long offset) {
     return s;
 }
 
+/// @brief Allocates memory on the heap using a stack value.
+/// @param offset The offset of the memory to allocate.
+/// @return The assembly code for allocating memory.
+string allocateMemoryRegisterValue(Register reg) {
+    std::stringstream st;
+    st << "\tmovq " << reg << ", %rdi\n"
+    << "\tcall allocate\n";
+    return st.str();
+}
+
 string printImmediateValue(int number) {
     string s = callerSave() + ""
     "\tmovq $" + std::to_string(number) + ", %rdi\n"
@@ -104,7 +115,7 @@ string procedure(Instruction instruction) {
                 if (holds_alternative<ImmediateValue>(instruction.args[1].target)) {
                     return allocateMemoryImmediateValue(get<ImmediateValue>(instruction.args[1].target).value);
                 } else if (holds_alternative<Register>(instruction.args[1].target)) {
-                    return allocateMemoryStackValue(get<IRL>(instruction.args[1].access_type).offset);
+                    return allocateMemoryRegisterValue(get<Register>(instruction.args[1].target));
                 } else {
                     throw IRError("You done goofed.");
                 }
