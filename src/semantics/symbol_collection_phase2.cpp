@@ -71,11 +71,21 @@ public:
         objInst.id.sym = sym;
     }
 
-
-
     void postVisit(grammar::ast::IdAccess &idAccess) override {
-        SymbolTable *currentScope = currentSymbolTable;
-        for (unsigned long i = 0; i < idAccess.ids.size(); i++ ) {
+
+        SymbolTable *currentScope;
+        // Get the scope of the first class variable
+        if (auto varSymbol = dynamic_cast<VarSymbol *>(idAccess.ids[0].sym)) {
+            if (auto *classSymbolType = boost::get<ClassSymbolType>(&varSymbol->type)) {
+                currentScope = classSymbolType->symbol->symbolTable;
+            } else if (idAccess.ids.size() > 1) {
+                    throw SemanticsError("Attempted to access a non-class", idAccess.ids[0]);
+            }
+        }
+
+        // Make the sure the next IDs exist within their corresponding scopes
+        // and link them up with their symbols
+        for (unsigned long i = 1; i < idAccess.ids.size(); i++ ) {
             Symbol *symbol = currentScope->find(idAccess.ids[i].id);
             if (symbol == nullptr) {
                 throw SemanticsError(idAccess.ids[i].id + " not declared in scope8", idAccess);

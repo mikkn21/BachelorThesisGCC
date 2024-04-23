@@ -198,6 +198,9 @@ private:
       
 
     void postVisit(grammar::ast::ArrayIndex &arrayIndex) override {
+        if (arrayIndex.idAccess.ids.back().sym == nullptr) {
+            throw TypeCheckError("symbol is empty in array index", arrayIndex);
+        }
         VarSymbol* sym = dynamic_cast<VarSymbol *>(arrayIndex.idAccess.ids.back().sym);
         if (sym == nullptr) {
             throw TypeCheckError("index was attempted on a non-variable", arrayIndex);
