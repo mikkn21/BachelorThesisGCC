@@ -14,5 +14,6 @@ int main() {
     f.x = 3;
     print(f.x);
     print(5);
+    int te = 19;
     return 0;
 }

@@ -401,7 +401,11 @@ void IRVisitor::pushStandardFunctions() {
 void IRVisitor::postVisit(grammar::ast::ObjInst &obj){
     auto temp = dynamic_cast<ClassSymbol*>(obj.id.sym)->symbolTable;
     auto attrs = temp->get_var_symbols();
-    GenericRegister resultRegister = GenericRegister(++dynamic_cast<ClassSymbol*>(obj.id.sym)->symbolTable->registerCounter);
+    //std::cout << "vars: " << attrs.size() << std::endl;
+    GenericRegister resultRegister = GenericRegister(++temp->registerCounter);
+    std::cout << std::endl;
+    std::cout << "resultRegister: " << resultRegister.local_id << std::endl;
+    std::cout << "scope: " << obj.id.scope->registerCounter << std::endl;
     code.push(Instruction(Op::PROCEDURE, Arg(Procedure::MEM_ALLOC, DIR()), Arg(ImmediateValue(attrs.size() * 8), DIR())));
     code.push(Instruction(Op::MOVQ, Arg(Register::RAX, DIR()), Arg(resultRegister, DIR()))); 
     for (int i = 0 ; i < attrs.size() ; ++i) {
