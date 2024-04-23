@@ -5,9 +5,7 @@
 #include <string>
 // #include <boost/spirit/home/x3.hpp>
 // #include <boost/spirit/home/x3/support/ast/apply_visitor.hpp>
-#include <iostream>
 const int callee_offset = -40;
-const int arg_offset = 16;
 
 
 std::stack<grammar::ast::WhileStatement*> while_stack;
@@ -105,7 +103,7 @@ TargetType getTarget(AstValue value) {
     }
 }
 
-IRVisitor::IRVisitor(SymbolTable* globalScope) : globalScope(globalScope), Visitor() {}
+IRVisitor::IRVisitor(SymbolTable* globalScope) : Visitor(), globalScope(globalScope) {}
 
 void IRVisitor::postVisit(grammar::ast::ReturnStatement &return_statement) {
     //AstValue value = pop(temp_storage);
@@ -335,7 +333,8 @@ void IRVisitor::preVisit(grammar::ast::Prog &prog) {
     code.push(Instruction(Op::MOVQ, Arg(Register::RSP, DIR()), Arg(Register::RBP, DIR()), "set rbp for global scope")); // set rbp
     code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_SAVE, DIR())));
     // std::cout << globalScope->get_var_symbols().size() << std::endl;
-    for (auto var : globalScope->get_var_symbols()) {
+    int varCount = globalScope->get_var_symbols().size();
+    for (int i = 0; i < varCount; i++) {
         code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR())));
     }
 }
@@ -444,7 +443,7 @@ IR intermediate_code_generation(grammar::ast::Prog &prog, SymbolTable *globalSco
     auto traveler = TreeTraveler(visitor);
     traveler(prog);
     visitor.code.end_scope(); // end global scope
-    return std::move(visitor.code.get_instructions());
+    return visitor.code.get_instructions();
 }
 
 

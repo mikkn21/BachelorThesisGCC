@@ -1,0 +1,17 @@
+int x = 2;
+
+int f() {
+    print(x);
+    int y = 0;
+    int g() {
+        return y;
+    }
+    return g();
+}
+
+int main() {
+    print(x);
+    int x = 5;
+    print(f());
+    return 0;
+}

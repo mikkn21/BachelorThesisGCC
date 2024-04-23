@@ -164,7 +164,7 @@ public:
         condStatement.ifStatement.endIfLabel = condStatement.endIfLabel;
 
         // Set the nextLabel of each else-if statement to the label of the next else-if statement
-        for (auto i = 1; i < condStatement.elseIfs.size(); i++) {
+        for (int i = 1; i < (int)condStatement.elseIfs.size(); i++) {
             condStatement.elseIfs[i - 1].nextLabel = condStatement.elseIfs[i].label;
             condStatement.elseIfs[i - 1].endIfLabel = condStatement.endIfLabel;
         }

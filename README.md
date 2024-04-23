@@ -28,10 +28,15 @@
 
 ## Usage
 
-Run `prog.out`. If you are already in the directory, you can run `./prog.out` to do this.
+Run `giga`. If you are already in the directory, you can run `./giga` to do this.
 
-## Testing
+## Contributing
 
+This section will describe how to contribute to GCC.
+
+### Testing
+
+After making changes, make sure that it works by running the tests:
 1. `cd build`
     - If the directory doens't exist, make it with `mkdir build`
 2. `cmake ..`
@@ -39,11 +44,18 @@ Run `prog.out`. If you are already in the directory, you can run `./prog.out` to
     - Alternatively, you can run `make` instead to make all files which would include the test files
 4. `ctest`
 
-## Docker
+### Naming Scheme
+
+The naming scheme that should be used when contributing to GCC is:
+- Variables: snake\_case
+- Functions: camelCase
+- Classes, enums, etc.: PascalCase
+
+### Docker
 
 This guide describes how to use Docker with a mounted volume, allowing you to run tests on an Ubuntu machine as if you were working directly on Ubuntu, regardless of your actual host operating system.
 
-### Starting an Interactive Shell with Docker
+#### Starting an Interactive Shell with Docker
 
 > [!CAUTION]
 > It's crucial to be in the **root directory of your project** when following these steps, especially for the `$(pwd)` command in step 4 to work correctly. This command relies on your current directory path to mount the project into the Docker container.
