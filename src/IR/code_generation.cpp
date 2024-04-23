@@ -406,15 +406,15 @@ void IRVisitor::postVisit(grammar::ast::ObjInst &obj){
     std::cout << std::endl;
     std::cout << "resultRegister: " << resultRegister.local_id << std::endl;
     std::cout << "scope: " << obj.id.scope->registerCounter << std::endl;
-    code.push(Instruction(Op::PROCEDURE, Arg(Procedure::MEM_ALLOC, DIR()), Arg(ImmediateValue(attrs.size() * 8), DIR())));
-    code.push(Instruction(Op::MOVQ, Arg(Register::RAX, DIR()), Arg(resultRegister, DIR()))); 
+    code.push(Instruction(Op::PROCEDURE, Arg(Procedure::MEM_ALLOC, DIR()), Arg(ImmediateValue(attrs.size() * 8), DIR()), "allocating space for variables"));
+    code.push(Instruction(Op::MOVQ, Arg(Register::RAX, DIR()), Arg(resultRegister, DIR()), "returning address to resultRegister")); 
     for (int i = 0 ; i < attrs.size() ; ++i) {
         //std::cout << "attr: " << attrs[i]->varDecl->id.id << std::endl;
         //std::cout << "index: " << getVarSymbol(temp->findLocal(attrs[i]->varDecl->id.id))->local_id << std::endl;
         // The fucky above line indicates how to find the offset of a variable.
         // This is useful as it should be able to be multiplied by 8 to get the offset necessary to access the variable.
         // Which should be run in a loop over idAccess in varAssign
-        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(0), DIR()), Arg(resultRegister, IRL(8*(i+1)))));
+        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(0), DIR()), Arg(resultRegister, IRL(8*(i+1))), "initializing variable " + attrs[i]->varDecl->id.id));
     }
     // above should be done after having allocated some memory and gotten a pointer
     temp_storage.push(resultRegister); // final line, nothing below this
