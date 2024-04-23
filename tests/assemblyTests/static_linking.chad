@@ -13,5 +13,50 @@ int main() {
     print(x);
     int x = 5;
     print(f());
+    g1();
+    g2();
+    return 0;
+}
+
+int i = 1;
+int g1() {
+    int i = 9;
+    int h1() {
+        int c1() {
+            int l1() {
+                print(i);
+                return 0;
+            }
+            l1();
+            return 0;
+        }
+        c1();
+        return 0;
+    }
+    h1();
+    return 0;
+}
+
+int k = 1;
+int g2() {
+    print(k);
+    int k = 2;
+    int h2() {
+        print(k);
+        int k = 3;
+        int c2() {
+            print(k);
+            int k = 4;
+            int l2() {
+                print(k);
+                return 0;
+            }
+            l2();
+            return 0;
+        }
+        c2();
+        return 0;
+    }
+    h2();
     return 0;
 }
