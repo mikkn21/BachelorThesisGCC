@@ -300,14 +300,16 @@ void IRVisitor::postVisit(grammar::ast::ArrayIndex &index) {
     // NOTE: indexTargets are in reverse order such that the last index is first
     code.push(Instruction(Op::MOVQ, Arg(array_ptr, DIR()), Arg(index_address, DIR()), "Initialize the index address"));
     code.push(Instruction(Op::ADDQ, Arg(index_targets.front(), DIR()), Arg(index_address, DIR()), "Add the first index to the address"));
-    // code.push(Instruction(Op::IMULQ, Arg(ImmediateValue(8), DIR()), Arg(index_address, DIR()), "Translate the first index to byte address"));
-    code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(intermediate_product, DIR()), "Initialize the product"));
-    for (size_t i = 1; i < index.indices.size(); i++) {
-        code.push(Instruction(Op::IMULQ, Arg(array_ptr, IRL(-i * 8)), Arg(intermediate_product, DIR()), "Multiply with the previous product"));
-        code.push(Instruction(Op::MOVQ, Arg(index_targets[i], DIR()), Arg(intermediate_value, DIR()), "Initialize the intermediate value"));
-        // code.push(Instruction(Op::IMULQ, Arg(intermediate_product, DIR()), Arg(intermediate_value, DIR()), "Multiply the intermediate value and product"));
-        code.push(Instruction(Op::IMULQ, Arg(ImmediateValue(8), DIR()), Arg(intermediate_value, DIR()), "Translate the intermediate value to a byte address"));
-        code.push(Instruction(Op::ADDQ, Arg(intermediate_value, DIR()), Arg(index_address, DIR()), "Add the intermediate value to the address"));
+    code.push(Instruction(Op::IMULQ, Arg(ImmediateValue(8), DIR()), Arg(index_address, DIR()), "Translate the first index to byte address"));
+    if (index.indices.size() > 1) {
+        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(intermediate_product, DIR()), "Initialize the product"));
+        for (size_t i = 1; i < index.indices.size(); i++) {
+            code.push(Instruction(Op::IMULQ, Arg(array_ptr, IRL(-i * 8)), Arg(intermediate_product, DIR()), "Multiply with the previous product"));
+            code.push(Instruction(Op::MOVQ, Arg(index_targets[i], DIR()), Arg(intermediate_value, DIR()), "Initialize the intermediate value"));
+            // code.push(Instruction(Op::IMULQ, Arg(intermediate_product, DIR()), Arg(intermediate_value, DIR()), "Multiply the intermediate value and product"));
+            code.push(Instruction(Op::IMULQ, Arg(ImmediateValue(8), DIR()), Arg(intermediate_value, DIR()), "Translate the intermediate value to a byte address"));
+            code.push(Instruction(Op::ADDQ, Arg(intermediate_value, DIR()), Arg(index_address, DIR()), "Add the intermediate value to the address"));
+        }
     }
 
     temp_storage.push(index_address);
