@@ -11,9 +11,11 @@ BOOST_AUTO_TEST_CASE(FunctionCall) {test_assembly_file("test_function_call.chad"
 BOOST_AUTO_TEST_CASE(FunctionReturn) {test_assembly_file("test_function_return.chad","6");}
 BOOST_AUTO_TEST_CASE(FunctionParamter) {test_assembly_file("test_function_parameters.chad","12");}
 BOOST_AUTO_TEST_CASE(IfElse) {test_assembly_file("test_if_else.chad","2\n3\n5\n7");}
-BOOST_AUTO_TEST_CASE(While) {test_assembly_file("test_while.chad","2\n3\n4");}
+BOOST_AUTO_TEST_CASE(While) {test_assembly_file("test_while.chad","2\n3\n4\n1");}
 BOOST_AUTO_TEST_CASE(NestedWhile) {test_assembly_file("nestedwhile.chad","0\n1\n2\n3");}
 BOOST_AUTO_TEST_CASE(BreakContinue) {test_assembly_file("breakcont.chad","1\n3");}
+BOOST_AUTO_TEST_CASE(DynamicLinking) {test_assembly_file("dynamic_linking.chad","3628800");}
+BOOST_AUTO_TEST_CASE(StaticLinking) {test_assembly_file("static_linking.chad","2\n2\n0\n9\n1\n2\n3\n4");}
 
 
 

@@ -124,64 +124,6 @@ string procedure(Instruction instruction) {
     }
 }
 
-string printFunction() {
-    return R"(
-printNum:
-	movq %rdi, %rax # The number
-	movq $0, %r9 # Counter for chars to write
-	# Convert the number to chars
-.LprintNum_convertLoop:
-	movq $0, %rdx
-	movq $10, %rcx
-	idivq %rcx
-	addq $48, %rdx # '0' is 48
-	pushq %rdx
-	addq $1, %r9
-	cmpq $0, %rax   
-	jne .LprintNum_convertLoop
-	# Print the number to stdout
-.LprintNum_printLoop:
-	movq $1, %rax # sys_write
-	movq $1, %rdi # stdout
-	movq %rsp, %rsi # buf
-	movq $1, %rdx # len
-	syscall
-	addq $8, %rsp
-	addq $-1, %r9
-	jne .LprintNum_printLoop
-.print_newline:
-    movq $1, %rax
-    movq $1, %rdi
-    movq $newline, %rsi
-    movq $1, %rdx
-    syscall
-    ret
-
-)";
-}
-
-/// @brief  A naive memory allocator that simply retrieves some new space from the OS. It is not possible to deallocate the memory again.
-/// @return The assembly code for the memory allocator.
-string memmoryAllocatorFunction() {
-    return R"(
-allocate:
-    push %rdi
-    # 1. Find the current end of the data segment.
-    movq $12, %rax          # brk
-    xorq %rdi, %rdi         # 0 means we retrieve the current end.
-    syscall
-    # 2. Add the amount of memory we want to allocate.
-    pop %rdi                # the argument
-    push %rax               # current end, which is where the allocated memory will start
-    addq %rax, %rdi         # compute the new end
-    movq $12, %rax          # brk
-    syscall
-    pop %rax                # the old end, which is the address of our allocated memory
-    ret
-
-)";
-}
-
 void emit_to_file(IR ir) {
 
     ofstream outputFile("chad.s");
@@ -205,13 +147,14 @@ void emit_to_file(IR ir) {
                 case Op::LABEL:
                     outputFile << "\n" << instruction << ":\n";
                     break;
+                case Op::NOTHING:
+                    outputFile << instruction << "\n";
+                    break;
                 default: 
                     outputFile << "\t" << instruction << "\n";
             }
         }
 
-        outputFile << printFunction();
-        outputFile << memmoryAllocatorFunction();
         outputFile << endl;
         outputFile.close();
     } else {

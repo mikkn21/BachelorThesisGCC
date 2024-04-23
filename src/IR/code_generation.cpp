@@ -3,14 +3,8 @@
 
 #include <cstddef>
 #include <string>
-// #include <boost/spirit/home/x3.hpp>
-// #include <boost/spirit/home/x3/support/ast/apply_visitor.hpp>
-#include <iostream>
-#include <numeric>
-#include <ranges>
 #include <vector>
 const int callee_offset = -40;
-const int arg_offset = 16;
 
 /// Expects there to be space on the stack for the result register taken as input. 
 /// uses register R8 and R9, so should be saved before use
@@ -93,20 +87,25 @@ std::vector<Instruction> binopInstructions(std::string op, GenericRegister resul
     return code;
 }
 
+TargetType getTarget(AstValue value) {
+    if (std::holds_alternative<int>(value)) {
+        return ImmediateValue(std::get<int>(value));
+    } else if (std::holds_alternative<bool>(value)) {
+        return ImmediateValue(std::get<bool>(value));
+    } else if (std::holds_alternative<GenericRegister>(value)) {
+        return std::get<GenericRegister>(value);
+    } else {
+        throw IRError("Unexpected type in getTarget");
+    }
+}
 
-IRVisitor::IRVisitor(SymbolTable* globalScope) : globalScope(globalScope), Visitor() {}
+IRVisitor::IRVisitor(SymbolTable* globalScope) : Visitor(), globalScope(globalScope) {}
 
 void IRVisitor::postVisit(grammar::ast::ReturnStatement &return_statement) {
-    AstValue value = pop(temp_storage);
-    if (std::holds_alternative<int>(value)) {
-        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(std::get<int>(value)), DIR()), Arg(Register::RAX, DIR())));
-    } else if (std::holds_alternative<bool>(value)) {
-        bool bool_value = std::get<bool>(value);
-        int int_value = bool_value ? 1 : 0;
-        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(int_value), DIR()), Arg(Register::RAX, DIR())));
-    } else if (std::holds_alternative<GenericRegister>(value)) {
-        code.push(Instruction(Op::MOVQ, Arg(std::get<GenericRegister>(value), DIR()), Arg(Register::RAX, DIR())));
-    }
+    //AstValue value = pop(temp_storage);
+    auto target = getTarget(pop(temp_storage));
+    code.push(Instruction(Op::MOVQ, Arg(target, DIR()), Arg(Register::RAX, DIR())));
+
     // Remove local variables from the stack
     code.push(Instruction(Op::MOVQ, Arg(Register::RBP, DIR()), Arg(Register::R8, DIR())));
     code.push(Instruction(Op::ADDQ, Arg(ImmediateValue(callee_offset), DIR()), Arg(Register::R8, DIR())));
@@ -142,16 +141,9 @@ void IRVisitor::postVisit(grammar::ast::FunctionCall &func_call) {
 
     // add arguments to stack in reverse order
     for (long unsigned int i = 0; i < func_call.argument_list.arguments.size(); i++) {
-        AstValue value = pop(temp_storage);
-        if (std::holds_alternative<int>(value)) {
-            code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(std::get<int>(value)), DIR()), "pushing int argument"));
-        } else if (std::holds_alternative<bool>(value)) {
-            bool bool_value = std::get<bool>(value);
-            int int_value = bool_value ? 1 : 0;
-            code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(int_value), DIR()), "pushing bool argument"));
-        } else if (std::holds_alternative<GenericRegister>(value)) {
-            code.push(Instruction(Op::PUSHQ, Arg(std::get<GenericRegister>(value), DIR()), "pushing register argument"));
-        }
+        //AstValue value = pop(temp_storage);
+        auto target = getTarget(pop(temp_storage));
+        code.push(Instruction(Op::PUSHQ, Arg(target, DIR()), "pushing register argument"));
     }
     int callee_depth = dynamic_cast<FuncSymbol*>(func_call.id.sym)->symTab->parentScope->depth;
     int caller_depth = func_call.id.scope->depth;
@@ -182,37 +174,18 @@ VarSymbol *getVarSymbol(Symbol *symbol) {
 }
 
 void IRVisitor::postVisit(grammar::ast::VarAssign &varAssign) {
-    AstValue value = pop(temp_storage);
+    //AstValue value = pop(temp_storage);
+    auto target = getTarget(pop(temp_storage));
     VarSymbol *varSymbol = getVarSymbol(varAssign.idAccess.ids.back().sym);
     int local_id = varSymbol->local_id;
-    if (std::holds_alternative<int>(value)) {
-        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(std::get<int>(value)), DIR()), Arg(GenericRegister(local_id), DIR())));
-    } else if (std::holds_alternative<bool>(value)) {
-        bool bool_value = std::get<bool>(value);
-        int int_value = bool_value ? 1 : 0;
-        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(int_value), DIR()), Arg(GenericRegister(local_id), DIR())));
-    } else if (std::holds_alternative<GenericRegister>(value)) {
-        code.push(Instruction(Op::MOVQ, Arg(std::get<GenericRegister>(value), DIR()), Arg(Register::R8, DIR())));
-        code.push(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(GenericRegister(local_id), DIR())));
-    } else {
-        throw IRError("Unexpected type in VarAssign");
-    }
+    code.push(Instruction(Op::MOVQ, Arg(target, DIR()), Arg(Register::R8, DIR())));
+    code.push(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(GenericRegister(local_id), DIR())));
 }
 
 void IRVisitor::postVisit(grammar::ast::VarDeclAssign &var_decl_assign) {
-    AstValue value = pop(temp_storage);
-    if (std::holds_alternative<int>(value)) {
-        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(std::get<int>(value)), DIR()), Arg(GenericRegister(var_decl_assign.decl.sym->local_id), DIR())));
-    } else if (std::holds_alternative<bool>(value)) {
-        bool bool_value = std::get<bool>(value);
-        int int_value = bool_value ? 1 : 0;
-        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(int_value), DIR()), Arg(GenericRegister(var_decl_assign.decl.sym->local_id), DIR())));
-    } else if (std::holds_alternative<GenericRegister>(value)) {
-        code.push(Instruction(Op::MOVQ, Arg(std::get<GenericRegister>(value), DIR()), Arg(Register::R8, DIR())));
-        code.push(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(GenericRegister(var_decl_assign.decl.sym->local_id), DIR())));
-    } else {
-        throw IRError("Unexpected type in VarDeclAssign");
-    }
+    auto target = getTarget(pop(temp_storage));
+    code.push(Instruction(Op::MOVQ, Arg(target, DIR()), Arg(Register::R8, DIR())));
+    code.push(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(GenericRegister(var_decl_assign.decl.sym->local_id), DIR())));
 }
 
 void IRVisitor::preVisit(int &i) {
@@ -244,46 +217,18 @@ void IRVisitor::postVisit(grammar::ast::Rhs &op_exp) {
     code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()))); // make space on stack for generic register
     GenericRegister result = GenericRegister(++op_exp.scope->registerCounter);
 
-    AstValue rhs = pop(temp_storage);
-    AstValue lhs = pop(temp_storage);
+    auto rTarget = getTarget(pop(temp_storage));
+    auto lTarget = getTarget(pop(temp_storage));
 
-    if (std::holds_alternative<int>(lhs)) {
-        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(std::get<int>(lhs)), DIR()), Arg(Register::R8, DIR())));
-    } else if (std::holds_alternative<bool>(lhs)) {
-        bool bool_value = std::get<bool>(lhs);
-        int int_value = bool_value ? 1 : 0;
-        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(int_value), DIR()), Arg(Register::R8, DIR())));
-    } else if (std::holds_alternative<GenericRegister>(lhs)) {
-        code.push(Instruction(Op::MOVQ, Arg(std::get<GenericRegister>(lhs), DIR()), Arg(Register::R8, DIR())));
-    }
+    code.push(Instruction(Op::MOVQ, Arg(lTarget, DIR()), Arg(Register::R8, DIR())));
+    code.push(Instruction(Op::MOVQ, Arg(rTarget, DIR()), Arg(Register::R9, DIR())));
 
-    if (std::holds_alternative<int>(rhs)) {
-        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(std::get<int>(rhs)), DIR()), Arg(Register::R9, DIR())));
-    } else if (std::holds_alternative<bool>(rhs)) {
-        bool bool_value = std::get<bool>(rhs);
-        int int_value = bool_value ? 1 : 0;
-        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(int_value), DIR()), Arg(Register::R9, DIR())));
-    } else if (std::holds_alternative<GenericRegister>(rhs)) {
-        code.push(Instruction(Op::MOVQ, Arg(std::get<GenericRegister>(rhs), DIR()), Arg(Register::R9, DIR())));
-    }
     auto binopResult = binopInstructions(op_exp.op, result);
     for (auto instruction : binopResult) {
         code.push(instruction);
     }
 
     temp_storage.push(result);  
-}
-
-TargetType getTarget(AstValue value) {
-    if (std::holds_alternative<int>(value)) {
-        return ImmediateValue(std::get<int>(value));
-    } else if (std::holds_alternative<bool>(value)) {
-        return ImmediateValue(std::get<bool>(value));
-    } else if (std::holds_alternative<GenericRegister>(value)) {
-        return std::get<GenericRegister>(value);
-    } else {
-        throw IRError("Unexpected type in getTarget");
-    }
 }
 
 void IRVisitor::postVisit(grammar::ast::ArrayInitExp &arr) {
@@ -310,7 +255,7 @@ void IRVisitor::postVisit(grammar::ast::ArrayInitExp &arr) {
     code.push(Instruction(Op::MOVQ, Arg(Register::RAX, DIR()), Arg(arrayStart, DIR()), "Save array pointer in generic register" ));
 
     // Set the size of each dimension of  the array
-    for (int i = 0; i < sizes.size(); i++) {
+    for (size_t i = 0; i < sizes.size(); i++) {
         code.push(Instruction(Op::MOVQ, Arg(getTarget(sizes[i]), DIR()), Arg(arrayStart, IRL(i * 8)), "set size of dimension " + std::to_string(i + 1)));
     }
     // set the array pointer to point to the first element of the array
@@ -324,16 +269,8 @@ void IRVisitor::postVisit(grammar::ast::ArrayInitExp &arr) {
 
 
 void IRVisitor::postVisit(grammar::ast::PrintStatement &print) {
-    AstValue value = pop(temp_storage);
-    if (std::holds_alternative<int>(value)) { 
-        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::PRINT, DIR()), Arg(ImmediateValue(std::get<int>(value)), DIR())));
-    } else if (std::holds_alternative<bool>(value)) {
-        bool bool_value = std::get<bool>(value);
-        int int_value = bool_value ? 1 : 0;
-        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::PRINT, DIR()), Arg(ImmediateValue(int_value), DIR())));
-    } else if (std::holds_alternative<GenericRegister>(value)) {
-        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::PRINT, DIR()), Arg(std::get<GenericRegister>(value), DIR())));
-    }
+    auto target = getTarget(pop(temp_storage));
+    code.push(Instruction(Op::PROCEDURE, Arg(Procedure::PRINT, DIR()), Arg(target, DIR())));
 }
 
 // TODO: Decide if we allow break/continue in functions 
@@ -356,14 +293,9 @@ void IRVisitor::preVisit(grammar::ast::WhileStatement &while_statement) {
 }
 
 void IRVisitor::preBlockVisit(grammar::ast::WhileStatement &while_statement) {
-    AstValue expr = pop(temp_storage);
-    if (std::holds_alternative<bool>(expr)) {
-        code.push(Instruction(Op::CMPQ, Arg(ImmediateValue(1), DIR()), Arg(ImmediateValue(std::get<bool>(expr)), DIR())));        
-    } else if (std::holds_alternative<GenericRegister>(expr)) {
-        code.push(Instruction(Op::CMPQ, Arg(ImmediateValue(1), DIR()), Arg(std::get<GenericRegister>(expr), DIR())));
-    } else {
-        throw IRError("Unexpected type in guard of  while-loop");
-    }
+    auto target = getTarget(pop(temp_storage));
+    code.push(Instruction(Op::MOVQ, Arg(target, DIR()), Arg(Register::RAX, DIR())));
+    code.push(Instruction(Op::CMPQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RAX, DIR())));
     while_stack.push(&while_statement); // push current whileloop on loop stack
     code.push(Instruction(Op::JNE, Arg(Label(while_statement.end_label), DIR())));
 }
@@ -379,15 +311,9 @@ void IRVisitor::preVisit(grammar::ast::IfStatement &if_statement) {
 }
 
 void IRVisitor::preBlockVisit(grammar::ast::IfStatement &if_statement) {
-    AstValue expr = pop(temp_storage);
-    if (std::holds_alternative<bool>(expr)) {
-        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(std::get<bool>(expr)), DIR()), Arg(Register::RAX, DIR())));
-        code.push(Instruction(Op::CMPQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RAX, DIR())));        
-    } else if (std::holds_alternative<GenericRegister>(expr)) {
-        code.push(Instruction(Op::CMPQ, Arg(ImmediateValue(1), DIR()), Arg(std::get<GenericRegister>(expr), DIR())));
-    } else {
-        throw IRError("Unexpected type in ConditionalStatement");
-    }
+    auto target = getTarget(pop(temp_storage));
+    code.push(Instruction(Op::MOVQ, Arg(target, DIR()), Arg(Register::RAX, DIR())));
+    code.push(Instruction(Op::CMPQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RAX, DIR())));
     code.push(Instruction(Op::JNE, Arg(Label(if_statement.nextLabel), DIR())));
 }
 
@@ -408,9 +334,69 @@ void IRVisitor::preVisit(grammar::ast::Prog &prog) {
     code.push(Instruction(Op::MOVQ, Arg(Register::RSP, DIR()), Arg(Register::RBP, DIR()), "set rbp for global scope")); // set rbp
     code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_SAVE, DIR())));
     // std::cout << globalScope->get_var_symbols().size() << std::endl;
-    for (auto var : globalScope->get_var_symbols()) {
-        code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR())));
+    int varCount = globalScope->get_var_symbols().size();
+    for (int i = 0; i < varCount; i++) {
+        code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()), "initialize global variable to 0"));
     }
+}
+
+void IRVisitor::pushPrintFunction() {
+    std::string convertLoopLabel = ".LprintNum_convertLoop";
+    std::string printLoopLabel = ".LprintNum_printLoop";
+    std::string printNewlineLabel = ".print_newline";
+    code.push(Instruction(Op::LABEL, Arg(Label("printNum"), DIR())));
+    code.push(Instruction(Op::MOVQ, Arg(Register::RDI, DIR()), Arg(Register::RAX, DIR()), "The number"));
+    code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(0), DIR()), Arg(Register::R9, DIR()), "Counter for chars to write"));
+    code.push(Instruction(Op::LABEL, Arg(Label(convertLoopLabel), DIR())));
+    code.push(Instruction(Op::NOTHING, "Convert the number to chars"));
+    code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(0), DIR()), Arg(Register::RDX, DIR())));
+    code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(10), DIR()), Arg(Register::RCX, DIR())));
+    code.push(Instruction(Op::IDIVQ, Arg(Register::RCX, DIR())));
+    code.push(Instruction(Op::ADDQ, Arg(ImmediateValue(48), DIR()), Arg(Register::RDX, DIR()), "'0' is 48"));
+    code.push(Instruction(Op::PUSHQ, Arg(Register::RDX, DIR())));
+    code.push(Instruction(Op::ADDQ, Arg(ImmediateValue(1), DIR()), Arg(Register::R9, DIR())));
+    code.push(Instruction(Op::CMPQ, Arg(ImmediateValue(0), DIR()), Arg(Register::RAX, DIR())));
+    code.push(Instruction(Op::JNE, Arg(Label(convertLoopLabel), DIR())));
+    code.push(Instruction(Op::LABEL, Arg(Label(printLoopLabel), DIR())));
+    code.push(Instruction(Op::NOTHING, "Print the number to stdout"));
+    code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RAX, DIR()), "sys_write"));
+    code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RDI, DIR()), "stdout"));
+    code.push(Instruction(Op::MOVQ, Arg(Register::RSP, DIR()), Arg(Register::RSI, DIR()), "buf"));
+    code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RDX, DIR()), "len"));
+    code.push(Instruction(Op::SYSCALL));
+    code.push(Instruction(Op::ADDQ, Arg(ImmediateValue(8), DIR()), Arg(Register::RSP, DIR()), "len"));
+    code.push(Instruction(Op::ADDQ, Arg(ImmediateValue(-1), DIR()), Arg(Register::R9, DIR()), "len"));
+    code.push(Instruction(Op::JNE, Arg(Label(printLoopLabel), DIR())));
+    code.push(Instruction(Op::NOTHING, "Print newline"));
+    code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RAX, DIR()), "sys_write"));
+    code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RDI, DIR()), "stdout"));
+    code.push(Instruction(Op::MOVQ, Arg(ImmediateData("newline"), DIR()), Arg(Register::RSI, DIR()), "buf"));
+    code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RDX, DIR()), "len"));
+    code.push(Instruction(Op::SYSCALL));
+    code.push(Instruction(Op::RET));
+
+}
+
+void IRVisitor::pushMemAllocFunction() {
+    code.push(Instruction(Op::LABEL, Arg(Label("allocate"), DIR())));
+    code.push(Instruction(Op::PUSHQ, Arg(Register::RDI, DIR())));
+    code.push(Instruction(Op::NOTHING, "1. Find the current end of the data segment."));
+    code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(12), DIR()), Arg(Register::RAX, DIR()), "brk"));
+    code.push(Instruction(Op::XORQ, Arg(Register::RDI, DIR()), Arg(Register::RDI, DIR()), "0 means we retrieve the current end"));
+    code.push(Instruction(Op::SYSCALL));
+    code.push(Instruction(Op::NOTHING, "2. Add the amount of memory we want to allocate."));
+    code.push(Instruction(Op::POPQ, Arg(Register::RDI, DIR()), "the argument"));
+    code.push(Instruction(Op::PUSHQ, Arg(Register::RAX, DIR()), "current end, which is where the allocated memory will start"));
+    code.push(Instruction(Op::ADDQ, Arg(Register::RAX, DIR()), Arg(Register::RDI, DIR()), "compute the new end"));
+    code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(12), DIR()), Arg(Register::RAX, DIR()), "brk"));
+    code.push(Instruction(Op::SYSCALL));
+    code.push(Instruction(Op::POPQ, Arg(Register::RAX, DIR()), "the old end, which is the address of our allocated memory"));
+    code.push(Instruction(Op::RET));
+}
+
+void IRVisitor::pushStandardFunctions() {
+    pushPrintFunction();
+    pushMemAllocFunction();
 }
 
 void IRVisitor::postVisit(grammar::ast::Prog &prog) {
@@ -419,6 +405,8 @@ void IRVisitor::postVisit(grammar::ast::Prog &prog) {
     code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(60), DIR()), Arg(Register::RAX, DIR())));
     code.push(Instruction(Op::XORQ, Arg(Register::RDI, DIR()), Arg(Register::RDI, DIR())));
     code.push(Instruction(Op::SYSCALL));
+    
+    pushStandardFunctions();
 }
 
 template<typename T>
@@ -438,7 +426,7 @@ IR intermediate_code_generation(grammar::ast::Prog &prog, SymbolTable *globalSco
     auto traveler = TreeTraveler(visitor);
     traveler(prog);
     visitor.code.end_scope(); // end global scope
-    return std::move(visitor.code.get_instructions());
+    return visitor.code.get_instructions();
 }
 
 

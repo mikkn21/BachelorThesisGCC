@@ -46,6 +46,9 @@ BOOST_AUTO_TEST_CASE(ContinueInWhile4) {testSymbolCollectionString("int main() {
 BOOST_AUTO_TEST_CASE(BreakOutsideWhile) {testSymbolCollectionString("int main() { break; }", TestingOutcome::FAILED);}
 BOOST_AUTO_TEST_CASE(ContinueOutsideWhile) {testSymbolCollectionString("int main() { continue; }", TestingOutcome::FAILED);}
 
+BOOST_AUTO_TEST_CASE(BreakInFunction) {testSymbolCollectionString("int main() { while true { int f(){ break; } } }", TestingOutcome::FAILED);}
+BOOST_AUTO_TEST_CASE(BreakInFunction2) {testSymbolCollectionString("int main() { while true { int f(){ while true { break; } } } }", TestingOutcome::SUCCESS);}
+
 BOOST_AUTO_TEST_CASE(nestedloopsfile) {testSymbolCollectionFile("../tests/symbolCollectionTests/brkcont.chad", TestingOutcome::SUCCESS);}
 BOOST_AUTO_TEST_CASE(nestedloopsfilefail) {testSymbolCollectionFile("../tests/symbolCollectionTests/brkcontfail.chad", TestingOutcome::FAILED);}
 BOOST_AUTO_TEST_CASE(nestedloopsfilefail2) {testSymbolCollectionFile("../tests/symbolCollectionTests/brkcontfail2.chad", TestingOutcome::FAILED);}

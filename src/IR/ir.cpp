@@ -1,8 +1,10 @@
 #include "ir.hpp"
 
+using std::get;
 
 IRL::IRL(long offset) : offset(offset) {}
 ImmediateValue::ImmediateValue(int v) : value(v) {}
+ImmediateData::ImmediateData(std::string v) : value(v) {}
 /// precondition: There is room on the stack for the new register
 GenericRegister::GenericRegister(long i) : local_id(i) {}
 Label::Label(const std::string& l) : label(l) {}
@@ -20,6 +22,8 @@ Instruction::Instruction(Op op, Arg arg1, Arg arg2, std::optional<std::string> c
 std::ostream& operator<<(std::ostream& os, const Arg arg) {
     if (std::holds_alternative<ImmediateValue>(arg.target)) {
         os << "$" << std::get<ImmediateValue>(arg.target).value;
+    } else if (std::holds_alternative<ImmediateData>(arg.target)) {
+      os << "$" << std::get<ImmediateData>(arg.target).value;
     } else if (std::holds_alternative<Register>(arg.target)) {
         if (std::holds_alternative<IND>(arg.access_type)) {
             os << "(" << std::get<Register>(arg.target) << ")";
@@ -86,6 +90,7 @@ std::ostream& operator<<(std::ostream& os, const Op op) {
         case Op::SETLE:         os << "setle";       break;
         case Op::SETGE:         os << "setge";       break;
         case Op::SYSCALL:       os << "syscall";    break;
+        case Op::NOTHING:                           break;
         default:                throw IRError("Invalid operation");    break;
     }
     return os;

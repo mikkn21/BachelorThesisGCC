@@ -57,6 +57,10 @@ private:
     std::vector<std::string> function_container;
     std::stack<AstValue> temp_storage;
 
+    void pushPrintFunction();
+    void pushMemAllocFunction();
+    void pushStandardFunctions();
+
     int new_register();
     //void binopInstructions(std::string op, GenericRegister result);
 

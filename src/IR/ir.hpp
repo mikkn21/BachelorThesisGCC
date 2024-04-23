@@ -9,7 +9,7 @@
 
 
 enum class Op {
-   MOVQ, PUSH, POP, CALL, RET, CMPQ, JMP, JE, JNE, JL, JLE, JG, JGE, ADDQ, SUBQ, IMULQ, IDIVQ, LABEL, PROCEDURE, ANDQ, ORQ, XORQ, PUSHQ, POPQ, SETL, SETG, SETLE, SETGE, SETE, SETNE, SYSCALL, 
+   MOVQ, PUSH, POP, CALL, RET, CMPQ, JMP, JE, JNE, JL, JLE, JG, JGE, ADDQ, SUBQ, IMULQ, IDIVQ, LABEL, PROCEDURE, ANDQ, ORQ, XORQ, PUSHQ, POPQ, SETL, SETG, SETLE, SETGE, SETE, SETNE, SYSCALL, NOTHING
 };
 
 struct DIR {};
@@ -24,6 +24,11 @@ using MemAccessType = std::variant<DIR, IND, IRL>;
 struct ImmediateValue {
     int value;
     ImmediateValue(int value);
+};
+
+struct ImmediateData {
+    std::string value;
+    ImmediateData(std::string value);
 };
 
 struct GenericRegister {
@@ -44,7 +49,7 @@ enum class Procedure {
     CALLEE_SAVE, CALLEE_RESTORE, CALLER_SAVE, CALLER_RESTORE, PRINT, MEM_ALLOC,
 };
 
-using TargetType = std::variant<ImmediateValue, Register, GenericRegister, Label, Procedure>;
+using TargetType = std::variant<ImmediateValue, ImmediateData, Register, GenericRegister, Label, Procedure>;
 
 struct Arg {
     TargetType target;

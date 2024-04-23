@@ -4,14 +4,11 @@
 #include "../semantics/symbol_table.hpp"
 
 class TypeChecker : public Visitor {
-    
 
     // the current function we are inside of
     FuncSymbol* func = nullptr;
     bool hasFuncReturned = false;
 
-    
-   
     // The stack of types
     std::stack<SymbolType> typeStack = std::stack<SymbolType>();    
     std::vector<SymbolType> FuncCallArgs = std::vector<SymbolType>();
@@ -201,6 +198,9 @@ private:
       
 
     void postVisit(grammar::ast::ArrayIndex &arrayIndex) override {
+        if (arrayIndex.idAccess.ids.back().sym == nullptr) {
+            throw TypeCheckError("symbol is empty in array index", arrayIndex);
+        }
         VarSymbol* sym = dynamic_cast<VarSymbol *>(arrayIndex.idAccess.ids.back().sym);
         if (sym == nullptr) {
             throw TypeCheckError("index was attempted on a non-variable", arrayIndex);

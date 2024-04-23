@@ -318,6 +318,7 @@ namespace grammar
             Id id;
             std::vector<VarDeclStatement> attr; 
             ClassSymbol *scope = nullptr;
+            //std::string label;
         public:
             friend std::ostream& operator<<(std::ostream& os, const ClassDecl &exp);
         };

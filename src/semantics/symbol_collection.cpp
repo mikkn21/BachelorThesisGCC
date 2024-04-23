@@ -4,7 +4,18 @@
 #include <cstddef>
 #include <iostream>
 #include "symbol_collection.hpp"
-#include <iostream>
+#include <stack>
+#include <stdexcept>
+
+template<typename T>
+T pop(std::stack<T>& myStack) {
+    if (myStack.empty()) {
+        throw std::runtime_error("stack is empty");
+    }
+    T topElement = std::move(myStack.top()); 
+    myStack.pop();
+    return topElement;
+} 
 
 size_t unique_label_id = 0;
 
@@ -20,9 +31,25 @@ class SymbolCollectionVisitor : public Visitor {
 private:
     SymbolTable *currentSymbolTable; // Has to be a pointer, not a reference!!!
 
-    // How many loops we are inside of currently
-    int insideLoopCount = 0;
+    // How many loops we are inside of currently in the current function.
+    // There is one number for each function.
+    std::stack<int> insideLoopCountStack = std::stack<int>();
 
+    Symbol *require_id_in_scope(grammar::ast::LocationInfo &node, grammar::ast::Id &id, SymbolTable *scope) {
+        Symbol *sym = currentSymbolTable->find(id.id);
+        if (sym != nullptr) {
+            if (auto varSym = dynamic_cast<VarSymbol *>(sym)) {
+                id.sym = varSym;
+            }
+            return sym;
+        } else {
+            throw SemanticsError(id.id + " not declared in scope2", node);
+        }
+    }
+
+    Symbol *require_id_in_current_scope(grammar::ast::LocationInfo &node, grammar::ast::Id &id) {
+        return require_id_in_scope(node, id, currentSymbolTable);
+    }
 
 public: 
 
@@ -31,21 +58,21 @@ public:
     void preVisit(grammar::ast::WhileStatement &whileStatement) override {
         whileStatement.start_label = generate_unique_label("while_statement");
         whileStatement.end_label = generate_unique_label("end_while_statement");
-        insideLoopCount++;
+        insideLoopCountStack.top()++;
     }
 
     void postVisit(grammar::ast::WhileStatement &whileStatement) override {
-        insideLoopCount--;
+        insideLoopCountStack.top()--;
     }
 
     void preVisit(grammar::ast::BreakStatement &breakStatement) override {
-        if (insideLoopCount <= 0) {
+        if (insideLoopCountStack.top() <= 0) {
             throw SemanticsError("Break statement outside of loop", breakStatement);
         }
     }
 
     void preVisit(grammar::ast::ContinueStatement &continueStatement) override {
-        if (insideLoopCount <= 0) {
+        if (insideLoopCountStack.top() <= 0) {
             throw SemanticsError("Continue statement outside of loop", continueStatement);
         }
     }
@@ -59,11 +86,9 @@ public:
     }
 
     void preVisit(grammar::ast::VarAssign &varAssign) override {
-        Symbol *sym = currentSymbolTable->find(varAssign.idAccess.ids.front().id);
-        if (sym == nullptr) {
-            throw SemanticsError(varAssign.idAccess.ids.front().id + " not declared in scope4", varAssign);
+        if (!dynamic_cast<VarSymbol *>(require_id_in_current_scope(varAssign, varAssign.idAccess.ids.front()))) {
+            throw SemanticsError("Attempted to assign a non-variable", varAssign);
         }
-        varAssign.idAccess.ids.front().sym = sym;
     }
 
     void preVisit(grammar::ast::ClassDecl &classDecl) override {
@@ -80,16 +105,8 @@ public:
 
 
     void preVisit(grammar::ast::VarExpression &exp) override {
-        grammar::ast::Id varId = exp.idAccess.ids[0];
-        Symbol *sym = currentSymbolTable->find(varId.id);
-        if (sym != nullptr) {
-            if (auto varSym = dynamic_cast<VarSymbol *>(sym)) {
-                varId.sym = varSym;
-            } else {
-                throw SemanticsError("Unknown symbol type was encountered", exp);
-            }
-        } else {
-            throw SemanticsError(varId.id + " not declared in scope2", exp);
+        if (!dynamic_cast<VarSymbol *>(require_id_in_current_scope(exp, exp.idAccess.ids.front()))) {
+                throw SemanticsError("Attempted to use a non-variable as an expression", exp);
         }
     }
 
@@ -114,6 +131,7 @@ public:
         if (currentSymbolTable->findLocal(funcDecl.id.id)) {
             throw SemanticsError(funcDecl.id.id + " already declared in scope", funcDecl);
         }
+        insideLoopCountStack.push(0);
 
         SymbolTable *newSymbolTable = new SymbolTable(currentSymbolTable);
         FuncSymbol *funcSymbol = new FuncSymbol(&funcDecl, newSymbolTable);
@@ -128,6 +146,7 @@ public:
 
     void postVisit(grammar::ast::FuncDecl &funcDecl) override {
         currentSymbolTable = currentSymbolTable->parentScope;
+        pop(insideLoopCountStack);
     }
 
     void postVisit(grammar::ast::ClassDecl &decl) override {
@@ -135,9 +154,8 @@ public:
     }
 
     void postVisit(grammar::ast::ArrayIndex &index) override {
-        Symbol *symbol = currentSymbolTable->find(index.idAccess.ids.front().id);
-        if (symbol == nullptr) {
-            throw SemanticsError(index.idAccess.ids.front().id + " not declared in scope3", index);
+        if (!dynamic_cast<VarSymbol *>(require_id_in_current_scope(index, index.idAccess.ids.front()))) {
+                throw SemanticsError("Cannot index a non-variable", index);
         }
     }
 
@@ -153,7 +171,7 @@ public:
         condStatement.ifStatement.endIfLabel = condStatement.endIfLabel;
 
         // Set the nextLabel of each else-if statement to the label of the next else-if statement
-        for (auto i = 1; i < condStatement.elseIfs.size(); i++) {
+        for (int i = 1; i < (int)condStatement.elseIfs.size(); i++) {
             condStatement.elseIfs[i - 1].nextLabel = condStatement.elseIfs[i].label;
             condStatement.elseIfs[i - 1].endIfLabel = condStatement.endIfLabel;
         }
