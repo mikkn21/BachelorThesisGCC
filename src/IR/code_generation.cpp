@@ -335,7 +335,7 @@ void IRVisitor::preVisit(grammar::ast::Prog &prog) {
     // std::cout << globalScope->get_var_symbols().size() << std::endl;
     int varCount = globalScope->get_var_symbols().size();
     for (int i = 0; i < varCount; i++) {
-        code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR())));
+        code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()), "initialize global variable to 0"));
     }
 }
 
