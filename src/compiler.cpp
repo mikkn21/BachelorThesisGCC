@@ -43,6 +43,7 @@ namespace grammar::compiler {
         auto obj = std::make_unique<CompilerReturnObj>();
         obj->ast = parser::parse(input);
         
+        
         // print ast tree if option is enabled
         if (options.printAst) {
             std::cout << "AST:\n" << obj->ast << endl;
@@ -53,6 +54,10 @@ namespace grammar::compiler {
         }
 
         std::unique_ptr<SymbolTable> globalScope = std::make_unique<SymbolTable>();
+
+        // set global scope for the whole program
+        obj->ast.scope = globalScope.get();
+
         symbol_collection(obj->ast, globalScope.get());
         symbol_collection_phase2(obj->ast, globalScope.get());
 
@@ -60,7 +65,7 @@ namespace grammar::compiler {
             return obj;
         }
 
-        typeChecker(obj->ast, globalScope.get());
+        typeChecker(obj->ast);
 
         if (options.stopAfter == StopAfterTypeCheck ) {
             return obj;

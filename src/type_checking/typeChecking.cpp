@@ -1,3 +1,4 @@
+#include <iostream>
 #include <stack>
 #include "typeChecking.hpp"
 #include "../visitor.hpp"
@@ -6,23 +7,23 @@
 class TypeChecker : public Visitor {
 
     // the current function we are inside of
-    FuncSymbol* func = nullptr;
+    // FuncSymbol* func = nullptr;
     bool hasFuncReturned = false;
 
     // The stack of types
     std::stack<SymbolType> typeStack = std::stack<SymbolType>();    
-    std::vector<SymbolType> FuncCallArgs = std::vector<SymbolType>();
 
-    const SymbolTable *globalScope;
+    // const SymbolTable *globalScope;
 
 public:
-    TypeChecker(SymbolTable *globalScope) : globalScope(globalScope) {}
+    TypeChecker() {}
 
 private:
 
     // Check that there is a main function and it adheres to the rules of our main function
     void preVisit(grammar::ast::Prog &prog) override {
-        Symbol *mainSymbol = globalScope->findLocal("main");
+        Symbol *mainSymbol = prog.scope->findLocal("main");
+        // Symbol *mainSymbol = globalScope->findLocal("main");
         if (mainSymbol == nullptr) {
             throw TypeCheckError("main function not declared");
         }
@@ -153,7 +154,10 @@ private:
 
     void postVisit(grammar::ast::ReturnStatement &rtn) override {
         auto t1 = pop(typeStack);
-        auto t2 = func->returnType;
+      
+        auto t2 = pop(typeStack);
+      
+        // auto t2 = func->returnType;
         if (t1 != t2) {
             throw TypeCheckError("Return type " + t2.toString() + " does not match function return type " + t1.toString(), rtn);
         }
@@ -162,7 +166,8 @@ private:
     }
 
     void preVisit(grammar::ast::FuncDecl &funcDecl) override {
-        func = funcDecl.sym;
+        typeStack.push(funcDecl.sym->returnType); 
+        // func = funcDecl.sym;
     }
 
     void postVisit(grammar::ast::PrintStatement &_) override {
@@ -236,7 +241,7 @@ private:
         if (!hasFuncReturned) {
             throw TypeCheckError("Function " + funcDecl.id.id + " does not always return", funcDecl);
         }
-        func = func->symTab->parentScope->creator;
+        // func = func->symTab->parentScope->creator;
     }
 
     void postVisit(bool &val) override {
@@ -297,8 +302,8 @@ private:
 }; 
 
 
-void typeChecker(grammar::ast::Prog &prog, SymbolTable *globalScope) {
-    auto visitor = TypeChecker(globalScope);
+void typeChecker(grammar::ast::Prog &prog) {
+    auto visitor = TypeChecker();
     auto traveler = TreeTraveler(visitor);
     traveler(prog);
 }

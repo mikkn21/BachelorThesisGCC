@@ -365,7 +365,8 @@ namespace grammar
         };        
 
         struct Prog : LocationInfo {
-            std::vector<Decl> decls; 
+            std::vector<Decl> decls;
+            SymbolTable *scope = nullptr;
         public:
             friend std::ostream& operator<<(std::ostream& os, const Prog& exp);
         };
