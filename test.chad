@@ -7,9 +7,12 @@ class F {
 }
 
 int main() {
+    int p = 17;
     F f = new F();
     print(2);
+    print(f.x);
     f.x = 3;
+    print(f.x);
     print(5);
     return 0;
 }

@@ -190,14 +190,17 @@ void IRVisitor::postVisit(grammar::ast::VarAssign &varAssign) {
     }
 
     if (temp.size() > 1) {
+        //std::cout << "more than 1 idAccess" << std::endl;
         code.push(Instruction(Op::MOVQ, Arg(Register::RBP, DIR()), Arg(Register::R8, DIR())));
         for (int i = 0; i < varSymbols.size(); i++) {
+            std::cout << varSymbols[i]->varDecl->id.id << ": " << varSymbols[i]->local_id << std::endl;
             code.push(Instruction(Op::MOVQ, Arg(Register::R8, IRL(varSymbols[i]->local_id * 8)), Arg(Register::R9, DIR())));
             code.push(Instruction(Op::MOVQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR())));
         } // by the end of this loop the scope / block of data where varAssign.idAccess.back() is located should be in R8
         //code.push(Instruction(Op::MOVQ, Arg(value, DIR()), Arg(Register::R8, IRL(varSymbols.back()->local_id * 8))));
         // potential other / correct solution:
         code.push(Instruction(Op::MOVQ, Arg(value, DIR()), Arg(Register::R8, IND()))); // This assumes that i goes to varSymbols.size(), not -1.
+        code.push(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(GenericRegister(varSymbols.back()->local_id), DIR())));
     } else {
         int local_id = varSymbols.back()->local_id;
         code.push(Instruction(Op::MOVQ, Arg(value, DIR()), Arg(Register::R8, DIR())));
@@ -397,15 +400,14 @@ void IRVisitor::pushStandardFunctions() {
 }
 
 void IRVisitor::postVisit(grammar::ast::ObjInst &obj){
-    std::cout << "postvisit objinst" << std::endl;
     auto temp = dynamic_cast<ClassSymbol*>(obj.id.sym)->symbolTable;
     auto attrs = temp->get_var_symbols();
     GenericRegister resultRegister = GenericRegister(++dynamic_cast<ClassSymbol*>(obj.id.sym)->symbolTable->registerCounter);
     code.push(Instruction(Op::PROCEDURE, Arg(Procedure::MEM_ALLOC, DIR()), Arg(ImmediateValue(attrs.size() * 8), DIR())));
     code.push(Instruction(Op::MOVQ, Arg(Register::RAX, DIR()), Arg(resultRegister, DIR()))); 
     for (int i = 0 ; i < attrs.size() ; ++i) {
-        std::cout << "attr: " << attrs[i]->varDecl->id.id << std::endl;
-        std::cout << "index: " << getVarSymbol(temp->findLocal(attrs[i]->varDecl->id.id))->local_id << std::endl;
+        //std::cout << "attr: " << attrs[i]->varDecl->id.id << std::endl;
+        //std::cout << "index: " << getVarSymbol(temp->findLocal(attrs[i]->varDecl->id.id))->local_id << std::endl;
         // The fucky above line indicates how to find the offset of a variable.
         // This is useful as it should be able to be multiplied by 8 to get the offset necessary to access the variable.
         // Which should be run in a loop over idAccess in varAssign
