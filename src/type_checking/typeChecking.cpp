@@ -186,7 +186,7 @@ private:
         pop(typeStack);
     }
 
-    void postVisit(grammar::ast::ArrayExp &exp) override {
+    void postVisit(grammar::ast::ArrayInitExp &exp) override {
         if (!areAllInts(exp.sizes)) {
             throw TypeCheckError("Array size must be an int", exp);
         }

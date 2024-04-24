@@ -81,6 +81,10 @@ public:
         id.scope = currentSymbolTable;
     }
 
+    void preVisit(grammar::ast::ArrayInitExp &init) override {
+        init.scope = currentSymbolTable;
+    }
+
     void preVisit(grammar::ast::VarAssign &varAssign) override {
         if (!dynamic_cast<VarSymbol *>(require_id_in_current_scope(varAssign, varAssign.idAccess.ids.front()))) {
             throw SemanticsError("Attempted to assign a non-variable", varAssign);

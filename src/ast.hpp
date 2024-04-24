@@ -32,8 +32,8 @@ namespace grammar
         struct VarDeclStatement;
         struct ConditionalStatement;
         struct ArrayType;
-        struct ArrayExp;
-        struct ArrayIndex;
+        struct ArrayInitExp;
+        struct ArrayIndexExp;
         struct ObjInst;
 
         struct Id : LocationInfo {
@@ -73,7 +73,7 @@ namespace grammar
             friend std::ostream& operator<<(std::ostream& os, const PrimitiveType &exp); 
         };
 
-        struct Expression : public boost::spirit::x3::variant<int, boost::spirit::x3::forward_ast<BinopExps>, bool, VarExpression, boost::spirit::x3::forward_ast<ExpressionPar>, boost::spirit::x3::forward_ast<FunctionCall>, boost::spirit::x3::forward_ast<ArrayExp>, boost::spirit::x3::forward_ast<ArrayIndex>, boost::spirit::x3::forward_ast<ObjInst>, IdAccess>, LocationInfo {
+        struct Expression : public boost::spirit::x3::variant<int, boost::spirit::x3::forward_ast<BinopExps>, bool, VarExpression, boost::spirit::x3::forward_ast<ExpressionPar>, boost::spirit::x3::forward_ast<FunctionCall>, boost::spirit::x3::forward_ast<ArrayInitExp>, boost::spirit::x3::forward_ast<ArrayIndexExp>, boost::spirit::x3::forward_ast<ObjInst>, IdAccess>, LocationInfo {
             using base_type::base_type;   
             using base_type::operator=;
         public:
@@ -101,11 +101,17 @@ namespace grammar
             friend std::ostream& operator<<(std::ostream& os, const ArrayIndex &exp);
         };
 
+        struct ArrayIndexExp : LocationInfo {
+            ArrayIndex index;
+        public: 
+            friend std::ostream& operator<<(std::ostream& os, const ArrayIndexExp &exp);
+        };
+
         struct ArrayIndexAssign : LocationInfo {
             ArrayIndex index;
             Expression exp;
         public: 
-            friend std::ostream& operator<<(std::ostream& os, const ArrayIndexAssign &exp);
+            friend std::ostream& operator<<(std::ostream& os, const ArrayIndexAssign &ass);
         };
 
         struct Rhs : LocationInfo {
@@ -341,11 +347,12 @@ namespace grammar
         };
         
 
-        struct ArrayExp : LocationInfo {
+        struct ArrayInitExp : LocationInfo {
             PrimitiveType primType;
             std::vector<Expression> sizes; 
+            SymbolTable *scope = nullptr;
         public: 
-            friend std::ostream& operator<<(std::ostream& os, const ArrayExp &exp);
+            friend std::ostream& operator<<(std::ostream& os, const ArrayInitExp &exp);
         };
 
 
