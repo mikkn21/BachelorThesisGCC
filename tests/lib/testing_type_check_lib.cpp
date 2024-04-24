@@ -18,9 +18,9 @@ template<typename Compiler>
 void testTypeChecking(std::string input, TestingOutcome testing_outcome, Compiler compiler) {
     std::cout << "\n----------------------" << std::endl;
     grammar::compiler::CompilerOptions options = grammar::compiler::CompilerOptions();
-    options.stopAfter = grammar::compiler::StopAfterTypeCheck;
-    options.printAst = false;
-    options.printInput = true;
+    options.stop_after = grammar::compiler::StopAfterTypeCheck;
+    options.print_ast = false;
+    options.print_input = true;
 
     grammar::ast::Prog ast1;
     try {
@@ -41,11 +41,11 @@ void testTypeChecking(std::string input, TestingOutcome testing_outcome, Compile
 }
 
 void testTypeCheckFile(std::string input, TestingOutcome testing_outcome) {
-    testTypeChecking(input, testing_outcome, grammar::compiler::compileFromFile);
+    testTypeChecking(input, testing_outcome, grammar::compiler::compile_from_file);
 }
 
 void testTypeCheckString(std::string input, TestingOutcome testing_outcome) {
-    testTypeChecking(input, testing_outcome, grammar::compiler::compileFromString);
+    testTypeChecking(input, testing_outcome, grammar::compiler::compile_from_string);
 }
 
 

@@ -34,7 +34,7 @@ namespace grammar
             @param delimiter the delimiter between the vec elements
         */
         template <typename T>
-        std::ostream& printVec(std::ostream& os, std::vector<T> vec, std::string delimiter) {
+        std::ostream& print_vec(std::ostream& os, std::vector<T> vec, std::string delimiter) {
             os << vec[0];
             for (unsigned long i = 1; i < vec.size(); i++) {
                 os << delimiter << vec[i];
@@ -66,32 +66,32 @@ namespace grammar
             return os << rhs.op << " " << rhs.exp;
         }
 
-        std::ostream& operator<<(std::ostream& os, const grammar::ast::ArrayIndex &arrayIndex) {
-            os << arrayIndex.idAccess << "["; 
-            return printVec(os, arrayIndex.indices, ", ") << "]";
+        std::ostream& operator<<(std::ostream& os, const grammar::ast::ArrayIndex &array_index) {
+            os << array_index.id_access << "["; 
+            return print_vec(os, array_index.indices, ", ") << "]";
         }
 
-        std::ostream& operator<<(std::ostream& os, const ArrayIndexAssign &ArrayIndexAssign) {
-            return os << ArrayIndexAssign.index << " = " << ArrayIndexAssign.exp << ';';
+        std::ostream& operator<<(std::ostream& os, const ArrayIndexAssign &array_index_assign) {
+            return os << array_index_assign.index << " = " << array_index_assign.exp << ';';
         }
 
         std::ostream& operator<<(std::ostream& os, const ClassType &type) {
             return os << type.id;
         }
 
-        std::ostream& operator<<(std::ostream& os, const ClassDecl &ClassDecl) {
-            os << "class " << ClassDecl.id << " {\n";
-            for (const auto &attr : ClassDecl.attr) {
+        std::ostream& operator<<(std::ostream& os, const ClassDecl &class_decl) {
+            os << "class " << class_decl.id << " {\n";
+            for (const auto &attr : class_decl.attr) {
                 os << attr;
             }
             return os << "}";
         }
 
         
-         std::ostream& operator<<(std::ostream& os, const ObjInst &objInst) {
-            return os << "new " << objInst.id << "(" << objInst.arguments << ")" ;
+         std::ostream& operator<<(std::ostream& os, const ObjInst &obj_inst) {
+            return os << "new " << obj_inst.id << "(" << obj_inst.arguments << ")" ;
          }
-
+        // <---- here
         std::ostream& operator<<(std::ostream& os, const IdAccess &dotOperator) {
             for ( unsigned long i = 0; i < dotOperator.ids.size()-1; i++) {
                 os << dotOperator.ids[i] << ".";
@@ -104,8 +104,8 @@ namespace grammar
         }
 
         std::ostream& operator<<(std::ostream& os, const grammar::ast::ArrayExp &arrayExp) {
-            os << "new " << arrayExp.primType << '[';
-            printVec(os, arrayExp.sizes, ", ");
+            os << "new " << arrayExp.prim_type << '[';
+            print_vec(os, arrayExp.sizes, ", ");
             return os  << ']';
         }
 
@@ -119,20 +119,20 @@ namespace grammar
         }
 
         std::ostream& operator<<(std::ostream& os, const ConditionalStatement &exp) {
-            os << exp.ifStatement;
-            const auto ifs = exp.elseIfs;
+            os << exp.if_statement;
+            const auto ifs = exp.else_if;
             for (unsigned long i = 0; i < ifs.size(); i++) {
                 os << "else ";
                 os << ifs[i];
             }
-            if (exp.conditionalElse.has_value()) {
-                os << exp.conditionalElse.value();
+            if (exp.conditional_else.has_value()) {
+                os << exp.conditional_else.value();
             }
             return os;
         }
 
         std::ostream& operator<<(std::ostream& os, const VarExpression &id) {
-            return os << id.idAccess;
+            return os << id.id_access;
         }
 
         std::ostream& operator<<(std::ostream& os, const FunctionCall &funcCall) {
@@ -243,7 +243,7 @@ namespace grammar
         }
 
         std::ostream& operator<<(std::ostream& os, const grammar::ast::VarAssign &assign) {
-            return os << assign.idAccess << " = " << assign.exp << ';' << "\n" ;
+            return os << assign.id_access << " = " << assign.exp << ';' << "\n" ;
         }
 
         std::ostream& operator<<(std::ostream& os, const grammar::ast::WhileStatement &while_statement) {

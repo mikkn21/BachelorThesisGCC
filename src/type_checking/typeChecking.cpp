@@ -21,7 +21,7 @@ public:
 private:
 
     // Check that there is a main function and it adheres to the rules of our main function
-    void preVisit(grammar::ast::Prog &prog) override {
+    void pre_visit(grammar::ast::Prog &prog) override {
         Symbol *mainSymbol = globalScope->findLocal("main");
         if (mainSymbol == nullptr) {
             throw TypeCheckError("main function not declared");
@@ -40,15 +40,15 @@ private:
     }
 
 
-    void postVisit(grammar::ast::Prog &prog) override {
+    void post_visit(grammar::ast::Prog &prog) override {
         assert(typeStack.size() == 0);
     }
 
-    void postVisit(grammar::ast::StatementExpression &exp) override {
+    void post_visit(grammar::ast::StatementExpression &exp) override {
         typeStack.pop();
     }
 
-    void postVisit(grammar::ast::FunctionCall &funcCall) override {
+    void post_visit(grammar::ast::FunctionCall &funcCall) override {
         Symbol *sym = funcCall.id.scope->find(funcCall.id.id);
         // Symbol collection phase 2 checks that this sym is a FuncSymbol and not null
         auto funcSym = static_cast<FuncSymbol *>(sym);
@@ -78,8 +78,8 @@ private:
         typeStack.push(funcSym->returnType);
     }
     
-    void postVisit(grammar::ast::VarAssign &varassign) override {
-        auto varSymbol = dynamic_cast<VarSymbol *>(varassign.idAccess.ids.back().sym);
+    void post_visit(grammar::ast::VarAssign &varassign) override {
+        auto varSymbol = dynamic_cast<VarSymbol *>(varassign.id_access.ids.back().sym);
 
         auto t1 = varSymbol->type;
         auto t2 = pop(typeStack);
@@ -92,19 +92,19 @@ private:
 
     // Check that the expression in the if statement evaluates to a bool
     // Checks both if and else if (since they are both if nodes in the ast)
-    void postVisit(grammar::ast::IfStatement &ifStatement) override {
+    void post_visit(grammar::ast::IfStatement &if_statement) override {
         // exp
         auto t1 = pop(typeStack);
         
         if (t1 != BoolType()) {
             std::ostringstream oss;
-            oss << ifStatement.exp;
-            throw TypeCheckError("if(" + oss.str()   + "):  do not evaluate to bool", ifStatement);
+            oss << if_statement.exp;
+            throw TypeCheckError("if(" + oss.str()   + "):  do not evaluate to bool", if_statement);
         }
     }
 
 
-    void postVisit(grammar::ast::VarDeclAssign &vardecl) override {  
+    void post_visit(grammar::ast::VarDeclAssign &vardecl) override {  
         //id  
         auto t1 = vardecl.decl.sym->type;
         // exp resault
@@ -114,7 +114,7 @@ private:
         }
     } 
 
-    void preBlockVisit(grammar::ast::WhileStatement &whileStatement) override {
+    void pre_block_visit(grammar::ast::WhileStatement &whileStatement) override {
         // exp
         auto t1 = pop(typeStack);
 
@@ -125,16 +125,16 @@ private:
 
 
 
-    void postVisit(grammar::ast::IdAccess &idAccess) override {
+    void post_visit(grammar::ast::IdAccess &id_access) override {
         // check that the first |ids| - 1 are classes
-        for (unsigned long i = 0; i < idAccess.ids.size()-1; i++){
+        for (unsigned long i = 0; i < id_access.ids.size()-1; i++){
             // TODO: Pointer might not be correct.
 
-            SymbolType symType = idAccess.ids[i].sym->toType();
-            if (VarSymbol *varSymbol = dynamic_cast<VarSymbol *>(idAccess.ids[i].sym)) {
+            SymbolType symType = id_access.ids[i].sym->toType();
+            if (VarSymbol *varSymbol = dynamic_cast<VarSymbol *>(id_access.ids[i].sym)) {
                 ClassSymbolType *classType = boost::get<ClassSymbolType>(&varSymbol->type);
                 if (classType == nullptr) {
-                    throw TypeCheckError ("Property " + idAccess.ids[i].id + " is not an object", idAccess.ids[i]);
+                    throw TypeCheckError ("Property " + id_access.ids[i].id + " is not an object", id_access.ids[i]);
                 } 
             }
         }
@@ -142,16 +142,16 @@ private:
     }
 
 
-    void postVisit(grammar::ast::VarExpression &varExp) override {
-        grammar::ast::Id lastId = varExp.idAccess.ids.back();
+    void post_visit(grammar::ast::VarExpression &varExp) override {
+        grammar::ast::Id lastId = varExp.id_access.ids.back();
         typeStack.push(lastId.sym->toType());
     }
 
-    void preVisit(grammar::ast::BlockLine &blockLine) override {
+    void pre_visit(grammar::ast::BlockLine &blockLine) override {
         hasFuncReturned = false;
     }
 
-    void postVisit(grammar::ast::ReturnStatement &rtn) override {
+    void post_visit(grammar::ast::ReturnStatement &rtn) override {
         auto t1 = pop(typeStack);
         auto t2 = func->returnType;
         if (t1 != t2) {
@@ -161,11 +161,11 @@ private:
         hasFuncReturned = true;
     }
 
-    void preVisit(grammar::ast::FuncDecl &funcDecl) override {
+    void pre_visit(grammar::ast::FuncDecl &funcDecl) override {
         func = funcDecl.sym;
     }
 
-    void postVisit(grammar::ast::PrintStatement &_) override {
+    void post_visit(grammar::ast::PrintStatement &_) override {
         pop(typeStack);
     }
 
@@ -182,26 +182,26 @@ private:
         return true;
     }
 
-    void postVisit(grammar::ast::ArrayType &arrayType) override {
+    void post_visit(grammar::ast::ArrayType &arrayType) override {
         pop(typeStack);
     }
 
-    void postVisit(grammar::ast::ArrayExp &exp) override {
+    void post_visit(grammar::ast::ArrayExp &exp) override {
         if (!areAllInts(exp.sizes)) {
             throw TypeCheckError("Array size must be an int", exp);
         }
 
-        auto symbolType = convertType(grammar::ast::Type(exp.primType));
+        auto symbolType = convertType(grammar::ast::Type(exp.prim_type));
         typeStack.push(ArraySymbolType{std::make_shared<SymbolType>(symbolType), static_cast<int>(exp.sizes.size())});
     }
 
       
 
-    void postVisit(grammar::ast::ArrayIndex &arrayIndex) override {
-        if (arrayIndex.idAccess.ids.back().sym == nullptr) {
+    void post_visit(grammar::ast::ArrayIndex &arrayIndex) override {
+        if (arrayIndex.id_access.ids.back().sym == nullptr) {
             throw TypeCheckError("symbol is empty in array index", arrayIndex);
         }
-        VarSymbol* sym = dynamic_cast<VarSymbol *>(arrayIndex.idAccess.ids.back().sym);
+        VarSymbol* sym = dynamic_cast<VarSymbol *>(arrayIndex.id_access.ids.back().sym);
         if (sym == nullptr) {
             throw TypeCheckError("index was attempted on a non-variable", arrayIndex);
         }
@@ -221,7 +221,7 @@ private:
         }          
     }
 
-    void postVisit(grammar::ast::ArrayIndexAssign &assign) override {
+    void post_visit(grammar::ast::ArrayIndexAssign &assign) override {
         // Exp result
         auto t1 = pop(typeStack);
 
@@ -232,22 +232,22 @@ private:
         }
     }
 
-    void postVisit(grammar::ast::FuncDecl &funcDecl) override {
+    void post_visit(grammar::ast::FuncDecl &funcDecl) override {
         if (!hasFuncReturned) {
             throw TypeCheckError("Function " + funcDecl.id.id + " does not always return", funcDecl);
         }
         func = func->symTab->parentScope->creator;
     }
 
-    void postVisit(bool &val) override {
+    void post_visit(bool &val) override {
         typeStack.push(BoolType());
     }
     
-    void postVisit(int &val) override {
+    void post_visit(int &val) override {
         typeStack.push(IntType());
     }
 
-    void postVisit(grammar::ast::Rhs &rhs) override {
+    void post_visit(grammar::ast::Rhs &rhs) override {
         auto expType = pop(typeStack);
         auto lhsType = pop(typeStack);
         auto op = rhs.op;
@@ -273,7 +273,7 @@ private:
         }
     }
 
-    void postVisit(grammar::ast::ObjInst &inst) override {
+    void post_visit(grammar::ast::ObjInst &inst) override {
         if (inst.arguments.arguments.size() > 0) {
             throw TypeCheckError("Object instantiation does not take arguments", inst);
         }

@@ -1,8 +1,5 @@
 
-class T {int x;}
-T y = new T();
 int main() {
-    T t = new T();
-    return y.x;
+    return 0;
 }
 

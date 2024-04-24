@@ -35,35 +35,35 @@ int main(int argc, char* argv[]) {
             return 0;
         }
         if (vm["parse-only"].as<bool>()) { 
-            options.stopAfter = grammar::compiler::StopAfterParser;
+            options.stop_after = grammar::compiler::StopAfterParser;
         }
         if (vm["symbol-collection-only"].as<bool>()) { 
-            options.stopAfter = grammar::compiler::StopAfterSymbolCollection;
+            options.stop_after = grammar::compiler::StopAfterSymbolCollection;
         }
         if (vm["type-check-only"].as<bool>()) { 
-            options.stopAfter = grammar::compiler::StopAfterTypeCheck;
+            options.stop_after = grammar::compiler::StopAfterTypeCheck;
         }
         if (vm["code-generation-only"].as<bool>()) { 
-            options.stopAfter = grammar::compiler::StopAfterCodeGen;
+            options.stop_after = grammar::compiler::StopAfterCodeGen;
         }
         if (vm["register-allocation-only"].as<bool>()) { 
-            options.stopAfter = grammar::compiler::StopAfterRegAlloc;
+            options.stop_after = grammar::compiler::StopAfterRegAlloc;
         }
         if (vm["print-ast"].as<bool>()) {
-            options.printAst = true;
+            options.print_ast = true;
         }
         if (vm["print-input"].as<bool>()) {
-            options.printInput = true;
+            options.print_input = true;
         }
         if (vm["print-code-generation"].as<bool>()) {
-            options.printCodeGeneration = true;
+            options.print_code_generation = true;
         }
         if (vm["print-register-allocation"].as<bool>()) {
-            options.printRegisterAllocation = true;
+            options.print_register_allocation = true;
         }
         if (vm.count("input-file")) {
             std::string_view filename = vm["input-file"].as<std::string>();
-            grammar::compiler::compileFromFile(filename, options);
+            grammar::compiler::compile_from_file(filename, options);
         } else {
             std::cerr << "Error: An input source is required.\n";
             return 1;

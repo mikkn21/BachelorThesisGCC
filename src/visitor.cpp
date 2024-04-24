@@ -51,307 +51,307 @@ void TreeTraveler::operator()(grammar::ast::Expression &exp) {
 }
 
 template <>
-void TreeTraveler::operator()(grammar::ast::BlockLine &blockLine) {
-    visitor.preVisit(blockLine);
-    apply_visitor(*this, blockLine);
-    visitor.postVisit(blockLine);
+void TreeTraveler::operator()(grammar::ast::BlockLine &block_line) {
+    visitor.pre_visit(block_line);
+    apply_visitor(*this, block_line);
+    visitor.post_visit(block_line);
 }
 
 template <>
 void TreeTraveler::operator()(grammar::ast::Type &type) {
-    visitor.preVisit(type);
+    visitor.pre_visit(type);
     apply_visitor(*this, type);
-    visitor.postVisit(type);
+    visitor.post_visit(type);
 }
 
 template <>
 void TreeTraveler::operator()(grammar::ast::VarDeclStatement &decl) {
-    visitor.preVisit(decl);
+    visitor.pre_visit(decl);
     apply_visitor(*this, decl);
-    visitor.postVisit(decl);
+    visitor.post_visit(decl);
 }
 
 template <>
 void TreeTraveler::operator()(grammar::ast::Parameter &parameter) {
-    visitor.preVisit(parameter);
+    visitor.pre_visit(parameter);
     apply_visitor(*this, parameter);
-    visitor.postVisit(parameter);
+    visitor.post_visit(parameter);
 }
 
 template <>
 void TreeTraveler::operator()(grammar::ast::Id &id) {
-    visitor.preVisit(id);
-    visitor.postVisit(id);
+    visitor.pre_visit(id);
+    visitor.post_visit(id);
 }
 
 // Types
 template <>
 void TreeTraveler::operator()(grammar::ast::PrimitiveType &type) {
-    visitor.preVisit(type);
-    visitor.postVisit(type);
+    visitor.pre_visit(type);
+    visitor.post_visit(type);
 }
 
 template <>
 void TreeTraveler::operator()(grammar::ast::ClassType &type) {
-    visitor.preVisit(type);
+    visitor.pre_visit(type);
     (*this)(type.id);
-    visitor.postVisit(type);
+    visitor.post_visit(type);
 }
 
 // Expressions
 template <>
 void TreeTraveler::operator()(int &value) {
-    visitor.preVisit(value);
-    visitor.postVisit(value);
+    visitor.pre_visit(value);
+    visitor.post_visit(value);
 }
 
 template <>
 void TreeTraveler::operator()(bool &value) {
-    visitor.preVisit(value);
-    visitor.postVisit(value);
+    visitor.pre_visit(value);
+    visitor.post_visit(value);
 }
 
 template <>
 void TreeTraveler::operator()(grammar::ast::Rhs &rhs) {
-    visitor.preVisit(rhs);
+    visitor.pre_visit(rhs);
     // The operator is not visited because it's a string
     (*this)(rhs.exp);
-    visitor.postVisit(rhs);
+    visitor.post_visit(rhs);
 }
 
 template <>
 void TreeTraveler::operator()(grammar::ast::BinopExps &binop) {
-    visitor.preVisit(binop);
+    visitor.pre_visit(binop);
     (*this)(binop.lhs);
     visitor.preRhsVisit(binop);
     (*this)(binop.rhss);
-    visitor.postVisit(binop);
+    visitor.post_visit(binop);
 }
 
 template <>
-void TreeTraveler::operator()(grammar::ast::IdAccess &idAccess) {
-  visitor.preVisit(idAccess);
-  (*this)(idAccess.ids);
-  visitor.postVisit(idAccess);
+void TreeTraveler::operator()(grammar::ast::IdAccess &id_access) {
+  visitor.pre_visit(id_access);
+  (*this)(id_access.ids);
+  visitor.post_visit(id_access);
 }
 
 template <>
 void TreeTraveler::operator()(grammar::ast::VarExpression &exp) {
-    visitor.preVisit(exp);
-    (*this)(exp.idAccess);
-    visitor.postVisit(exp);
+    visitor.pre_visit(exp);
+    (*this)(exp.id_access);
+    visitor.post_visit(exp);
 }
 
 template <>
-void TreeTraveler::operator()(grammar::ast::ExpressionPar &expPar) {
-    visitor.preVisit(expPar);
-    (*this)(expPar.exp);
-    visitor.postVisit(expPar);
+void TreeTraveler::operator()(grammar::ast::ExpressionPar &exp_par) {
+    visitor.pre_visit(exp_par);
+    (*this)(exp_par.exp);
+    visitor.post_visit(exp_par);
 }
 
 template <>
-void TreeTraveler::operator()(grammar::ast::ArgumentList &argList) {
-    visitor.preVisit(argList);
-    (*this)(argList.arguments);
-    visitor.postVisit(argList);
+void TreeTraveler::operator()(grammar::ast::ArgumentList &arg_list) {
+    visitor.pre_visit(arg_list);
+    (*this)(arg_list.arguments);
+    visitor.post_visit(arg_list);
 }
 
 template <>
-void TreeTraveler::operator()(grammar::ast::FunctionCall &funcCall) {
-    visitor.preVisit(funcCall);
-    (*this)(funcCall.id);
-    visitor.preArgumentListVisit(funcCall);
-    (*this)(funcCall.argument_list);
-    visitor.postVisit(funcCall);
+void TreeTraveler::operator()(grammar::ast::FunctionCall &func_call) {
+    visitor.pre_visit(func_call);
+    (*this)(func_call.id);
+    visitor.preArgumentListVisit(func_call);
+    (*this)(func_call.argument_list);
+    visitor.post_visit(func_call);
 }
 
 
 template <>
-void TreeTraveler::operator()(grammar::ast::ClassDecl &classDecl) {
-    visitor.preVisit(classDecl);
-    (*this)(classDecl.id);
-    visitor.preIdVisit(classDecl); 
-    (*this)(classDecl.attr);
-    visitor.postVisit(classDecl);
+void TreeTraveler::operator()(grammar::ast::ClassDecl &class_decl) {
+    visitor.pre_visit(class_decl);
+    (*this)(class_decl.id);
+    visitor.pre_id_visit(class_decl); 
+    (*this)(class_decl.attr);
+    visitor.post_visit(class_decl);
 }
 
 
 // Arrays
 template <>
-void TreeTraveler::operator()(grammar::ast::ArrayType &arrayType) {
-    visitor.preVisit(arrayType);
-    (*this)(arrayType.type);
-    visitor.preIntVisit(arrayType);
-    (*this)(arrayType.dim);
-    visitor.postVisit(arrayType);
+void TreeTraveler::operator()(grammar::ast::ArrayType &array_type) {
+    visitor.pre_visit(array_type);
+    (*this)(array_type.type);
+    visitor.preIntVisit(array_type);
+    (*this)(array_type.dim);
+    visitor.post_visit(array_type);
 }
 
 template <>
-void TreeTraveler::operator()(grammar::ast::ArrayExp &arrayExp) {
-    visitor.preVisit(arrayExp);
-    (*this)(arrayExp.primType);
-    visitor.preSizeVisit(arrayExp);
-    (*this)(arrayExp.sizes);
-    visitor.postVisit(arrayExp);
+void TreeTraveler::operator()(grammar::ast::ArrayExp &array_exp) {
+    visitor.pre_visit(array_exp);
+    (*this)(array_exp.prim_type);
+    visitor.preSizeVisit(array_exp);
+    (*this)(array_exp.sizes);
+    visitor.post_visit(array_exp);
 }
 
 template <>
-void TreeTraveler::operator()(grammar::ast::ArrayIndex &arrayIndex) {
-    visitor.preVisit(arrayIndex);
-    (*this)(arrayIndex.idAccess);
-    visitor.preIndexVisit(arrayIndex);
-    (*this)(arrayIndex.indices);
-    visitor.postVisit(arrayIndex);
+void TreeTraveler::operator()(grammar::ast::ArrayIndex &array_index) {
+    visitor.pre_visit(array_index);
+    (*this)(array_index.id_access);
+    visitor.preIndexVisit(array_index);
+    (*this)(array_index.indices);
+    visitor.post_visit(array_index);
 }
 
 template <>
-void TreeTraveler::operator()(grammar::ast::ArrayIndexAssign &ArrayIndexAssign) {
-    visitor.preVisit(ArrayIndexAssign);
-    (*this)(ArrayIndexAssign.index);
-    visitor.preArrayIndexVisit(ArrayIndexAssign);
-    (*this)(ArrayIndexAssign.exp);
-    visitor.postVisit(ArrayIndexAssign);
+void TreeTraveler::operator()(grammar::ast::ArrayIndexAssign &array_index_assign) {
+    visitor.pre_visit(array_index_assign);
+    (*this)(array_index_assign.index);
+    visitor.preArrayIndexVisit(array_index_assign);
+    (*this)(array_index_assign.exp);
+    visitor.post_visit(array_index_assign);
 }
 
 // Statements
 template <>
-void TreeTraveler::operator()(grammar::ast::VarAssign &varAssign) {
-    visitor.preVisit(varAssign);
-    (*this)(varAssign.idAccess);
-    visitor.preExpVisit(varAssign);
-    (*this)(varAssign.exp);
-    visitor.postVisit(varAssign);
+void TreeTraveler::operator()(grammar::ast::VarAssign &var_assign) {
+    visitor.pre_visit(var_assign);
+    (*this)(var_assign.id_access);
+    visitor.pre_exp_visit(var_assign);
+    (*this)(var_assign.exp);
+    visitor.post_visit(var_assign);
 }
 
 template <>
 void TreeTraveler::operator()(grammar::ast::Block &block) {
-    visitor.preVisit(block);
+    visitor.pre_visit(block);
     (*this)(block.block_line);
-    visitor.postVisit(block);
+    visitor.post_visit(block);
 }
 
 template <>
 void TreeTraveler::operator()(grammar::ast::IfStatement &statement) {
-    visitor.preVisit(statement);
+    visitor.pre_visit(statement);
     (*this)(statement.exp);
-    visitor.preBlockVisit(statement);
+    visitor.pre_block_visit(statement);
     (*this)(statement.block);
-    visitor.postVisit(statement);
+    visitor.post_visit(statement);
 }
 
 template <>
 void TreeTraveler::operator()(grammar::ast::ElseStatement &statement) {
-    visitor.preVisit(statement);
+    visitor.pre_visit(statement);
     (*this)(statement.block);
-    visitor.postVisit(statement);
+    visitor.post_visit(statement);
 }
 
 template <>
 void TreeTraveler::operator()(grammar::ast::ConditionalStatement &statement) {
-    visitor.preVisit(statement);
-    (*this)(statement.ifStatement);
-    (*this)(statement.elseIfs);
+    visitor.pre_visit(statement);
+    (*this)(statement.if_statement);
+    (*this)(statement.else_if);
     visitor.preElseVisit(statement);
-    (*this)(statement.conditionalElse);
-    visitor.postVisit(statement);
+    (*this)(statement.conditional_else);
+    visitor.post_visit(statement);
 }
 
 template <>
 void TreeTraveler::operator()(grammar::ast::PrintStatement &print) {
-    visitor.preVisit(print);
+    visitor.pre_visit(print);
     (*this)(print.exp);
-    visitor.postVisit(print);
+    visitor.post_visit(print);
 }
 
 template <>
 void TreeTraveler::operator()(grammar::ast::ReturnStatement &ret) {
-    visitor.preVisit(ret);
+    visitor.pre_visit(ret);
     (*this)(ret.exp);
-    visitor.postVisit(ret);
+    visitor.post_visit(ret);
 }
 
 template <>
-void TreeTraveler::operator()(grammar::ast::WhileStatement &whileStatement) {
-    visitor.preVisit(whileStatement);
-    (*this)(whileStatement.exp);
-    visitor.preBlockVisit(whileStatement);
-    (*this)(whileStatement.block);
-    visitor.postVisit(whileStatement);
+void TreeTraveler::operator()(grammar::ast::WhileStatement &while_statement) {
+    visitor.pre_visit(while_statement);
+    (*this)(while_statement.exp);
+    visitor.pre_block_visit(while_statement);
+    (*this)(while_statement.block);
+    visitor.post_visit(while_statement);
 }
 
 template <> 
 void TreeTraveler::operator()(grammar::ast::ContinueStatement &cont) {
-    visitor.preVisit(cont);
-    visitor.postVisit(cont);
+    visitor.pre_visit(cont);
+    visitor.post_visit(cont);
 }
 
 template <>
 void TreeTraveler::operator()(grammar::ast::BreakStatement &brk) {
-    visitor.preVisit(brk);
-    visitor.postVisit(brk);
+    visitor.pre_visit(brk);
+    visitor.post_visit(brk);
 }
 
 template <>
 void TreeTraveler::operator()(grammar::ast::StatementExpression &statement) {
-    visitor.preVisit(statement);
+    visitor.pre_visit(statement);
     (*this)(statement.exp);
-    visitor.postVisit(statement);
+    visitor.post_visit(statement);
 }
 
 
 template <>
 void TreeTraveler::operator()(grammar::ast::VarDecl &decl) {
-    visitor.preVisit(decl);
+    visitor.pre_visit(decl);
     (*this)(decl.type);
-    visitor.preIdVisit(decl);
+    visitor.pre_id_visit(decl);
     (*this)(decl.id);
-    visitor.postVisit(decl);
+    visitor.post_visit(decl);
 }
 
 template <>
 void TreeTraveler::operator()(grammar::ast::VarDeclAssign &decl) {
-    visitor.preVisit(decl);
+    visitor.pre_visit(decl);
     (*this)(decl.decl);
-    visitor.preExpVisit(decl);
+    visitor.pre_exp_visit(decl);
     (*this)(decl.exp);
-    visitor.postVisit(decl);
+    visitor.post_visit(decl);
 }
 
 template <>
-void TreeTraveler::operator()(grammar::ast::ParameterList &parameterList) {
-    visitor.preVisit(parameterList);
-    (*this)(parameterList.parameter);
-    visitor.postVisit(parameterList);
+void TreeTraveler::operator()(grammar::ast::ParameterList &parameter_list) {
+    visitor.pre_visit(parameter_list);
+    (*this)(parameter_list.parameter);
+    visitor.post_visit(parameter_list);
 }
 
 template <>
-void TreeTraveler::operator()(grammar::ast::ObjInst &objInst) {
-  visitor.preVisit(objInst);
-  (*this)(objInst.id);
-  visitor.preIdVisit(objInst);
-  (*this)(objInst.arguments); 
-  visitor.postVisit(objInst);
+void TreeTraveler::operator()(grammar::ast::ObjInst &obj_inst) {
+  visitor.pre_visit(obj_inst);
+  (*this)(obj_inst.id);
+  visitor.pre_id_visit(obj_inst);
+  (*this)(obj_inst.arguments); 
+  visitor.post_visit(obj_inst);
 }
 
 
 
 template <>
 void TreeTraveler::operator()(grammar::ast::FuncDecl &decl) {
-    visitor.preVisit(decl);
+    visitor.pre_visit(decl);
     (*this)(decl.type);
-    visitor.preIdVisit(decl);
+    visitor.pre_id_visit(decl);
     (*this)(decl.id);
-    visitor.preParameterListVisit(decl);
+    visitor.pre_parameter_list_visit(decl);
     (*this)(decl.parameter_list);
-    visitor.preBlockVisit(decl);
+    visitor.pre_block_visit(decl);
     (*this)(decl.block);
-    visitor.postVisit(decl);
+    visitor.post_visit(decl);
 }
 
 template <>
 void TreeTraveler::operator()(grammar::ast::Prog &prog) {
-    visitor.preVisit(prog);
+    visitor.pre_visit(prog);
     (*this)(prog.decls);
-    visitor.postVisit(prog);
+    visitor.post_visit(prog);
 }
 

@@ -105,7 +105,7 @@ TargetType getTarget(AstValue value) {
 
 IRVisitor::IRVisitor(SymbolTable* globalScope) : Visitor(), globalScope(globalScope) {}
 
-void IRVisitor::postVisit(grammar::ast::ReturnStatement &return_statement) {
+void IRVisitor::post_visit(grammar::ast::ReturnStatement &return_statement) {
     //AstValue value = pop(temp_storage);
     auto target = getTarget(pop(temp_storage));
     code.push(Instruction(Op::MOVQ, Arg(target, DIR()), Arg(Register::RAX, DIR())));
@@ -121,7 +121,7 @@ void IRVisitor::postVisit(grammar::ast::ReturnStatement &return_statement) {
     code.push(Instruction(Op::RET));
 }
 
-void IRVisitor::preVisit(grammar::ast::FuncDecl &func_decl) {
+void IRVisitor::pre_visit(grammar::ast::FuncDecl &func_decl) {
     code.new_scope();
     code.push(Instruction(Op::LABEL, Arg(Label(func_decl.label), DIR())));
     code.push(Instruction(Op::PUSHQ, Arg(Register::RBP, DIR()), "save old rbp"));
@@ -133,11 +133,11 @@ void IRVisitor::preVisit(grammar::ast::FuncDecl &func_decl) {
     }
 }
 
-void IRVisitor::postVisit(grammar::ast::FuncDecl &func_decl) {
+void IRVisitor::post_visit(grammar::ast::FuncDecl &func_decl) {
     code.end_scope();
 }
 
-void IRVisitor::postVisit(grammar::ast::FunctionCall &func_call) {
+void IRVisitor::post_visit(grammar::ast::FunctionCall &func_call) {
     code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()), "make space on stack")); // make space on stack for generic register value
     GenericRegister result = GenericRegister(++func_call.id.scope->registerCounter); // register for the function result to be stored in
 
@@ -177,37 +177,37 @@ VarSymbol *getVarSymbol(Symbol *symbol) {
     }
 }
 
-void IRVisitor::postVisit(grammar::ast::VarAssign &varAssign) {
+void IRVisitor::post_visit(grammar::ast::VarAssign &varAssign) {
     //AstValue value = pop(temp_storage);
     auto target = getTarget(pop(temp_storage));
-    VarSymbol *varSymbol = getVarSymbol(varAssign.idAccess.ids.back().sym);
+    VarSymbol *varSymbol = getVarSymbol(varAssign.id_access.ids.back().sym);
     int local_id = varSymbol->local_id;
     code.push(Instruction(Op::MOVQ, Arg(target, DIR()), Arg(Register::R8, DIR())));
     code.push(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(GenericRegister(local_id), DIR())));
 }
 
-void IRVisitor::postVisit(grammar::ast::VarDeclAssign &var_decl_assign) {
+void IRVisitor::post_visit(grammar::ast::VarDeclAssign &var_decl_assign) {
     auto target = getTarget(pop(temp_storage));
     code.push(Instruction(Op::MOVQ, Arg(target, DIR()), Arg(Register::R8, DIR())));
     code.push(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(GenericRegister(var_decl_assign.decl.sym->local_id), DIR())));
 }
 
-void IRVisitor::preVisit(int &i) {
+void IRVisitor::pre_visit(int &i) {
     temp_storage.push(i);
 }
 
-void IRVisitor::preVisit(bool &b) {
+void IRVisitor::pre_visit(bool &b) {
     temp_storage.push(b);
 }
 
-void IRVisitor::postVisit(grammar::ast::VarExpression &var_expr) {
-    VarSymbol *var_symbol = dynamic_cast<VarSymbol*>(var_expr.idAccess.ids.back().sym);
+void IRVisitor::post_visit(grammar::ast::VarExpression &var_expr) {
+    VarSymbol *var_symbol = dynamic_cast<VarSymbol*>(var_expr.id_access.ids.back().sym);
     auto target_depth = var_symbol->varDecl->id.scope->depth;
-    int current_depth = var_expr.idAccess.ids.back().scope->depth;
+    int current_depth = var_expr.id_access.ids.back().scope->depth;
     int difference = current_depth - target_depth;
     // std::cout << "current depth: " << current_depth << "target depth: " << target_depth << "difference: " << difference << std::endl;
     code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()))); // make space on stack for generic register value
-    auto id = ++var_expr.idAccess.ids.back().scope->registerCounter;
+    auto id = ++var_expr.id_access.ids.back().scope->registerCounter;
     GenericRegister result_register = GenericRegister(id);
     auto static_linking_code = static_link_instructions(difference, var_symbol->local_id, result_register);
     for (auto instruction : static_linking_code) {
@@ -216,7 +216,7 @@ void IRVisitor::postVisit(grammar::ast::VarExpression &var_expr) {
     temp_storage.push(result_register);
 }
 
-void IRVisitor::postVisit(grammar::ast::Rhs &op_exp) {
+void IRVisitor::post_visit(grammar::ast::Rhs &op_exp) {
     // future optimization: calculate immediate values immediately to optimize program.
     code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()))); // make space on stack for generic register
     GenericRegister result = GenericRegister(++op_exp.scope->registerCounter);
@@ -236,42 +236,42 @@ void IRVisitor::postVisit(grammar::ast::Rhs &op_exp) {
 }
 
 
-void IRVisitor::preVisit(grammar::ast::ArrayExp &arr) {
+void IRVisitor::pre_visit(grammar::ast::ArrayExp &arr) {
     // for ( auto &size : arr.sizes) {
     
     // }
 }
 
-void IRVisitor::postVisit(grammar::ast::ArrayExp &arr) {
+void IRVisitor::post_visit(grammar::ast::ArrayExp &arr) {
     
 }
 
 
-void IRVisitor::postVisit(grammar::ast::PrintStatement &print) {
+void IRVisitor::post_visit(grammar::ast::PrintStatement &print) {
     auto target = getTarget(pop(temp_storage));
     code.push(Instruction(Op::PROCEDURE, Arg(Procedure::PRINT, DIR()), Arg(target, DIR())));
 }
 
 // TODO: Decide if we allow break/continue in functions 
-void IRVisitor::postVisit(grammar::ast::BreakStatement &breakStatement) {
+void IRVisitor::post_visit(grammar::ast::BreakStatement &breakStatement) {
     grammar::ast::WhileStatement *currentWhileloop = while_stack.top();
     std::string endLabel = currentWhileloop->end_label;
     code.push(Instruction(Op::JMP, Arg(Label(endLabel), DIR())));
 }
 
 // TODO: Decide if we allow break/continue in functions 
-void IRVisitor::postVisit(grammar::ast::ContinueStatement &continueStatement) {
+void IRVisitor::post_visit(grammar::ast::ContinueStatement &continueStatement) {
     grammar::ast::WhileStatement *currentWhileloop = while_stack.top();
     std::string startLabel = currentWhileloop->start_label;
     code.push(Instruction(Op::JMP, Arg(Label(startLabel), DIR())));
 }
 
-void IRVisitor::preVisit(grammar::ast::WhileStatement &while_statement) {
+void IRVisitor::pre_visit(grammar::ast::WhileStatement &while_statement) {
 
     code.push(Instruction(Op::LABEL, Arg(Label(while_statement.start_label), DIR())));
 }
 
-void IRVisitor::preBlockVisit(grammar::ast::WhileStatement &while_statement) {
+void IRVisitor::pre_block_visit(grammar::ast::WhileStatement &while_statement) {
     auto target = getTarget(pop(temp_storage));
     code.push(Instruction(Op::MOVQ, Arg(target, DIR()), Arg(Register::RAX, DIR())));
     code.push(Instruction(Op::CMPQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RAX, DIR())));
@@ -279,37 +279,37 @@ void IRVisitor::preBlockVisit(grammar::ast::WhileStatement &while_statement) {
     code.push(Instruction(Op::JNE, Arg(Label(while_statement.end_label), DIR())));
 }
 
-void IRVisitor::postVisit(grammar::ast::WhileStatement &while_statement) {
+void IRVisitor::post_visit(grammar::ast::WhileStatement &while_statement) {
     pop(while_stack); 
     code.push(Instruction(Op::JMP, Arg(Label(while_statement.start_label), DIR())));
     code.push(Instruction(Op::LABEL, Arg(Label(while_statement.end_label), DIR())));
 }
 
-void IRVisitor::preVisit(grammar::ast::IfStatement &if_statement) {
+void IRVisitor::pre_visit(grammar::ast::IfStatement &if_statement) {
     code.push(Instruction(Op::LABEL, Arg(Label(if_statement.label), DIR())));
 }
 
-void IRVisitor::preBlockVisit(grammar::ast::IfStatement &if_statement) {
+void IRVisitor::pre_block_visit(grammar::ast::IfStatement &if_statement) {
     auto target = getTarget(pop(temp_storage));
     code.push(Instruction(Op::MOVQ, Arg(target, DIR()), Arg(Register::RAX, DIR())));
     code.push(Instruction(Op::CMPQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RAX, DIR())));
-    code.push(Instruction(Op::JNE, Arg(Label(if_statement.nextLabel), DIR())));
+    code.push(Instruction(Op::JNE, Arg(Label(if_statement.next_label), DIR())));
 }
 
-void IRVisitor::postVisit(grammar::ast::IfStatement &if_statement) {
-    code.push(Instruction(Op::JMP, Arg(Label(if_statement.endIfLabel), DIR())));
+void IRVisitor::post_visit(grammar::ast::IfStatement &if_statement) {
+    code.push(Instruction(Op::JMP, Arg(Label(if_statement.end_if_label), DIR())));
 }
 
-void IRVisitor::preVisit(grammar::ast::ElseStatement &else_statement) {
+void IRVisitor::pre_visit(grammar::ast::ElseStatement &else_statement) {
     code.push(Instruction(Op::LABEL, Arg(Label(else_statement.label), DIR())));
 }
 
-void IRVisitor::postVisit(grammar::ast::ConditionalStatement &condStatement) {
-    code.push(Instruction(Op::LABEL, Arg(Label(condStatement.endIfLabel), DIR())));
+void IRVisitor::post_visit(grammar::ast::ConditionalStatement &condStatement) {
+    code.push(Instruction(Op::LABEL, Arg(Label(condStatement.end_if_label), DIR())));
 }
 
 
-void IRVisitor::preVisit(grammar::ast::Prog &prog) {
+void IRVisitor::pre_visit(grammar::ast::Prog &prog) {
     code.push(Instruction(Op::MOVQ, Arg(Register::RSP, DIR()), Arg(Register::RBP, DIR()), "set rbp for global scope")); // set rbp
     code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_SAVE, DIR())));
     // std::cout << globalScope->get_var_symbols().size() << std::endl;
@@ -378,7 +378,7 @@ void IRVisitor::pushStandardFunctions() {
     pushMemAllocFunction();
 }
 
-void IRVisitor::postVisit(grammar::ast::Prog &prog) {
+void IRVisitor::post_visit(grammar::ast::Prog &prog) {
     code.push(Instruction(Op::PUSHQ, Arg(Register::RBP, DIR()), "setting static link")); // Settting static link.
     code.push(Instruction(Op::CALL, Arg(Label("main"), DIR())));
     code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(60), DIR()), Arg(Register::RAX, DIR())));
