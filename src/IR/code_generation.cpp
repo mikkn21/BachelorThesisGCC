@@ -299,8 +299,11 @@ void IRVisitor::postVisit(grammar::ast::ArrayIndex &index) {
     GenericRegister intermediate_value = GenericRegister(++scope->registerCounter);
     // NOTE: indexTargets are in reverse order such that the last index is first
     code.push(Instruction(Op::MOVQ, Arg(array_ptr, DIR()), Arg(index_address, DIR()), "Initialize the index address"));
-    code.push(Instruction(Op::ADDQ, Arg(index_targets.front(), DIR()), Arg(index_address, DIR()), "Add the first index to the address"));
-    code.push(Instruction(Op::IMULQ, Arg(ImmediateValue(8), DIR()), Arg(index_address, DIR()), "Translate the first index to byte address"));
+    code.push(Instruction(Op::MOVQ, Arg(index_targets.front(), DIR()), Arg(intermediate_value, DIR()), "Initialize the intermediate value"));
+    code.push(Instruction(Op::IMULQ, Arg(ImmediateValue(8), DIR()), Arg(intermediate_value, DIR()), "Translate the first index to byte address"));
+    code.push(Instruction(Op::ADDQ, Arg(intermediate_value, DIR()), Arg(index_address, DIR()), "Add the first index to the address"));
+   
+    // Multi-dimensional array indexing
     if (index.indices.size() > 1) {
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(intermediate_product, DIR()), "Initialize the product"));
         for (size_t i = 1; i < index.indices.size(); i++) {
@@ -317,6 +320,7 @@ void IRVisitor::postVisit(grammar::ast::ArrayIndex &index) {
 
 void IRVisitor::postVisit(grammar::ast::ArrayIndexExp &index_exp) {
     TargetType index_ptr = getTarget(pop(temp_storage));
+    code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()))); // make space on stack for generic register value
     GenericRegister result = GenericRegister(++index_exp.index.idAccess.ids.front().scope->registerCounter);
     code.push(Instruction(Op::MOVQ, Arg(index_ptr, IND()), Arg(result, DIR()), "Unwrap the index pointer"));
     temp_storage.push(result);

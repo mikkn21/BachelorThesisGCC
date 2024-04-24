@@ -11,7 +11,8 @@ int main() {
     a[7] = 9;
     a[8] = 10;
     a[9] = 11;
-    print(a[9]);
+    int x = a[7] + a[2];
+    print(x);
     return 0;
 }
 
