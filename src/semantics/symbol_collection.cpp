@@ -131,7 +131,7 @@ public:
 
         SymbolTable *newSymbolTable = new SymbolTable(currentSymbolTable);
         FuncSymbol *funcSymbol = new FuncSymbol(&funcDecl, newSymbolTable);
-        funcSymbol->funcDecl = &funcDecl;
+        funcSymbol->func_decl = &funcDecl;
 
         currentSymbolTable->insert(funcDecl.id.id, funcSymbol);
         funcDecl.sym = funcSymbol;

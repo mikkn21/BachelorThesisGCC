@@ -9,25 +9,25 @@ struct SymbolType;
 
 struct IntType {
     bool operator==(const IntType &other) const;
-    std::string toString() const;
+    std::string to_string() const;
 };
 
 struct BoolType {
     bool operator==(const BoolType &other) const;
-    std::string toString() const;
+    std::string to_string() const;
 };
 
 struct ArraySymbolType {
     std::shared_ptr<SymbolType> elementType;
     int dimensions;
     bool operator==(const ArraySymbolType &other) const;
-    std::string toString() const;
+    std::string to_string() const;
 };
 
 struct ClassSymbolType {
     ClassSymbol *symbol;
     bool operator==(const ClassSymbolType &other) const;
-    std::string toString() const;
+    std::string to_string() const;
 };
 
 // TODO: Changed from std::variant to boost::variant
@@ -40,7 +40,7 @@ struct SymbolType : public boost::variant<IntType, BoolType, ArraySymbolType, Cl
     using boost::variant<IntType, BoolType, ArraySymbolType, ClassSymbolType>::operator=;
     bool operator==(const SymbolType &other) const;
     bool operator!=(const SymbolType &other) const;
-    std::string toString() const;
+    std::string to_string() const;
 };
 
 SymbolType convertType(grammar::ast::Type type);
@@ -50,18 +50,18 @@ class SymbolTable;
 class Symbol{
 public:
     virtual ~Symbol() { }
-    virtual SymbolType toType() = 0;
+    virtual SymbolType to_type() = 0;
 };
 
 class FuncSymbol : public Symbol{
 public:
-    FuncSymbol(grammar::ast::FuncDecl *funcDecl, SymbolTable *symTab);
+    FuncSymbol(grammar::ast::FuncDecl *func_decl, SymbolTable *sym_tab);
     ~FuncSymbol() override;
     std::vector<SymbolType> parameters;
-    SymbolType returnType;
-    grammar::ast::FuncDecl *funcDecl;
-    SymbolTable *symTab;
-    SymbolType toType() override;
+    SymbolType return_type;
+    grammar::ast::FuncDecl *func_decl;
+    SymbolTable *sym_tab;
+    SymbolType to_type() override;
 };
 
 class VarSymbol : public Symbol {
@@ -71,7 +71,7 @@ public:
     SymbolType type;
     grammar::ast::VarDecl *varDecl;
     long local_id;
-    SymbolType toType() override;
+    SymbolType to_type() override;
 };
 
 class ClassSymbol : public Symbol {
@@ -80,7 +80,7 @@ public:
     ~ClassSymbol() override;
     grammar::ast::ClassDecl *decl; // points to the class 
     SymbolTable *symbolTable;
-    SymbolType toType() override;
+    SymbolType to_type() override;
 };
 
 

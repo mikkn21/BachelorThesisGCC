@@ -21,9 +21,9 @@ public:
 class IRVisitor : public Visitor {
 public:
     FunctionOrderManager code;
-    SymbolTable* globalScope;
+    SymbolTable* global_scope;
 
-    IRVisitor(SymbolTable* globalScope);
+    IRVisitor(SymbolTable* global_scope);
 
     void post_visit(grammar::ast::FuncDecl &func_decl) override;
     void pre_visit(grammar::ast::FuncDecl &func_decl) override;
@@ -69,4 +69,4 @@ private:
 };
 
 
-IR intermediate_code_generation(grammar::ast::Prog &prog, SymbolTable* globalScope);
+IR intermediate_code_generation(grammar::ast::Prog &prog, SymbolTable* global_scope);

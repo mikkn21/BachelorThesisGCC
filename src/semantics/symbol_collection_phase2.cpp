@@ -12,10 +12,10 @@ private:
 
 public: 
 
-    SymbolCollectionVisitorPhase2(SymbolTable *symTab) : Visitor(), currentSymbolTable(symTab) { }
+    SymbolCollectionVisitorPhase2(SymbolTable *sym_tab) : Visitor(), currentSymbolTable(sym_tab) { }
 
     void pre_visit(grammar::ast::FuncDecl &funcDecl) override {
-        currentSymbolTable = funcDecl.sym->symTab;
+        currentSymbolTable = funcDecl.sym->sym_tab;
     }
 
     void post_visit(grammar::ast::FuncDecl &funcDecl) override {
@@ -103,8 +103,8 @@ public:
     }
 };
 
-void symbol_collection_phase2(grammar::ast::Prog &prog, SymbolTable *symTab) {
-    auto visitor = SymbolCollectionVisitorPhase2(symTab);
+void symbol_collection_phase2(grammar::ast::Prog &prog, SymbolTable *sym_tab) {
+    auto visitor = SymbolCollectionVisitorPhase2(sym_tab);
     auto traveler = TreeTraveler(visitor);
     traveler(prog);
 }

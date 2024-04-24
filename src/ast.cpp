@@ -91,21 +91,21 @@ namespace grammar
          std::ostream& operator<<(std::ostream& os, const ObjInst &obj_inst) {
             return os << "new " << obj_inst.id << "(" << obj_inst.arguments << ")" ;
          }
-        // <---- here
-        std::ostream& operator<<(std::ostream& os, const IdAccess &dotOperator) {
-            for ( unsigned long i = 0; i < dotOperator.ids.size()-1; i++) {
-                os << dotOperator.ids[i] << ".";
+
+        std::ostream& operator<<(std::ostream& os, const IdAccess &dot_operator) {
+            for ( unsigned long i = 0; i < dot_operator.ids.size()-1; i++) {
+                os << dot_operator.ids[i] << ".";
             }
-            return os << dotOperator.ids.back();
+            return os << dot_operator.ids.back();
          }
 
-        std::ostream& operator<<(std::ostream& os, const grammar::ast::ArrayType &arrayType) {
-            return os << arrayType.type << "[" << arrayType.dim << "]"; 
+        std::ostream& operator<<(std::ostream& os, const grammar::ast::ArrayType &array_type) {
+            return os << array_type.type << "[" << array_type.dim << "]"; 
         }
 
-        std::ostream& operator<<(std::ostream& os, const grammar::ast::ArrayExp &arrayExp) {
-            os << "new " << arrayExp.prim_type << '[';
-            print_vec(os, arrayExp.sizes, ", ");
+        std::ostream& operator<<(std::ostream& os, const grammar::ast::ArrayExp &array_exp) {
+            os << "new " << array_exp.prim_type << '[';
+            print_vec(os, array_exp.sizes, ", ");
             return os  << ']';
         }
 
@@ -135,8 +135,8 @@ namespace grammar
             return os << id.id_access;
         }
 
-        std::ostream& operator<<(std::ostream& os, const FunctionCall &funcCall) {
-            return os << funcCall.id << "(" << funcCall.argument_list << ")";
+        std::ostream& operator<<(std::ostream& os, const FunctionCall &func_call) {
+            return os << func_call.id << "(" << func_call.argument_list << ")";
         }
 
         std::ostream& operator<<(std::ostream& os, const ArgumentList &argument) {

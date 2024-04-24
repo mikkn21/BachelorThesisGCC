@@ -30,7 +30,7 @@ struct SymbolTypeEqualityVisitor {
 struct SymbolTypeToStringVisitor {
     template <typename T>
     std::string operator()(const T &t) {
-        return t.toString();
+        return t.to_string();
     }
 };
 
@@ -89,23 +89,23 @@ bool ArraySymbolType::operator==(const ArraySymbolType &other) const {
     return (dimensions == other.dimensions) && (*elementType.get() == *other.elementType.get());
 }
 
-std::string BoolType::toString() const {
+std::string BoolType::to_string() const {
     return "bool";
 }
 
-std::string IntType::toString() const {
+std::string IntType::to_string() const {
     return "int";
 }
 
-std::string ClassSymbolType::toString() const {
+std::string ClassSymbolType::to_string() const {
     return "class<" + symbol->decl->id.id + ">";
 }
 
-std::string ArraySymbolType::toString() const {
-    return "Array of " + elementType->toString();
+std::string ArraySymbolType::to_string() const {
+    return "Array of " + elementType->to_string();
 }
 
-std::string SymbolType::toString() const {
+std::string SymbolType::to_string() const {
     return boost::apply_visitor(SymbolTypeToStringVisitor{}, *this);
 }
 
@@ -114,7 +114,7 @@ SymbolType convertType(grammar::ast::Type type) {
     return boost::apply_visitor(visitor, type);
 }
 
-FuncSymbol::FuncSymbol(grammar::ast::FuncDecl *funcDecl, SymbolTable *scope) : symTab(scope){ 
+FuncSymbol::FuncSymbol(grammar::ast::FuncDecl *funcDecl, SymbolTable *scope) : sym_tab(scope){ 
     for (auto i : funcDecl->parameter_list.parameter){
         try {
             auto decl = boost::get<grammar::ast::VarDecl>(i);
@@ -123,7 +123,7 @@ FuncSymbol::FuncSymbol(grammar::ast::FuncDecl *funcDecl, SymbolTable *scope) : s
             throw SemanticsError("Expected VarDecl in parameter list", *funcDecl);
         }
     }
-    returnType = convertType(funcDecl->type);
+    return_type = convertType(funcDecl->type);
     scope->creator = this;
 }
 
@@ -135,20 +135,20 @@ VarSymbol::VarSymbol(grammar::ast::VarDecl *varDecl) : varDecl(varDecl) {
     type = convertType(varDecl->type);
 }
 
-SymbolType FuncSymbol::toType() {
+SymbolType FuncSymbol::to_type() {
     throw std::runtime_error("FuncSymbol cannot be converted to a SymbolType");
 }
 
-SymbolType ClassSymbol::toType() {
+SymbolType ClassSymbol::to_type() {
     return ClassSymbolType{this};
 }
 
-SymbolType VarSymbol::toType() {
+SymbolType VarSymbol::to_type() {
     return type;
 }
 
 FuncSymbol::~FuncSymbol() {
-    delete(symTab);
+    delete(sym_tab);
 }
 
 ClassSymbol::~ClassSymbol() {

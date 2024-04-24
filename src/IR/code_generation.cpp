@@ -103,7 +103,7 @@ TargetType getTarget(AstValue value) {
     }
 }
 
-IRVisitor::IRVisitor(SymbolTable* globalScope) : Visitor(), globalScope(globalScope) {}
+IRVisitor::IRVisitor(SymbolTable* global_scope) : Visitor(), global_scope(global_scope) {}
 
 void IRVisitor::post_visit(grammar::ast::ReturnStatement &return_statement) {
     //AstValue value = pop(temp_storage);
@@ -127,7 +127,7 @@ void IRVisitor::pre_visit(grammar::ast::FuncDecl &func_decl) {
     code.push(Instruction(Op::PUSHQ, Arg(Register::RBP, DIR()), "save old rbp"));
     code.push(Instruction(Op::MOVQ, Arg(Register::RSP, DIR()), Arg(Register::RBP, DIR()), "set rbp for function scope"));
     code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_SAVE, DIR())));
-    std::vector<VarSymbol*> var_decls = func_decl.sym->symTab->get_var_symbols();
+    std::vector<VarSymbol*> var_decls = func_decl.sym->sym_tab->get_var_symbols();
     for (size_t i = 0; i < var_decls.size(); i++) {
         code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()), "initialize local variable to 0"));
     }
@@ -149,7 +149,7 @@ void IRVisitor::post_visit(grammar::ast::FunctionCall &func_call) {
         auto target = getTarget(pop(temp_storage));
         code.push(Instruction(Op::PUSHQ, Arg(target, DIR()), "pushing register argument"));
     }
-    int callee_depth = dynamic_cast<FuncSymbol*>(func_call.id.sym)->symTab->parentScope->depth;
+    int callee_depth = dynamic_cast<FuncSymbol*>(func_call.id.sym)->sym_tab->parentScope->depth;
     int caller_depth = func_call.id.scope->depth;
     int difference = caller_depth - callee_depth;
     
@@ -160,7 +160,7 @@ void IRVisitor::post_visit(grammar::ast::FunctionCall &func_call) {
     } 
 
     code.push(Instruction(Op::PUSHQ, Arg(Register::R8, DIR()), "setting static link")); // Settting static link.
-    std::string label = dynamic_cast<FuncSymbol*>(func_call.id.sym)->funcDecl->label;
+    std::string label = dynamic_cast<FuncSymbol*>(func_call.id.sym)->func_decl->label;
     // std::cout << label << std::endl;
     code.push(Instruction(Op::CALL, Arg(Label(label), DIR())));
     code.push(Instruction(Op::ADDQ, Arg(ImmediateValue((func_call.argument_list.arguments.size()+1) * 8), DIR()), Arg(Register::RSP, DIR()), "remove arguments and static link from stack")); 
@@ -312,8 +312,8 @@ void IRVisitor::post_visit(grammar::ast::ConditionalStatement &condStatement) {
 void IRVisitor::pre_visit(grammar::ast::Prog &prog) {
     code.push(Instruction(Op::MOVQ, Arg(Register::RSP, DIR()), Arg(Register::RBP, DIR()), "set rbp for global scope")); // set rbp
     code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_SAVE, DIR())));
-    // std::cout << globalScope->get_var_symbols().size() << std::endl;
-    int varCount = globalScope->get_var_symbols().size();
+    // std::cout << global_scope->get_var_symbols().size() << std::endl;
+    int varCount = global_scope->get_var_symbols().size();
     for (int i = 0; i < varCount; i++) {
         code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()), "initialize global variable to 0"));
     }
@@ -398,9 +398,9 @@ T IRVisitor::pop(std::stack<T>& myStack) {
     return topElement;
 }
 
-IR intermediate_code_generation(grammar::ast::Prog &prog, SymbolTable *globalScope) {
+IR intermediate_code_generation(grammar::ast::Prog &prog, SymbolTable *global_scope) {
     
-    auto visitor = IRVisitor(globalScope);
+    auto visitor = IRVisitor(global_scope);
     visitor.code.new_scope(); // add global scope
     auto traveler = TreeTraveler(visitor);
     traveler(prog);
