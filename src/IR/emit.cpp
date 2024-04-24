@@ -55,10 +55,8 @@ string calleeRestore() {
 /// @param size The size of the memory to allocate.
 /// @return The assembly code for allocating memory.
 string allocateMemory(int size) {
-    string s = callerSave() + ""
-    "\tmovq $" + std::to_string(size) + ", %rdi\n"
-    "\tcall allocate\n"
-    "" + callerRestore();
+    string s = "\tmovq $" + std::to_string(size) + ", %rdi\n"
+    "\tcall allocate\n";
     return s;
 }
 

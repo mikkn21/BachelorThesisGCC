@@ -178,27 +178,35 @@ VarSymbol *getVarSymbol(Symbol *symbol) {
 }
 //lmao
 void IRVisitor::postVisit(grammar::ast::VarAssign &varAssign) {
-    //AstValue value = pop(temp_storage);
     auto value = getTarget(pop(temp_storage));
-    auto temp = varAssign.idAccess.ids;
-
     std::vector<VarSymbol*> varSymbols;
-    for (auto id : temp) {
+    for (auto id : varAssign.idAccess.ids) {
         varSymbols.push_back(getVarSymbol(id.sym));
     }
 
-    if (temp.size() > 1) {
-        //std::cout << "more than 1 idAccess" << std::endl;
-        code.push(Instruction(Op::MOVQ, Arg(Register::RBP, DIR()), Arg(Register::R8, DIR())));
-        for (int i = 0; i < varSymbols.size(); i++) {
-            std::cout << varSymbols[i]->varDecl->id.id << ": " << varSymbols[i]->local_id << std::endl;
-            code.push(Instruction(Op::MOVQ, Arg(Register::R8, IRL(varSymbols[i]->local_id * 8)), Arg(Register::R9, DIR())));
-            code.push(Instruction(Op::MOVQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR())));
+    if (varAssign.idAccess.ids.size() > 1) {
+        code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()), "make space on stack"));
+        GenericRegister result = GenericRegister(varSymbols.back()->local_id);
+        int target_depth = varSymbols.front()->varDecl->id.scope->depth;
+        int current_depth = varAssign.idAccess.ids.front().scope->depth;
+        int difference = current_depth - target_depth;
+
+        auto staticLinkCode = static_link_instructions(difference, varSymbols.front()->local_id, result);
+        for (auto instruction : staticLinkCode) {
+            code.push(instruction);
+        }
+
+        code.push(Instruction(Op::MOVQ, Arg(Register::RBP, IRL(40+varSymbols[0]->local_id * -8)), Arg(Register::R8, DIR()), "copy rbp to r8 to avoid destroying rbp"));
+        // code.push(Instruction(Op::SUBQ, Arg(ImmediateValue(40), DIR()), Arg(Register::R8, DIR()), "setting rbp to start of local variables"));
+        for (int i = 1; i < varSymbols.size()-1; i++) {
+            //std::cout << varSymbols[i]->varDecl->id.id << ": " << varSymbols[i]->local_id << std::endl;
+            code.push(Instruction(Op::MOVQ, Arg(Register::R8, IRL(varSymbols[i]->local_id * 8)), Arg(Register::R9, DIR()), "accessing member relative to it's scope")); /// for the first access this is relative to current scope
+            code.push(Instruction(Op::MOVQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR()), "moving pointer to r8 to set up for future IRL access")); // this line is needed for structs of structs
         } // by the end of this loop the scope / block of data where varAssign.idAccess.back() is located should be in R8
-        //code.push(Instruction(Op::MOVQ, Arg(value, DIR()), Arg(Register::R8, IRL(varSymbols.back()->local_id * 8))));
-        // potential other / correct solution:
-        code.push(Instruction(Op::MOVQ, Arg(value, DIR()), Arg(Register::R8, IND()))); // This assumes that i goes to varSymbols.size(), not -1.
-        code.push(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(GenericRegister(varSymbols.back()->local_id), DIR())));
+        
+        code.push(Instruction(Op::MOVQ, Arg(value, DIR()), Arg(Register::R8, IRL(varSymbols.back()->local_id * 8)), "inserting value into found member"));
+    
+        //code.push(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(result, DIR()), "putting original variable back in place"));
     } else {
         int local_id = varSymbols.back()->local_id;
         code.push(Instruction(Op::MOVQ, Arg(value, DIR()), Arg(Register::R8, DIR())));
@@ -220,20 +228,47 @@ void IRVisitor::preVisit(bool &b) {
     temp_storage.push(b);
 }
 
+// can
 void IRVisitor::postVisit(grammar::ast::VarExpression &var_expr) {
-    VarSymbol *var_symbol = dynamic_cast<VarSymbol*>(var_expr.idAccess.ids.back().sym);
-    auto target_depth = var_symbol->varDecl->id.scope->depth;
-    int current_depth = var_expr.idAccess.ids.back().scope->depth;
-    int difference = current_depth - target_depth;
-    // std::cout << "current depth: " << current_depth << "target depth: " << target_depth << "difference: " << difference << std::endl;
-    code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()))); // make space on stack for generic register value
-    auto id = ++var_expr.idAccess.ids.back().scope->registerCounter;
-    GenericRegister result_register = GenericRegister(id);
-    auto static_linking_code = static_link_instructions(difference, var_symbol->local_id, result_register);
-    for (auto instruction : static_linking_code) {
-        code.push(instruction);
+    if (var_expr.idAccess.ids.size() > 1){
+
+        auto frontId = var_expr.idAccess.ids.front();
+        auto frontSym = getVarSymbol(frontId.sym); // auto frontLocalId = frontSym->local_id;
+        auto target_depth = frontSym->varDecl->id.scope->depth;
+        int current_depth = var_expr.idAccess.ids.back().scope->depth;
+        int difference = current_depth - target_depth;
+
+        code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()))); // make space on stack for generic register value
+        GenericRegister result_register = GenericRegister(++frontId.scope->registerCounter);
+        auto staticLinkingCode = static_link_instructions(difference, frontSym->local_id, result_register);
+        for (auto instruction : staticLinkingCode) {
+            code.push(instruction);
+        }
+
+        code.push(Instruction(Op::MOVQ, Arg(Register::RBP, IRL(40+frontSym->local_id * -8)), Arg(Register::R8, DIR()), "copy rbp to r8 to avoid destroying rbp"));
+        // code.push(Instruction(Op::SUBQ, Arg(ImmediateValue(40), DIR()), Arg(Register::R8, DIR()), "setting rbp to start of local variables"));
+        for (int i = 1; i < var_expr.idAccess.ids.size()-1; i++) {
+            code.push(Instruction(Op::MOVQ, Arg(Register::R8, IRL(getVarSymbol(var_expr.idAccess.ids[i].sym)->local_id * 8)), Arg(Register::R9, DIR()), "accessing member relative to it's scope")); // for the first access this is relative to current scope
+            code.push(Instruction(Op::MOVQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR()), "moving pointer to r8 to set up for future IRL access")); // this line is needed for structs of structs
+        }
+        code.push(Instruction(Op::MOVQ, Arg(Register::R8, IRL(getVarSymbol(var_expr.idAccess.ids.back().sym)->local_id * 8)), Arg(result_register, DIR()), "get value from member of class and save to temporary register")); 
+        
+        temp_storage.push(result_register);
+    } else {
+        VarSymbol *var_symbol = dynamic_cast<VarSymbol*>(var_expr.idAccess.ids.back().sym);
+        auto target_depth = var_symbol->varDecl->id.scope->depth;
+        int current_depth = var_expr.idAccess.ids.back().scope->depth;
+        int difference = current_depth - target_depth;
+
+        code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()))); // make space on stack for generic register value
+        auto id = ++var_expr.idAccess.ids.back().scope->registerCounter;
+        GenericRegister result_register = GenericRegister(id);
+        auto static_linking_code = static_link_instructions(difference, var_symbol->local_id, result_register);
+        for (auto instruction : static_linking_code) {
+            code.push(instruction);
+        }
+        temp_storage.push(result_register);
     }
-    temp_storage.push(result_register);
 }
 
 void IRVisitor::postVisit(grammar::ast::Rhs &op_exp) {
@@ -401,11 +436,9 @@ void IRVisitor::pushStandardFunctions() {
 void IRVisitor::postVisit(grammar::ast::ObjInst &obj){
     auto temp = dynamic_cast<ClassSymbol*>(obj.id.sym)->symbolTable;
     auto attrs = temp->get_var_symbols();
-    //std::cout << "vars: " << attrs.size() << std::endl;
+
     GenericRegister resultRegister = GenericRegister(++temp->registerCounter);
-    std::cout << std::endl;
-    std::cout << "resultRegister: " << resultRegister.local_id << std::endl;
-    std::cout << "scope: " << obj.id.scope->registerCounter << std::endl;
+
     code.push(Instruction(Op::PROCEDURE, Arg(Procedure::MEM_ALLOC, DIR()), Arg(ImmediateValue(attrs.size() * 8), DIR()), "allocating space for variables"));
     code.push(Instruction(Op::MOVQ, Arg(Register::RAX, DIR()), Arg(resultRegister, DIR()), "returning address to resultRegister")); 
     for (int i = 0 ; i < attrs.size() ; ++i) {
@@ -414,10 +447,10 @@ void IRVisitor::postVisit(grammar::ast::ObjInst &obj){
         // The fucky above line indicates how to find the offset of a variable.
         // This is useful as it should be able to be multiplied by 8 to get the offset necessary to access the variable.
         // Which should be run in a loop over idAccess in varAssign
-        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(0), DIR()), Arg(resultRegister, IRL(8*(i+1))), "initializing variable " + attrs[i]->varDecl->id.id));
+        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(0), DIR()), Arg(resultRegister, IRL(8*i)), "initializing variable " + attrs[i]->varDecl->id.id));
     }
-    // above should be done after having allocated some memory and gotten a pointer
-    temp_storage.push(resultRegister); // final line, nothing below this
+
+    temp_storage.push(resultRegister); 
 }
 
 void IRVisitor::postVisit(grammar::ast::Prog &prog) {

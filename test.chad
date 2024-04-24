@@ -1,9 +1,29 @@
+class H {
+    int k;
+    int l;
+}
+
 class F {
     int x;
+    H h;
 }
 
 int main() {
     F f = new F();
-    f.x = 3;
+    int g(){
+        print(f.x);
+        f.x = 3;
+        print(f.x);
+        f.h = new H();
+        print(f.h.k);
+        f.h.k = 5;
+        print(f.h.k);
+        print(f.h.l);
+        f.h.l = 7;
+        print(f.h.l);
+        print(f.h.k);
+        return 0;
+    }
+    g();    
     return 0;
 }
