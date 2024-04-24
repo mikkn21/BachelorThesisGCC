@@ -7,33 +7,33 @@
 
 class SymbolCollectionVisitorPhase2 : public Visitor {
 private:
-    SymbolTable *currentSymbolTable; // Has to be a pointer, not a reference!!!
+    SymbolTable *current_symbol_table; // Has to be a pointer, not a reference!!!
 
 
 public: 
 
-    SymbolCollectionVisitorPhase2(SymbolTable *sym_tab) : Visitor(), currentSymbolTable(sym_tab) { }
+    SymbolCollectionVisitorPhase2(SymbolTable *sym_tab) : Visitor(), current_symbol_table(sym_tab) { }
 
     void pre_visit(grammar::ast::FuncDecl &funcDecl) override {
-        currentSymbolTable = funcDecl.sym->sym_tab;
+        current_symbol_table = funcDecl.sym->sym_tab;
     }
 
     void post_visit(grammar::ast::FuncDecl &funcDecl) override {
-        currentSymbolTable = currentSymbolTable->parentScope;
+        current_symbol_table = current_symbol_table->parent_scope;
     }
 
     void pre_visit(grammar::ast::ClassDecl &classDecl) override {
         ClassSymbol *classSymbol = dynamic_cast<ClassSymbol *>(classDecl.id.sym);
         // ClassDecl shouldn't have a symbol that is not a ClassSymbol
-        currentSymbolTable = classSymbol->symbolTable;
+        current_symbol_table = classSymbol->symbol_table;
     }
 
     void post_visit(grammar::ast::ClassDecl &classDecl) override {
-        currentSymbolTable = currentSymbolTable->parentScope;
+        current_symbol_table = current_symbol_table->parent_scope;
     }
 
     void post_visit(grammar::ast::FunctionCall &funcCall) override { 
-        Symbol *sym = currentSymbolTable->find(funcCall.id.id);
+        Symbol *sym = current_symbol_table->find(funcCall.id.id);
         if (sym == nullptr) {
             throw SemanticsError(funcCall.id.id + " not declared in scope5", funcCall);
         }
@@ -46,7 +46,7 @@ public:
     }
 
     void post_visit(grammar::ast::ClassType &classType) override {
-        Symbol *sym = currentSymbolTable->find(classType.id.id);
+        Symbol *sym = current_symbol_table->find(classType.id.id);
         if (sym == nullptr) {
             throw SemanticsError(classType.id.id + " not declared in scope6", classType);
         }
@@ -59,12 +59,12 @@ public:
     }
     
     void post_visit(grammar::ast::VarDecl &varDecl) override {
-        SymbolType symbolType = convertType(varDecl.type);
+        SymbolType symbolType = convert_type(varDecl.type);
         varDecl.sym->type = symbolType;
     }
 
     void pre_visit(grammar::ast::ObjInst &objInst) override {
-        Symbol *sym = currentSymbolTable->find(objInst.id.id);
+        Symbol *sym = current_symbol_table->find(objInst.id.id);
         if (sym == nullptr) {
             throw SemanticsError(objInst.id.id + " not declared in scope7", objInst);
         }
@@ -77,7 +77,7 @@ public:
         // Get the scope of the first class variable
         if (auto varSymbol = dynamic_cast<VarSymbol *>(id_access.ids[0].sym)) {
             if (auto *classSymbolType = boost::get<ClassSymbolType>(&varSymbol->type)) {
-                currentScope = classSymbolType->symbol->symbolTable;
+                currentScope = classSymbolType->symbol->symbol_table;
             } else if (id_access.ids.size() > 1) {
                     throw SemanticsError("Attempted to access a non-class", id_access.ids[0]);
             }
@@ -94,7 +94,7 @@ public:
 
             if ( auto varSymbol = dynamic_cast<VarSymbol *>(symbol)) {
                 if (auto *classSymbolType = boost::get<ClassSymbolType>(&varSymbol->type)) {
-                    currentScope = classSymbolType->symbol->symbolTable;
+                    currentScope = classSymbolType->symbol->symbol_table;
                 } else if (i != id_access.ids.size() - 1) {
                     throw SemanticsError("Attempted to access a non-class", id_access.ids[i]);
                 }

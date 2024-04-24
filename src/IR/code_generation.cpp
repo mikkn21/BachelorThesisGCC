@@ -139,7 +139,7 @@ void IRVisitor::post_visit(grammar::ast::FuncDecl &func_decl) {
 
 void IRVisitor::post_visit(grammar::ast::FunctionCall &func_call) {
     code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()), "make space on stack")); // make space on stack for generic register value
-    GenericRegister result = GenericRegister(++func_call.id.scope->registerCounter); // register for the function result to be stored in
+    GenericRegister result = GenericRegister(++func_call.id.scope->register_counter); // register for the function result to be stored in
 
     code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLER_SAVE, DIR())));
 
@@ -149,7 +149,7 @@ void IRVisitor::post_visit(grammar::ast::FunctionCall &func_call) {
         auto target = getTarget(pop(temp_storage));
         code.push(Instruction(Op::PUSHQ, Arg(target, DIR()), "pushing register argument"));
     }
-    int callee_depth = dynamic_cast<FuncSymbol*>(func_call.id.sym)->sym_tab->parentScope->depth;
+    int callee_depth = dynamic_cast<FuncSymbol*>(func_call.id.sym)->sym_tab->parent_scope->depth;
     int caller_depth = func_call.id.scope->depth;
     int difference = caller_depth - callee_depth;
     
@@ -202,12 +202,12 @@ void IRVisitor::pre_visit(bool &b) {
 
 void IRVisitor::post_visit(grammar::ast::VarExpression &var_expr) {
     VarSymbol *var_symbol = dynamic_cast<VarSymbol*>(var_expr.id_access.ids.back().sym);
-    auto target_depth = var_symbol->varDecl->id.scope->depth;
+    auto target_depth = var_symbol->var_decl->id.scope->depth;
     int current_depth = var_expr.id_access.ids.back().scope->depth;
     int difference = current_depth - target_depth;
     // std::cout << "current depth: " << current_depth << "target depth: " << target_depth << "difference: " << difference << std::endl;
     code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()))); // make space on stack for generic register value
-    auto id = ++var_expr.id_access.ids.back().scope->registerCounter;
+    auto id = ++var_expr.id_access.ids.back().scope->register_counter;
     GenericRegister result_register = GenericRegister(id);
     auto static_linking_code = static_link_instructions(difference, var_symbol->local_id, result_register);
     for (auto instruction : static_linking_code) {
@@ -219,7 +219,7 @@ void IRVisitor::post_visit(grammar::ast::VarExpression &var_expr) {
 void IRVisitor::post_visit(grammar::ast::Rhs &op_exp) {
     // future optimization: calculate immediate values immediately to optimize program.
     code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()))); // make space on stack for generic register
-    GenericRegister result = GenericRegister(++op_exp.scope->registerCounter);
+    GenericRegister result = GenericRegister(++op_exp.scope->register_counter);
 
     auto rTarget = getTarget(pop(temp_storage));
     auto lTarget = getTarget(pop(temp_storage));

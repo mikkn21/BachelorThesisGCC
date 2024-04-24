@@ -126,7 +126,7 @@ BOOST_FUSION_ADAPT_STRUCT(
 BOOST_FUSION_ADAPT_STRUCT(
     grammar::ast::ArrayType,
     (grammar::ast::PrimitiveType, type),
-    (int, dim)
+    (int, dim) // er det her forkert? burde det være en int?
 )
 
 BOOST_FUSION_ADAPT_STRUCT(

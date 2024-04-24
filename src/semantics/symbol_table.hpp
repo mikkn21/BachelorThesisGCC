@@ -18,8 +18,8 @@ struct BoolType {
 };
 
 struct ArraySymbolType {
-    std::shared_ptr<SymbolType> elementType;
-    int dimensions;
+    std::shared_ptr<SymbolType> element_type;
+    int dimensions; // TODO: should we not change this to size_t?
     bool operator==(const ArraySymbolType &other) const;
     std::string to_string() const;
 };
@@ -43,7 +43,7 @@ struct SymbolType : public boost::variant<IntType, BoolType, ArraySymbolType, Cl
     std::string to_string() const;
 };
 
-SymbolType convertType(grammar::ast::Type type);
+SymbolType convert_type(grammar::ast::Type type);
 
 class SymbolTable;
 
@@ -66,20 +66,20 @@ public:
 
 class VarSymbol : public Symbol {
 public:
-    VarSymbol(grammar::ast::VarDecl *varDecl);
+    VarSymbol(grammar::ast::VarDecl *var_decl);
     ~VarSymbol() override { }
     SymbolType type;
-    grammar::ast::VarDecl *varDecl;
+    grammar::ast::VarDecl *var_decl;
     long local_id;
     SymbolType to_type() override;
 };
 
 class ClassSymbol : public Symbol {
 public:
-    ClassSymbol(grammar::ast::ClassDecl *decl, SymbolTable *symbolTable);
+    ClassSymbol(grammar::ast::ClassDecl *decl, SymbolTable *symbol_table);
     ~ClassSymbol() override;
     grammar::ast::ClassDecl *decl; // points to the class 
-    SymbolTable *symbolTable;
+    SymbolTable *symbol_table;
     SymbolType to_type() override;
 };
 
@@ -92,24 +92,24 @@ private:
 
 public:
 
-    SymbolTable *parentScope = nullptr;
+    SymbolTable *parent_scope = nullptr;
 
     int depth;
-    int registerCounter = 0;
-    int parameterCounter = 0;
+    int register_counter = 0;
+    int parameter_counter = 0;
 
     FuncSymbol *creator = nullptr;
 
     SymbolTable();
 
-    SymbolTable(SymbolTable *parentScope);
+    SymbolTable(SymbolTable *parent_scope);
 
     ~SymbolTable();
 
     void insert(std::string key, Symbol* symbol);
     void insert(std::string key, VarSymbol* symbol);
 
-    Symbol *findLocal(std::string key) const;
+    Symbol *find_local(std::string key) const;
     Symbol *find(std::string key) const;
     std::vector<VarSymbol*> get_var_symbols();
 };

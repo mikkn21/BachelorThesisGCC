@@ -22,7 +22,7 @@ private:
 
     // Check that there is a main function and it adheres to the rules of our main function
     void pre_visit(grammar::ast::Prog &prog) override {
-        Symbol *main_symbol = global_scope->findLocal("main");
+        Symbol *main_symbol = global_scope->find_local("main");
         if (main_symbol == nullptr) {
             throw TypeCheckError("main function not declared");
         }
@@ -51,7 +51,7 @@ private:
     void post_visit(grammar::ast::FunctionCall &func_call) override {
         Symbol *sym = func_call.id.scope->find(func_call.id.id);
         // Symbol collection phase 2 checks that this sym is a FuncSymbol and not null
-        auto func_sym = static_cast<FuncSymbol *>(sym);
+        auto func_sym = dynamic_cast<FuncSymbol *>(sym);
         if (func_call.argument_list.arguments.size() != func_sym->parameters.size()) {
           throw TypeCheckError("Function call does not have the correct number of arguments",func_call);
         }
@@ -124,7 +124,6 @@ private:
     }
 
 
-    //<---- here
     void post_visit(grammar::ast::IdAccess &id_access) override {
         // check that the first |ids| - 1 are classes
         for (size_t i = 0; i < id_access.ids.size()-1; i++){
@@ -170,10 +169,9 @@ private:
     }
 
     template <typename T>
-    bool areAllInts(std::vector<T> vec) {
+    bool are_all_ints(std::vector<T> vec) {
         auto int_type = IntType();
-        int size = static_cast<int>(vec.size());
-        for (int i = 0; i < size; i++){
+        for (size_t i = 0; i < vec.size(); i++){
             auto type = pop(type_stack);
             if (type != int_type) {
                 return false;
@@ -182,42 +180,42 @@ private:
         return true;
     }
 
-    void post_visit(grammar::ast::ArrayType &arrayType) override {
+    void post_visit(grammar::ast::ArrayType &array_type) override {
         pop(type_stack);
     }
 
     void post_visit(grammar::ast::ArrayExp &exp) override {
-        if (!areAllInts(exp.sizes)) {
+        if (!are_all_ints(exp.sizes)) {
             throw TypeCheckError("Array size must be an int", exp);
         }
 
-        auto symbolType = convertType(grammar::ast::Type(exp.prim_type));
-        type_stack.push(ArraySymbolType{std::make_shared<SymbolType>(symbolType), static_cast<int>(exp.sizes.size())});
+        auto symbol_type = convert_type(grammar::ast::Type(exp.prim_type));
+        type_stack.push(ArraySymbolType{std::make_shared<SymbolType>(symbol_type), static_cast<int>(exp.sizes.size())});
     }
 
       
 
-    void post_visit(grammar::ast::ArrayIndex &arrayIndex) override {
-        if (arrayIndex.id_access.ids.back().sym == nullptr) {
-            throw TypeCheckError("symbol is empty in array index", arrayIndex);
+    void post_visit(grammar::ast::ArrayIndex &array_index) override {
+        if (array_index.id_access.ids.back().sym == nullptr) {
+            throw TypeCheckError("symbol is empty in array index", array_index);
         }
-        VarSymbol* sym = dynamic_cast<VarSymbol *>(arrayIndex.id_access.ids.back().sym);
+        VarSymbol* sym = dynamic_cast<VarSymbol *>(array_index.id_access.ids.back().sym);
         if (sym == nullptr) {
-            throw TypeCheckError("index was attempted on a non-variable", arrayIndex);
+            throw TypeCheckError("index was attempted on a non-variable", array_index);
         }
         
         if (auto *type = boost::get<ArraySymbolType>(&sym->type)) {
-            if (static_cast<int>(arrayIndex.indices.size()) != type->dimensions) {
-                throw TypeCheckError("Indicies does not match dimensions of array", arrayIndex);
+            if (static_cast<int>(array_index.indices.size()) != type->dimensions) {
+                throw TypeCheckError("Indicies does not match dimensions of array", array_index);
             }
 
-            if (!areAllInts(arrayIndex.indices)) {
-                throw TypeCheckError("Array index must be an int", arrayIndex);
+            if (!are_all_ints(array_index.indices)) {
+                throw TypeCheckError("Array index must be an int", array_index);
             }
 
-            type_stack.push(*type->elementType.get());
+            type_stack.push(*type->element_type.get());
         } else {
-            throw TypeCheckError("Index was attempted on an incompatible type", arrayIndex);
+            throw TypeCheckError("Index was attempted on an incompatible type", array_index);
         }          
     }
 
@@ -236,7 +234,7 @@ private:
         if (!has_func_returned) {
             throw TypeCheckError("Function " + func_decl.id.id + " does not always return", func_decl);
         }
-        func = func->sym_tab->parentScope->creator;
+        func = func->sym_tab->parent_scope->creator;
     }
 
     void post_visit(bool &val) override {
@@ -248,15 +246,15 @@ private:
     }
 
     void post_visit(grammar::ast::Rhs &rhs) override {
-        auto expType = pop(type_stack);
-        auto lhsType = pop(type_stack);
+        auto exp_type = pop(type_stack);
+        auto lhs_type = pop(type_stack);
         auto op = rhs.op;
 
-        if (expType != lhsType ) {
-            throw TypeCheckError("Type of lefthand side (" + lhsType.to_string()  + ") does not match type of righthand side (" + expType.to_string() + ")", rhs);
+        if (exp_type != lhs_type ) {
+            throw TypeCheckError("Type of lefthand side (" + lhs_type.to_string()  + ") does not match type of righthand side (" + exp_type.to_string() + ")", rhs);
         }
 
-        if (lhsType == BoolType()) {
+        if (lhs_type == BoolType()) {
           if (op != "&" && op != "|" && op != "==" && op != "!=") {
             throw TypeCheckError(op + " does not support bools", rhs);
           }
@@ -269,7 +267,7 @@ private:
         if (op == "==" || op == "!=" || op == "<"  || op == ">"  || op == "<=" || op == ">=") {
             type_stack.push(BoolType());
         } else {
-            type_stack.push(lhsType);
+            type_stack.push(lhs_type);
         }
     }
 
@@ -278,26 +276,26 @@ private:
             throw TypeCheckError("Object instantiation does not take arguments", inst);
         }
         
-        if (auto classSymbol = dynamic_cast<ClassSymbol *>(inst.id.sym)) {
-            type_stack.push(ClassSymbolType{classSymbol});
+        if (auto class_symbol = dynamic_cast<ClassSymbol *>(inst.id.sym)) {
+            type_stack.push(ClassSymbolType{class_symbol});
         } else {
             throw TypeCheckError("Has to be a class", inst);
         }
     }
 
     template<typename T>
-    T pop(std::stack<T>& myStack) {
-        if (myStack.empty()) {
+    T pop(std::stack<T>& my_stack) {
+        if (my_stack.empty()) {
             throw EmptyTypeStackError();
         }
-        T topElement = std::move(myStack.top()); 
-        myStack.pop();
-        return topElement;
+        T top_element = std::move(my_stack.top()); 
+        my_stack.pop();
+        return top_element;
     } 
 }; 
 
 
-void typeChecker(grammar::ast::Prog &prog, SymbolTable *global_scope) {
+void type_checker(grammar::ast::Prog &prog, SymbolTable *global_scope) {
     auto visitor = TypeChecker(global_scope);
     auto traveler = TreeTraveler(visitor);
     traveler(prog);
