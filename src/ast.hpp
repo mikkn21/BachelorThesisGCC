@@ -348,7 +348,7 @@ namespace grammar
         
 
         struct ArrayInitExp : LocationInfo {
-            PrimitiveType primType;
+            PrimitiveType prim_type;
             std::vector<Expression> sizes; 
             SymbolTable *scope = nullptr;
         public: 

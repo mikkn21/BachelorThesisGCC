@@ -104,8 +104,8 @@ namespace grammar
         }
 
         std::ostream& operator<<(std::ostream& os, const grammar::ast::ArrayInitExp &arrayExp) {
-            os << "new " << arrayExp.primType << '[';
-            printVec(os, arrayExp.sizes, ", ");
+            os << "new " << arrayExp.prim_type << '[';
+            print_vec(os, arrayExp.sizes, ", ");
             return os  << ']';
         }
 

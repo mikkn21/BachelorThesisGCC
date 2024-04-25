@@ -123,7 +123,7 @@ template <>
 void TreeTraveler::operator()(grammar::ast::BinopExps &binop) {
     visitor.pre_visit(binop);
     (*this)(binop.lhs);
-    visitor.preRhsVisit(binop);
+    visitor.pre_rhs_visit(binop);
     (*this)(binop.rhss);
     visitor.post_visit(binop);
 }
@@ -160,7 +160,7 @@ template <>
 void TreeTraveler::operator()(grammar::ast::FunctionCall &func_call) {
     visitor.pre_visit(func_call);
     (*this)(func_call.id);
-    visitor.preArgumentListVisit(func_call);
+    visitor.pre_argument_list_visit(func_call);
     (*this)(func_call.argument_list);
     visitor.post_visit(func_call);
 }
@@ -181,25 +181,25 @@ template <>
 void TreeTraveler::operator()(grammar::ast::ArrayType &array_type) {
     visitor.pre_visit(array_type);
     (*this)(array_type.type);
-    visitor.preIntVisit(array_type);
+    visitor.pre_int_visit(array_type);
     (*this)(array_type.dim);
     visitor.post_visit(array_type);
 }
 
 template <>
-void TreeTraveler::operator()(grammar::ast::ArrayInitExp &arrayExp) {
-    visitor.preVisit(arrayExp);
-    (*this)(arrayExp.primType);
-    visitor.preSizeVisit(arrayExp);
-    (*this)(arrayExp.sizes);
-    visitor.postVisit(arrayExp);
+void TreeTraveler::operator()(grammar::ast::ArrayInitExp &array_exp) {
+    visitor.pre_visit(array_exp);
+    (*this)(array_exp.prim_type);
+    visitor.pre_size_visit(array_exp);
+    (*this)(array_exp.sizes);
+    visitor.post_visit(array_exp);
 }
 
 template <>
 void TreeTraveler::operator()(grammar::ast::ArrayIndex &array_index) {
     visitor.pre_visit(array_index);
     (*this)(array_index.id_access);
-    visitor.preIndexVisit(array_index);
+    visitor.pre_index_visit(array_index);
     (*this)(array_index.indices);
     visitor.post_visit(array_index);
 }
@@ -208,16 +208,16 @@ template <>
 void TreeTraveler::operator()(grammar::ast::ArrayIndexAssign &array_index_assign) {
     visitor.pre_visit(array_index_assign);
     (*this)(array_index_assign.index);
-    visitor.preArrayIndexVisit(array_index_assign);
+    visitor.pre_array_index_visit(array_index_assign);
     (*this)(array_index_assign.exp);
     visitor.post_visit(array_index_assign);
 }
 
 template <>
-void TreeTraveler::operator()(grammar::ast::ArrayIndexExp &ArrayIndexExp) {
-    visitor.preVisit(ArrayIndexExp);
-    (*this)(ArrayIndexExp.index);
-    visitor.postVisit(ArrayIndexExp);
+void TreeTraveler::operator()(grammar::ast::ArrayIndexExp &array_index_exp) {
+    visitor.pre_visit(array_index_exp);
+    (*this)(array_index_exp.index);
+    visitor.post_visit(array_index_exp);
 }
 
 
@@ -259,7 +259,7 @@ void TreeTraveler::operator()(grammar::ast::ConditionalStatement &statement) {
     visitor.pre_visit(statement);
     (*this)(statement.if_statement);
     (*this)(statement.else_if);
-    visitor.preElseVisit(statement);
+    visitor.pre_else_visit(statement);
     (*this)(statement.conditional_else);
     visitor.post_visit(statement);
 }

@@ -56,8 +56,8 @@ string callee_restore() {
 /// @param size The size of the memory to allocate.
 /// @return The assembly code for allocating memory.
 
-string allocateMemoryImmediateValue(int size) {
-    string s = callerSave() + ""
+string allocate_memory_immediate_value(int size) {
+    string s = caller_save() + ""
     "\tmovq $" + std::to_string(size) + ", %rdi\n"
     "\tcall allocate\n"
     "" + caller_restore();
@@ -67,26 +67,26 @@ string allocateMemoryImmediateValue(int size) {
 /// @brief Allocates memory on the heap using a stack value.
 /// @param offset The offset of the memory to allocate.
 /// @return The assembly code for allocating memory.
-string allocateMemoryStackValue(long offset) {
-    string s = callerSave() + ""
+string allocate_memory_stack_value(long offset) {
+    string s = caller_save() + ""
     "\tmovq " + std::to_string(offset) + "(%rbp), %rdi\n"
     "\tcall allocate\n"
-    "" + callerRestore();
+    "" + caller_restore();
     return s;
 }
 
 /// @brief Allocates memory on the heap using a stack value.
 /// @param offset The offset of the memory to allocate.
 /// @return The assembly code for allocating memory.
-string allocateMemoryRegisterValue(Register reg) {
+string allocate_memory_register_value(Register reg) {
     std::stringstream st;
     st << "\tmovq " << reg << ", %rdi\n"
     << "\tcall allocate\n";
     return st.str();
 }
 
-string printImmediateValue(int number) {
-    string s = callerSave() + ""
+string print_immediate_value(int number) {
+    string s = caller_save() + ""
     "\tmovq $" + std::to_string(number) + ", %rdi\n"
     "\tcall printNum\n"
     "" + caller_restore();
@@ -109,15 +109,15 @@ string procedure(Instruction instruction) {
                     return print_immediate_value(get<ImmediateValue>(instruction.args[1].target).value);
                 } else if (holds_alternative<Register>(instruction.args[1].target)) {
 
-                    return printStackValue(get<IRL>(instruction.args[1].access_type).offset);
+                    return print_stack_value(get<IRL>(instruction.args[1].access_type).offset);
                 } else {
                     throw IRError("Not implemented yet");
                 }
             case Procedure::MEM_ALLOC:
                 if (holds_alternative<ImmediateValue>(instruction.args[1].target)) {
-                    return allocateMemoryImmediateValue(get<ImmediateValue>(instruction.args[1].target).value);
+                    return allocate_memory_immediate_value(get<ImmediateValue>(instruction.args[1].target).value);
                 } else if (holds_alternative<Register>(instruction.args[1].target)) {
-                    return allocateMemoryRegisterValue(get<Register>(instruction.args[1].target));
+                    return allocate_memory_register_value(get<Register>(instruction.args[1].target));
                 } else {
                     throw IRError("You done goofed.");
                 }

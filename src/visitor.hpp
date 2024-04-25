@@ -34,23 +34,23 @@ public:
     virtual void pre_visit(grammar::ast::IdAccess &id_access) {}
     virtual void post_visit(grammar::ast::IdAccess &id_access) {}
 
-    virtual void preVisit(grammar::ast::ArrayIndexExp &exp) {}
-    virtual void postVisit(grammar::ast::ArrayIndexExp &exp) {}
+    virtual void pre_visit(grammar::ast::ArrayIndexExp &exp) {}
+    virtual void post_visit(grammar::ast::ArrayIndexExp &exp) {}
 
     virtual void pre_visit(grammar::ast::ArrayType &type) {}
-    virtual void preIntVisit(grammar::ast::ArrayType &type) {} 
+    virtual void pre_int_visit(grammar::ast::ArrayType &type) {} 
     virtual void post_visit(grammar::ast::ArrayType &type) {}
 
     virtual void pre_visit(grammar::ast::ArrayIndexAssign &type) {}
-    virtual void preArrayIndexVisit(grammar::ast::ArrayIndexAssign &type) {} 
+    virtual void pre_array_index_visit(grammar::ast::ArrayIndexAssign &type) {} 
     virtual void post_visit(grammar::ast::ArrayIndexAssign &type) {}
 
     virtual void pre_visit(grammar::ast::ArrayInitExp &exp) {}
-    virtual void preSizeVisit(grammar::ast::ArrayInitExp &exp) {}
-    virtual void postVisit(grammar::ast::ArrayInitExp &exp) {}
+    virtual void pre_size_visit(grammar::ast::ArrayInitExp &exp) {}
+    virtual void post_visit(grammar::ast::ArrayInitExp &exp) {}
  
     virtual void pre_visit(grammar::ast::ArrayIndex &array_index) {}
-    virtual void preIndexVisit(grammar::ast::ArrayIndex &array_index) {}
+    virtual void pre_index_visit(grammar::ast::ArrayIndex &array_index) {}
     virtual void post_visit(grammar::ast::ArrayIndex &array_index) {}
 
     virtual void pre_visit(int &value) { }
@@ -60,7 +60,7 @@ public:
     virtual void post_visit(bool &value) { }
 
     virtual void pre_visit(grammar::ast::BinopExps &exp) { }
-    virtual void preRhsVisit(grammar::ast::BinopExps &exp) { }
+    virtual void pre_rhs_visit(grammar::ast::BinopExps &exp) { }
     virtual void post_visit(grammar::ast::BinopExps &exp) { }
 
     virtual void pre_visit(grammar::ast::Rhs &rhs) { }
@@ -76,7 +76,7 @@ public:
     virtual void post_visit(grammar::ast::VarExpression &exp) { }
 
     virtual void pre_visit(grammar::ast::FunctionCall &func_call) { }
-    virtual void preArgumentListVisit(grammar::ast::FunctionCall &func_call) { }
+    virtual void pre_argument_list_visit(grammar::ast::FunctionCall &func_call) { }
     virtual void post_visit(grammar::ast::FunctionCall &func_call) { }
 
     virtual void pre_visit(grammar::ast::ArgumentList &exp) { }
@@ -110,7 +110,7 @@ public:
     virtual void post_visit(grammar::ast::ElseStatement &else_statement) { }
 
     virtual void pre_visit(grammar::ast::ConditionalStatement &conditional) { }
-    virtual void preElseVisit(grammar::ast::ConditionalStatement &conditional) { }
+    virtual void pre_else_visit(grammar::ast::ConditionalStatement &conditional) { }
     virtual void post_visit(grammar::ast::ConditionalStatement &conditional) { }
 
     virtual void pre_visit(grammar::ast::Parameter &parameter) { }

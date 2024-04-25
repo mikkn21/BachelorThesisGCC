@@ -160,7 +160,7 @@ BOOST_FUSION_ADAPT_STRUCT(
 
 BOOST_FUSION_ADAPT_STRUCT(
     grammar::ast::ArrayInitExp,
-    (grammar::ast::PrimitiveType, primType),
+    (grammar::ast::PrimitiveType, prim_type),
     (std::vector<grammar::ast::Expression>, sizes)
 )
 
