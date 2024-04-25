@@ -94,9 +94,9 @@ public:
 
     SymbolTable *parent_scope = nullptr;
 
-    int depth;
-    int register_counter = 0;
-    int parameter_counter = 0;
+    int depth; // TODO, should this not be size_t?
+    int register_counter = 0; // TODO, should this not be size_t?
+    int parameter_counter = 0; // TODO, should this not be size_t?
 
     FuncSymbol *creator = nullptr;
 

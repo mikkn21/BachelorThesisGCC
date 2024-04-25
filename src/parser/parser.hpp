@@ -24,7 +24,7 @@ namespace grammar {
         using CompilerError::CompilerError;
     };
     
-    bool isReserved(const std::string &keyword);
+    bool is_reserved(const std::string &keyword);
         
     } // namespace parser 
 

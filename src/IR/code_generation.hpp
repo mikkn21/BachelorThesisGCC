@@ -57,12 +57,12 @@ private:
     std::vector<std::string> function_container;
     std::stack<AstValue> temp_storage;
 
-    void pushPrintFunction();
-    void pushMemAllocFunction();
-    void pushStandardFunctions();
+    void push_print_function(); 
+    void push_mem_alloc_function();
+    void push_standard_functions();
 
     int new_register();
-    //void binopInstructions(std::string op, GenericRegister result);
+    //void binop_instructions(std::string op, GenericRegister result);
 
     template<typename T>
     T pop(std::stack<T>& myStack);
