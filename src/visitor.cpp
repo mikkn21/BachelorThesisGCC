@@ -187,12 +187,12 @@ void TreeTraveler::operator()(grammar::ast::ArrayType &array_type) {
 }
 
 template <>
-void TreeTraveler::operator()(grammar::ast::ArrayExp &array_exp) {
-    visitor.pre_visit(array_exp);
-    (*this)(array_exp.prim_type);
-    visitor.preSizeVisit(array_exp);
-    (*this)(array_exp.sizes);
-    visitor.post_visit(array_exp);
+void TreeTraveler::operator()(grammar::ast::ArrayInitExp &arrayExp) {
+    visitor.preVisit(arrayExp);
+    (*this)(arrayExp.primType);
+    visitor.preSizeVisit(arrayExp);
+    (*this)(arrayExp.sizes);
+    visitor.postVisit(arrayExp);
 }
 
 template <>
@@ -212,6 +212,14 @@ void TreeTraveler::operator()(grammar::ast::ArrayIndexAssign &array_index_assign
     (*this)(array_index_assign.exp);
     visitor.post_visit(array_index_assign);
 }
+
+template <>
+void TreeTraveler::operator()(grammar::ast::ArrayIndexExp &ArrayIndexExp) {
+    visitor.preVisit(ArrayIndexExp);
+    (*this)(ArrayIndexExp.index);
+    visitor.postVisit(ArrayIndexExp);
+}
+
 
 // Statements
 template <>

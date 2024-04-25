@@ -27,14 +27,15 @@ public:
     virtual void pre_id_visit(grammar::ast::ClassDecl &class_decl) {} 
     virtual void post_visit(grammar::ast::ClassDecl &class_decl) {}
 
-    virtual void pre_visit(grammar::ast::ObjInst &obj_inst) {}
-    virtual void pre_id_visit(grammar::ast::ObjInst &obj_inst) {} 
-    virtual void post_visit(grammar::ast::ObjInst &obj_inst) {}
-
+    virtual void pre_visit(grammar::ast::ObjInst &objInst) {}
+    virtual void pre_id_visit(grammar::ast::ObjInst &objInst) {} 
+    virtual void post_visit(grammar::ast::ObjInst &objInst) {}
     
     virtual void pre_visit(grammar::ast::IdAccess &id_access) {}
     virtual void post_visit(grammar::ast::IdAccess &id_access) {}
 
+    virtual void preVisit(grammar::ast::ArrayIndexExp &exp) {}
+    virtual void postVisit(grammar::ast::ArrayIndexExp &exp) {}
 
     virtual void pre_visit(grammar::ast::ArrayType &type) {}
     virtual void preIntVisit(grammar::ast::ArrayType &type) {} 
@@ -44,9 +45,9 @@ public:
     virtual void preArrayIndexVisit(grammar::ast::ArrayIndexAssign &type) {} 
     virtual void post_visit(grammar::ast::ArrayIndexAssign &type) {}
 
-    virtual void pre_visit(grammar::ast::ArrayExp &exp) {}
-    virtual void preSizeVisit(grammar::ast::ArrayExp &exp) {}
-    virtual void post_visit(grammar::ast::ArrayExp &exp) {}
+    virtual void pre_visit(grammar::ast::ArrayInitExp &exp) {}
+    virtual void preSizeVisit(grammar::ast::ArrayInitExp &exp) {}
+    virtual void postVisit(grammar::ast::ArrayInitExp &exp) {}
  
     virtual void pre_visit(grammar::ast::ArrayIndex &array_index) {}
     virtual void preIndexVisit(grammar::ast::ArrayIndex &array_index) {}

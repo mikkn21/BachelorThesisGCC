@@ -103,12 +103,15 @@ namespace grammar
             return os << array_type.type << "[" << array_type.dim << "]"; 
         }
 
-        std::ostream& operator<<(std::ostream& os, const grammar::ast::ArrayExp &array_exp) {
-            os << "new " << array_exp.prim_type << '[';
-            print_vec(os, array_exp.sizes, ", ");
+        std::ostream& operator<<(std::ostream& os, const grammar::ast::ArrayInitExp &arrayExp) {
+            os << "new " << arrayExp.primType << '[';
+            printVec(os, arrayExp.sizes, ", ");
             return os  << ']';
         }
 
+        std::ostream& operator<<(std::ostream& os, const ArrayIndexExp &exp) {
+            return os << exp.index;
+        }
 
         std::ostream& operator<<(std::ostream& os, const IfStatement &exp) {
             return os << "if " << exp.exp << " " << exp.block;
