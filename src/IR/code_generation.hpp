@@ -21,55 +21,57 @@ public:
 class IRVisitor : public Visitor {
 public:
     FunctionOrderManager code;
-    SymbolTable* globalScope;
+
+    SymbolTable* global_scope;
     std::stack<grammar::ast::WhileStatement*> while_stack;
 
-    IRVisitor(SymbolTable* globalScope);
+    IRVisitor(SymbolTable* global_scope);
 
-    void postVisit(grammar::ast::FuncDecl &func_decl) override;
-    void preVisit(grammar::ast::FuncDecl &func_decl) override;
+    void post_visit(grammar::ast::FuncDecl &func_decl) override;
+    void pre_visit(grammar::ast::FuncDecl &func_decl) override;
 
-    void postVisit(grammar::ast::VarDeclAssign &var_decl_assign) override;
-    void postVisit(grammar::ast::VarAssign &varAssign) override;
-    void preVisit(int &i) override;
-    void preVisit(bool &b) override;
-    void postVisit(grammar::ast::PrintStatement &print) override;
-    void postVisit(grammar::ast::VarExpression &var_expr) override;
-    void postVisit(grammar::ast::Rhs &op_exp) override;
-    void postVisit(grammar::ast::FunctionCall &func_call) override;
-    void postVisit(grammar::ast::ReturnStatement &return_statement) override;
-    void preVisit(grammar::ast::IfStatement &if_statement) override;
-    void preBlockVisit(grammar::ast::IfStatement &if_statement) override;
-    void postVisit(grammar::ast::IfStatement &ifStatement) override;
-    void preVisit(grammar::ast::ElseStatement &else_statement) override;
-    void postVisit(grammar::ast::ConditionalStatement &conditional_statement) override;
-    void postVisit(grammar::ast::Prog &prog) override;
-    void preVisit(grammar::ast::Prog &prog) override;
-    void preVisit(grammar::ast::WhileStatement &while_statement) override;
-    void postVisit(grammar::ast::WhileStatement &while_statement) override; 
-    void preBlockVisit(grammar::ast::WhileStatement &while_statement) override; 
-    void postVisit(grammar::ast::BreakStatement &breakStatement) override;
-    void postVisit(grammar::ast::ContinueStatement &continueStatement) override;
+    void post_visit(grammar::ast::VarDeclAssign &var_decl_assign) override;
+    void post_visit(grammar::ast::VarAssign &varAssign) override;
+    void pre_visit(int &i) override;
+    void pre_visit(bool &b) override;
+    void post_visit(grammar::ast::PrintStatement &print) override;
+    void post_visit(grammar::ast::VarExpression &var_expr) override;
+    void post_visit(grammar::ast::Rhs &op_exp) override;
+    void post_visit(grammar::ast::FunctionCall &func_call) override;
+    void post_visit(grammar::ast::ReturnStatement &return_statement) override;
+    void pre_visit(grammar::ast::IfStatement &if_statement) override;
+    void pre_block_visit(grammar::ast::IfStatement &if_statement) override;
+    void post_visit(grammar::ast::IfStatement &if_statement) override;
+    void pre_visit(grammar::ast::ElseStatement &else_statement) override;
+    void post_visit(grammar::ast::ConditionalStatement &conditional_statement) override;
+    void post_visit(grammar::ast::Prog &prog) override;
+    void pre_visit(grammar::ast::Prog &prog) override;
+    void pre_visit(grammar::ast::WhileStatement &while_statement) override;
+    void post_visit(grammar::ast::WhileStatement &while_statement) override; 
+    void pre_block_visit(grammar::ast::WhileStatement &while_statement) override; 
+    void post_visit(grammar::ast::BreakStatement &breakStatement) override;
+    void post_visit(grammar::ast::ContinueStatement &continueStatement) override;
 
-    void postVisit(grammar::ast::ArrayInitExp &arr) override;
-    void postVisit(grammar::ast::ArrayIndex &index) override;
-    void postVisit(grammar::ast::ArrayIndexExp &index) override;
-    void postVisit(grammar::ast::ArrayIndexAssign &assign) override;
+
+    void post_visit(grammar::ast::ArrayInitExp &arr) override;
+    void post_visit(grammar::ast::ArrayIndex &index) override;
+    void post_visit(grammar::ast::ArrayIndexExp &index) override;
+    void post_visit(grammar::ast::ArrayIndexAssign &assign) override;
 
 private:
     std::vector<std::string> function_container;
     std::stack<AstValue> temp_storage;
 
-    void pushPrintFunction();
-    void pushMemAllocFunction();
-    void pushStandardFunctions();
+    void push_print_function(); 
+    void push_mem_alloc_function();
+    void push_standard_functions();
 
     int new_register();
-    //void binopInstructions(std::string op, GenericRegister result);
+    //void binop_instructions(std::string op, GenericRegister result);
 
     template<typename T>
     T pop(std::stack<T>& myStack);
 };
 
 
-IR intermediate_code_generation(grammar::ast::Prog &prog, SymbolTable* globalScope);
+IR intermediate_code_generation(grammar::ast::Prog &prog, SymbolTable* global_scope);

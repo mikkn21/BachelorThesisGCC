@@ -18,15 +18,15 @@ template<typename Compiler>
 void test_parse(std::string input, TestingOutcome testing_outcome, Compiler compiler) {
     std::cout << "\n----------------------" << std::endl;
     grammar::compiler::CompilerOptions options = grammar::compiler::CompilerOptions();
-    options.stopAfter = grammar::compiler::StopAfterParser;
-    options.printAst = true;
-    options.printInput = true;
+    options.stop_after = grammar::compiler::StopAfterParser;
+    options.print_ast = true;
+    options.print_input = true;
 
     grammar::ast::Prog ast1;
     try {
         ast1 = compiler(input, options)->ast; 
-        if (compiler == grammar::compiler::compileFromFile) {
-            input = grammar::compiler::getFileContent(input);
+        if (compiler == grammar::compiler::compile_from_file) {
+            input = grammar::compiler::get_file_content(input);
         }
     } catch (const grammar::parser::SyntaxError &e) {   
         std::ostringstream temp;
@@ -52,7 +52,7 @@ void test_parse(std::string input, TestingOutcome testing_outcome, Compiler comp
 
     grammar::ast::Prog ast2;
     try {
-        ast2 = grammar::compiler::compileFromString(ast1_string, options)->ast; 
+        ast2 = grammar::compiler::compile_from_string(ast1_string, options)->ast; 
     } catch (const grammar::parser::SyntaxError &e) {   
         std::ostringstream temp;
         temp << ast2;
@@ -96,11 +96,11 @@ void test_parse(std::string input, TestingOutcome testing_outcome, Compiler comp
 }
 
 void test_parse_file(std::string input, TestingOutcome testing_outcome) {
-    test_parse(input, testing_outcome, grammar::compiler::compileFromFile);
+    test_parse(input, testing_outcome, grammar::compiler::compile_from_file);
 }
 
 void test_parse_string(std::string input, TestingOutcome testing_outcome) {
-    test_parse(input, testing_outcome, grammar::compiler::compileFromString);
+    test_parse(input, testing_outcome, grammar::compiler::compile_from_string);
 }
 
 

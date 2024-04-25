@@ -30,7 +30,7 @@ BOOST_FUSION_ADAPT_STRUCT(
 
 BOOST_FUSION_ADAPT_STRUCT(
     grammar::ast::VarExpression,
-    (grammar::ast::IdAccess, idAccess)
+    (grammar::ast::IdAccess, id_access)
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
@@ -48,10 +48,10 @@ BOOST_FUSION_ADAPT_STRUCT(
 
 BOOST_FUSION_ADAPT_STRUCT(
     grammar::ast::ConditionalStatement,
-    (grammar::ast::IfStatement, ifStatement),
-    (std::vector<grammar::ast::IfStatement>, elseIfs), 
-    (boost::optional<grammar::ast::ElseStatement>, conditionalElse)
-    // (x3::variant<ElseStatement, x3::unused_type>, conditionalElse)
+    (grammar::ast::IfStatement, if_statement),
+    (std::vector<grammar::ast::IfStatement>, else_if), 
+    (boost::optional<grammar::ast::ElseStatement>, conditional_else)
+    // (x3::variant<ElseStatement, x3::unused_type>, conditional_else)
 )
 
 
@@ -126,7 +126,7 @@ BOOST_FUSION_ADAPT_STRUCT(
 BOOST_FUSION_ADAPT_STRUCT(
     grammar::ast::ArrayType,
     (grammar::ast::PrimitiveType, type),
-    (int, dim)
+    (int, dim) // er det her forkert? burde det være en int?
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
@@ -172,13 +172,13 @@ BOOST_FUSION_ADAPT_STRUCT(
 
 BOOST_FUSION_ADAPT_STRUCT(
     grammar::ast::ArrayIndex,
-    (grammar::ast::IdAccess, idAccess),
+    (grammar::ast::IdAccess, id_access),
     (std::vector<grammar::ast::Expression>, indices)
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
     grammar::ast::VarAssign,
-    (grammar::ast::IdAccess, idAccess),
+    (grammar::ast::IdAccess, id_access),
     (grammar::ast::Expression, exp)
 )
 

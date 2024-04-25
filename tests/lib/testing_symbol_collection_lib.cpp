@@ -22,9 +22,9 @@ template<typename Compiler>
 void testSymbolCollection(std::string input, TestingOutcome testing_outcome, Compiler compiler) {
     std::cout << "\n----------------------" << std::endl;
     grammar::compiler::CompilerOptions options = grammar::compiler::CompilerOptions();
-    options.stopAfter = grammar::compiler::StopAfterSymbolCollection;
-    options.printAst = false;
-    options.printInput = true;
+    options.stop_after = grammar::compiler::StopAfterSymbolCollection;
+    options.print_ast = false;
+    options.print_input = true;
 
     grammar::ast::Prog ast1;
     try {
@@ -45,11 +45,11 @@ void testSymbolCollection(std::string input, TestingOutcome testing_outcome, Com
 }
 
 void testSymbolCollectionFile(std::string input, TestingOutcome testing_outcome) {
-    testSymbolCollection(input, testing_outcome, grammar::compiler::compileFromFile);
+    testSymbolCollection(input, testing_outcome, grammar::compiler::compile_from_file);
 }
 
 void testSymbolCollectionString(std::string input, TestingOutcome testing_outcome) {
-    testSymbolCollection(input, testing_outcome, grammar::compiler::compileFromString);
+    testSymbolCollection(input, testing_outcome, grammar::compiler::compile_from_string);
 }
 
 

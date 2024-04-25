@@ -4,7 +4,7 @@
 #include "emit.hpp"
 
 
-string callerSave(){
+string caller_save(){
     return R"(    pushq %rax
     pushq %rcx
     pushq %rdx
@@ -18,7 +18,7 @@ string callerSave(){
 )";
 }
 
-string callerRestore(){
+string caller_restore(){
     return R"(    popq %rsp
     popq %r11
     popq %r10
@@ -34,7 +34,7 @@ string callerRestore(){
 
 
 
-string calleeSave() {
+string callee_save() {
     return R"(    pushq %rbx
     pushq %r12
     pushq %r13
@@ -43,7 +43,7 @@ string calleeSave() {
 )";
 }
 
-string calleeRestore() {
+string callee_restore() {
     return R"(    popq %r15
     popq %r14
     popq %r13
@@ -55,11 +55,12 @@ string calleeRestore() {
 /// @brief Allocates memory on the heap using an immediate value.
 /// @param size The size of the memory to allocate.
 /// @return The assembly code for allocating memory.
+
 string allocateMemoryImmediateValue(int size) {
     string s = callerSave() + ""
     "\tmovq $" + std::to_string(size) + ", %rdi\n"
     "\tcall allocate\n"
-    "" + callerRestore();
+    "" + caller_restore();
     return s;
 }
 
@@ -88,15 +89,15 @@ string printImmediateValue(int number) {
     string s = callerSave() + ""
     "\tmovq $" + std::to_string(number) + ", %rdi\n"
     "\tcall printNum\n"
-    "" + callerRestore();
+    "" + caller_restore();
     return s;
 }
 
-string printStackValue(long offset) {
-    string s = callerSave() + ""
+string print_stack_value(long offset) {
+    string s = caller_save() + ""
     "\tmovq " + std::to_string(offset) + "(%rbp), %rdi\n"
     "\tcall printNum\n"
-    "" + callerRestore();
+    "" + caller_restore();
     return s;
 }
 
@@ -105,8 +106,9 @@ string procedure(Instruction instruction) {
         switch (get<Procedure>(instruction.args[0].target)) {
             case Procedure::PRINT:
                 if (holds_alternative<ImmediateValue>(instruction.args[1].target)) {
-                    return printImmediateValue(get<ImmediateValue>(instruction.args[1].target).value);
+                    return print_immediate_value(get<ImmediateValue>(instruction.args[1].target).value);
                 } else if (holds_alternative<Register>(instruction.args[1].target)) {
+
                     return printStackValue(get<IRL>(instruction.args[1].access_type).offset);
                 } else {
                     throw IRError("Not implemented yet");
@@ -120,13 +122,13 @@ string procedure(Instruction instruction) {
                     throw IRError("You done goofed.");
                 }
             case Procedure::CALLER_SAVE:
-                return callerSave();
+                return caller_save();
             case Procedure::CALLER_RESTORE:
-                return callerRestore();
+                return caller_restore();
             case Procedure::CALLEE_SAVE:
-                return calleeSave();
+                return callee_save();
             case Procedure::CALLEE_RESTORE:
-                return calleeRestore();
+                return callee_restore();
             default:
                 throw IRError("Not implemented yet");
         }
@@ -137,37 +139,37 @@ string procedure(Instruction instruction) {
 
 void emit_to_file(IR ir) {
 
-    ofstream outputFile("chad.s");
-    if (outputFile.is_open()) {
-        outputFile << ".data\n";
-        outputFile << "newline: .ascii \"\\n\"\n\n";
-        outputFile << ".text\n";
-        outputFile << ".globl _start\n";
-        outputFile << "\n_start:\n";
-        //outputFile << "\tpushq %rbp\n";
-        // outputFile << "\tcall main\n";
-        // outputFile << "\tmovq $60, %rax\n";
-        // outputFile << "\txorq %rdi, %rdi\n";
-        // outputFile << "\tsyscall\n";
+    ofstream output_file("chad.s");
+    if (output_file.is_open()) {
+        output_file << ".data\n";
+        output_file << "newline: .ascii \"\\n\"\n\n";
+        output_file << ".text\n";
+        output_file << ".globl _start\n";
+        output_file << "\n_start:\n";
+        //output_file << "\tpushq %rbp\n";
+        // output_file << "\tcall main\n";
+        // output_file << "\tmovq $60, %rax\n";
+        // output_file << "\txorq %rdi, %rdi\n";
+        // output_file << "\tsyscall\n";
         for (const Instruction& instruction : ir) {
             // cout << instruction.operation << endl;
             switch (instruction.operation) {
                 case Op::PROCEDURE:
-                    outputFile << procedure(instruction);
+                    output_file << procedure(instruction);
                     break;
                 case Op::LABEL:
-                    outputFile << "\n" << instruction << ":\n";
+                    output_file << "\n" << instruction << ":\n";
                     break;
                 case Op::NOTHING:
-                    outputFile << instruction << "\n";
+                    output_file << instruction << "\n";
                     break;
                 default: 
-                    outputFile << "\t" << instruction << "\n";
+                    output_file << "\t" << instruction << "\n";
             }
         }
 
-        outputFile << endl;
-        outputFile.close();
+        output_file << endl;
+        output_file.close();
     } else {
         throw EmitError("Could not open/create output file");
     }

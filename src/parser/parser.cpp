@@ -30,14 +30,14 @@ namespace grammar {
         namespace x3 = boost::spirit::x3;
     
         namespace {
-            constexpr int SpacesPerTabs = 4;   
+            constexpr int space_per_tabs = 4;   
         } // namespace
 
         struct LocationHandler {
 	    template<typename Iterator, typename Context>
-	    void on_success(const Iterator &first, const Iterator &last, ast::LocationInfo &locInfo, const Context &) {
-		    locInfo.line = get_line(first);
-		    locInfo.column = get_column(first, last, SpacesPerTabs);
+	    void on_success(const Iterator &first, const Iterator &last, ast::LocationInfo &loc_info, const Context &) {
+		    loc_info.line = get_line(first);
+		    loc_info.column = get_column(first, last, space_per_tabs);
 	       }
         };
 
@@ -111,8 +111,8 @@ namespace grammar {
         #undef RULE
 
        
-        struct reservedkeywords : x3::symbols<std::string> {
-            reservedkeywords() {
+        struct reserved_keywords : x3::symbols<std::string> {
+            reserved_keywords() {
                 add("if", "if")
                     ("else", "else")
                     ("while", "while")
@@ -126,7 +126,7 @@ namespace grammar {
                     ("new", "new")
                     ("print", "print"); 
             }
-        } reservedkeywordsInstance; 
+        } reserved_keywords_instance; 
 
         
         // highest to lowset precedence
@@ -137,7 +137,7 @@ namespace grammar {
         const auto logical_and_op = x3::string("&");
         const auto logical_or_op = x3::string("|");
 
-        auto optionalParExp(std::string s) {
+        auto optional_par_exp(std::string s) {
             return (x3::lit(s + " ") > expression) | (x3::lit(s) > expression_par);
         }
 
@@ -145,7 +145,7 @@ namespace grammar {
         // Useable
         const auto primitive_type_def = x3::string("int") | x3::string("bool");
         const auto type_def = array_type | primitive_type | class_type;
-        const auto id_def = x3::raw[ x3::lexeme[( x3::char_("a-zA-Z_") >> * boost::spirit::x3::char_("a-zA-Z_0-9"))]] - (reservedkeywordsInstance >> ! x3::alnum) ;
+        const auto id_def = x3::raw[ x3::lexeme[( x3::char_("a-zA-Z_") >> * boost::spirit::x3::char_("a-zA-Z_0-9"))]] - (reserved_keywords_instance >> ! x3::alnum) ;
         const auto parameter_def = var_decl; 
         const auto parameter_list_def = -(parameter % ',');
  
@@ -173,17 +173,17 @@ namespace grammar {
         const auto var_expression_def = id_access;
         
         const auto var_assign_def = (id_access >> '=' >> expression) > ";";
-        const auto while_statement_def = optionalParExp("while") > block;
+        const auto while_statement_def = optional_par_exp("while") > block;
 
         const auto print_statement_def = x3::lit("print") > '(' > expression > ')' > ';';
-        const auto return_statement_def = optionalParExp("return") > ';';
+        const auto return_statement_def = optional_par_exp("return") > ';';
         const auto block_line_def = statement | decl;
         const auto block_def = '{' > *block_line > '}';
 
         const auto else_if = x3::lit("else ") >> if_statement;
         const auto conditional_statement_def = if_statement > *(else_if) > -else_statement;
                 
-        const auto if_statement_def = optionalParExp("if") > block;
+        const auto if_statement_def = optional_par_exp("if") > block;
         const auto else_statement_def = x3::lit("else") > block;
 
         const auto func_decl_def = type >> id >> ('(' > parameter_list > ')' > block);
@@ -275,13 +275,13 @@ namespace grammar {
             using PosIter = boost::spirit::line_pos_iterator<std::string_view::const_iterator>;
             PosIter iter(src.begin());
 
-            const auto makeError = [&]() {
-                const auto lineNumber = iter.position();
-                const auto lineRange = get_current_line(PosIter(src.begin()), iter, PosIter(src.end()));
-                const auto column = get_column(lineRange.begin(), iter, SpacesPerTabs);
-                std::string msg = "Parsing failed at " + std::to_string(lineNumber) + ":" + std::to_string(column) + ":\n";
-                for(const char c : lineRange) {
-                    if(c == '\t') msg += std::string(SpacesPerTabs, ' ');
+            const auto make_error = [&]() {
+                const auto line_number = iter.position();
+                const auto line_range = get_current_line(PosIter(src.begin()), iter, PosIter(src.end()));
+                const auto column = get_column(line_range.begin(), iter, space_per_tabs);
+                std::string msg = "Parsing failed at " + std::to_string(line_number) + ":" + std::to_string(column) + ":\n";
+                for(const char c : line_range) {
+                    if(c == '\t') msg += std::string(space_per_tabs, ' ');
                     else msg += c;
                 }
                 msg += "\n";
@@ -294,13 +294,13 @@ namespace grammar {
                 bool r = phrase_parse(iter,  PosIter(src.end()), prog, x3::space, ast);
 
                 if(!r || iter !=  PosIter(src.end())) {
-                    throw SyntaxError(makeError() + "\nEnd of x3 error.");
+                    throw SyntaxError(make_error() + "\nEnd of x3 error.");
                 }
                 return ast;
 
             } catch (const x3::expectation_failure<PosIter> &e) {
 	            iter = e.where();
-		        throw SyntaxError(makeError()
+		        throw SyntaxError(make_error()
 		            + "\nExpected " + e.which() + ".\n"
 		            + "End of x3 error.");
             }

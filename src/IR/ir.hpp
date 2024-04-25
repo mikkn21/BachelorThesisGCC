@@ -15,14 +15,14 @@ enum class Op {
 struct DIR {};
 struct IND {};
 struct IRL {
-    long offset;
-    IRL(long offset);
+    size_t offset;
+    IRL(size_t offset);
 };
 
 using MemAccessType = std::variant<DIR, IND, IRL>;
 
 struct ImmediateValue {
-    int value;
+    int value; // TODO: what size should this be?
     ImmediateValue(int value);
 };
 
@@ -32,7 +32,7 @@ struct ImmediateData {
 };
 
 struct GenericRegister {
-    long local_id;
+    long local_id; // TODO: should this not be a long long?
     GenericRegister(long local_id);
 };
 

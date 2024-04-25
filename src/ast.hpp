@@ -62,7 +62,7 @@ namespace grammar
         };
 
         struct VarExpression : LocationInfo {
-            IdAccess idAccess;
+            IdAccess id_access;
         public:
             friend std::ostream& operator<<(std::ostream& os, const VarExpression &exp);
         };
@@ -95,7 +95,7 @@ namespace grammar
         };
 
         struct ArrayIndex : LocationInfo {
-            IdAccess idAccess;
+            IdAccess id_access;
             std::vector<Expression> indices; 
         public: 
             friend std::ostream& operator<<(std::ostream& os, const ArrayIndex &exp);
@@ -142,7 +142,7 @@ namespace grammar
         };
 
         struct VarAssign : LocationInfo {
-            IdAccess idAccess; 
+            IdAccess id_access; 
             Expression exp;
         public:
             friend std::ostream& operator<<(std::ostream& os, const VarAssign &exp);
@@ -202,8 +202,8 @@ namespace grammar
             Expression exp;
             Block block;
             std::string label;
-            std::string nextLabel;
-            std::string endIfLabel;
+            std::string next_label;
+            std::string end_if_label;
         public:
             friend std::ostream& operator<<(std::ostream& os, const IfStatement &exp);
         };
@@ -216,10 +216,10 @@ namespace grammar
         };
 
         struct ConditionalStatement : public LocationInfo {
-            IfStatement ifStatement;
-            std::vector<IfStatement> elseIfs; 
-            boost::optional<ElseStatement> conditionalElse;
-            std::string endIfLabel;
+            IfStatement if_statement;
+            std::vector<IfStatement> else_if; 
+            boost::optional<ElseStatement> conditional_else;
+            std::string end_if_label;
         public:
             friend std::ostream& operator<<(std::ostream& os, const ConditionalStatement &exp);
         };

@@ -11,139 +11,139 @@ class Visitor {
 public: 
     Visitor() { }
 
-    virtual void preVisit(grammar::ast::Prog &prog) { }
-    virtual void postVisit(grammar::ast::Prog &prog) { }
+    virtual void pre_visit(grammar::ast::Prog &prog) { }
+    virtual void post_visit(grammar::ast::Prog &prog) { }
 
-    virtual void preVisit(grammar::ast::PrimitiveType &type) { }
-    virtual void postVisit(grammar::ast::PrimitiveType &type) { }
+    virtual void pre_visit(grammar::ast::PrimitiveType &type) { }
+    virtual void post_visit(grammar::ast::PrimitiveType &type) { }
 
-    virtual void preVisit(grammar::ast::Type &type) { }
-    virtual void postVisit(grammar::ast::Type &type) { }
+    virtual void pre_visit(grammar::ast::Type &type) { }
+    virtual void post_visit(grammar::ast::Type &type) { }
 
-    virtual void preVisit(grammar::ast::ClassType &type) { }
-    virtual void postVisit(grammar::ast::ClassType &type) { }
+    virtual void pre_visit(grammar::ast::ClassType &type) { }
+    virtual void post_visit(grammar::ast::ClassType &type) { }
 
-    virtual void preVisit(grammar::ast::ClassDecl &classDecl) {}
-    virtual void preIdVisit(grammar::ast::ClassDecl &classDecl) {} 
-    virtual void postVisit(grammar::ast::ClassDecl &classDecl) {}
+    virtual void pre_visit(grammar::ast::ClassDecl &class_decl) {}
+    virtual void pre_id_visit(grammar::ast::ClassDecl &class_decl) {} 
+    virtual void post_visit(grammar::ast::ClassDecl &class_decl) {}
 
-    virtual void preVisit(grammar::ast::ObjInst &objInst) {}
-    virtual void preIdVisit(grammar::ast::ObjInst &objInst) {} 
-    virtual void postVisit(grammar::ast::ObjInst &objInst) {}
+    virtual void pre_visit(grammar::ast::ObjInst &objInst) {}
+    virtual void pre_id_visit(grammar::ast::ObjInst &objInst) {} 
+    virtual void post_visit(grammar::ast::ObjInst &objInst) {}
     
-    virtual void preVisit(grammar::ast::IdAccess &idAccess) {}
-    virtual void postVisit(grammar::ast::IdAccess &idAccess) {}
+    virtual void pre_visit(grammar::ast::IdAccess &id_access) {}
+    virtual void post_visit(grammar::ast::IdAccess &id_access) {}
 
     virtual void preVisit(grammar::ast::ArrayIndexExp &exp) {}
     virtual void postVisit(grammar::ast::ArrayIndexExp &exp) {}
 
-    virtual void preVisit(grammar::ast::ArrayType &type) {}
+    virtual void pre_visit(grammar::ast::ArrayType &type) {}
     virtual void preIntVisit(grammar::ast::ArrayType &type) {} 
-    virtual void postVisit(grammar::ast::ArrayType &type) {}
+    virtual void post_visit(grammar::ast::ArrayType &type) {}
 
-    virtual void preVisit(grammar::ast::ArrayIndexAssign &type) {}
+    virtual void pre_visit(grammar::ast::ArrayIndexAssign &type) {}
     virtual void preArrayIndexVisit(grammar::ast::ArrayIndexAssign &type) {} 
-    virtual void postVisit(grammar::ast::ArrayIndexAssign &type) {}
+    virtual void post_visit(grammar::ast::ArrayIndexAssign &type) {}
 
-    virtual void preVisit(grammar::ast::ArrayInitExp &exp) {}
+    virtual void pre_visit(grammar::ast::ArrayInitExp &exp) {}
     virtual void preSizeVisit(grammar::ast::ArrayInitExp &exp) {}
     virtual void postVisit(grammar::ast::ArrayInitExp &exp) {}
  
-    virtual void preVisit(grammar::ast::ArrayIndex &arrayIndex) {}
-    virtual void preIndexVisit(grammar::ast::ArrayIndex &arrayIndex) {}
-    virtual void postVisit(grammar::ast::ArrayIndex &arrayIndex) {}
+    virtual void pre_visit(grammar::ast::ArrayIndex &array_index) {}
+    virtual void preIndexVisit(grammar::ast::ArrayIndex &array_index) {}
+    virtual void post_visit(grammar::ast::ArrayIndex &array_index) {}
 
-    virtual void preVisit(int &value) { }
-    virtual void postVisit(int &value) { }
+    virtual void pre_visit(int &value) { }
+    virtual void post_visit(int &value) { }
 
-    virtual void preVisit(bool &value) { }
-    virtual void postVisit(bool &value) { }
+    virtual void pre_visit(bool &value) { }
+    virtual void post_visit(bool &value) { }
 
-    virtual void preVisit(grammar::ast::BinopExps &exp) { }
+    virtual void pre_visit(grammar::ast::BinopExps &exp) { }
     virtual void preRhsVisit(grammar::ast::BinopExps &exp) { }
-    virtual void postVisit(grammar::ast::BinopExps &exp) { }
+    virtual void post_visit(grammar::ast::BinopExps &exp) { }
 
-    virtual void preVisit(grammar::ast::Rhs &rhs) { }
-    virtual void postVisit(grammar::ast::Rhs &rhs) { }
+    virtual void pre_visit(grammar::ast::Rhs &rhs) { }
+    virtual void post_visit(grammar::ast::Rhs &rhs) { }
 
-    virtual void preVisit(grammar::ast::BreakStatement &brk) { }
-    virtual void postVisit(grammar::ast::BreakStatement &brk) { }
+    virtual void pre_visit(grammar::ast::BreakStatement &brk) { }
+    virtual void post_visit(grammar::ast::BreakStatement &brk) { }
 
-    virtual void preVisit(grammar::ast::ContinueStatement &cont) { }
-    virtual void postVisit(grammar::ast::ContinueStatement &cont) { }
+    virtual void pre_visit(grammar::ast::ContinueStatement &cont) { }
+    virtual void post_visit(grammar::ast::ContinueStatement &cont) { }
 
-    virtual void preVisit(grammar::ast::VarExpression &exp) { }
-    virtual void postVisit(grammar::ast::VarExpression &exp) { }
+    virtual void pre_visit(grammar::ast::VarExpression &exp) { }
+    virtual void post_visit(grammar::ast::VarExpression &exp) { }
 
-    virtual void preVisit(grammar::ast::FunctionCall &funcCall) { }
-    virtual void preArgumentListVisit(grammar::ast::FunctionCall &funcCall) { }
-    virtual void postVisit(grammar::ast::FunctionCall &funcCall) { }
+    virtual void pre_visit(grammar::ast::FunctionCall &func_call) { }
+    virtual void preArgumentListVisit(grammar::ast::FunctionCall &func_call) { }
+    virtual void post_visit(grammar::ast::FunctionCall &func_call) { }
 
-    virtual void preVisit(grammar::ast::ArgumentList &exp) { }
-    virtual void postVisit(grammar::ast::ArgumentList &exp) { }
+    virtual void pre_visit(grammar::ast::ArgumentList &exp) { }
+    virtual void post_visit(grammar::ast::ArgumentList &exp) { }
 
-    virtual void preVisit(grammar::ast::Id &id) { }
-    virtual void postVisit(grammar::ast::Id &id) { }
+    virtual void pre_visit(grammar::ast::Id &id) { }
+    virtual void post_visit(grammar::ast::Id &id) { }
 
-    virtual void preVisit(grammar::ast::ExpressionPar &exp) { }
-    virtual void postVisit(grammar::ast::ExpressionPar &exp) { }
+    virtual void pre_visit(grammar::ast::ExpressionPar &exp) { }
+    virtual void post_visit(grammar::ast::ExpressionPar &exp) { }
 
-    virtual void preVisit(grammar::ast::VarAssign &assign) { }
-    virtual void preExpVisit(grammar::ast::VarAssign &assign) { }
-    virtual void postVisit(grammar::ast::VarAssign &assign) { }
+    virtual void pre_visit(grammar::ast::VarAssign &assign) { }
+    virtual void pre_exp_visit(grammar::ast::VarAssign &assign) { }
+    virtual void post_visit(grammar::ast::VarAssign &assign) { }
 
-    virtual void preVisit(grammar::ast::WhileStatement &whileStatement) { }
-    virtual void preBlockVisit(grammar::ast::WhileStatement &whileStatement) { }
-    virtual void postVisit(grammar::ast::WhileStatement &whileStatement) { }
+    virtual void pre_visit(grammar::ast::WhileStatement &while_statement) { }
+    virtual void pre_block_visit(grammar::ast::WhileStatement &while_statement) { }
+    virtual void post_visit(grammar::ast::WhileStatement &while_statement) { }
 
-    virtual void preVisit(grammar::ast::StatementExpression &exp) { }
-    virtual void postVisit(grammar::ast::StatementExpression &exp) { }
+    virtual void pre_visit(grammar::ast::StatementExpression &exp) { }
+    virtual void post_visit(grammar::ast::StatementExpression &exp) { }
 
-    virtual void preVisit(grammar::ast::Block &block) { }
-    virtual void postVisit(grammar::ast::Block &block) { }
+    virtual void pre_visit(grammar::ast::Block &block) { }
+    virtual void post_visit(grammar::ast::Block &block) { }
 
-    virtual void preVisit(grammar::ast::IfStatement &ifStatement) { }
-    virtual void preBlockVisit(grammar::ast::IfStatement &ifStatement) { }
-    virtual void postVisit(grammar::ast::IfStatement &ifStatement) { }
+    virtual void pre_visit(grammar::ast::IfStatement &if_statement) { }
+    virtual void pre_block_visit(grammar::ast::IfStatement &if_statement) { }
+    virtual void post_visit(grammar::ast::IfStatement &if_statement) { }
 
-    virtual void preVisit(grammar::ast::ElseStatement &elseStatement) { }
-    virtual void postVisit(grammar::ast::ElseStatement &elseStatement) { }
+    virtual void pre_visit(grammar::ast::ElseStatement &else_statement) { }
+    virtual void post_visit(grammar::ast::ElseStatement &else_statement) { }
 
-    virtual void preVisit(grammar::ast::ConditionalStatement &conditional) { }
+    virtual void pre_visit(grammar::ast::ConditionalStatement &conditional) { }
     virtual void preElseVisit(grammar::ast::ConditionalStatement &conditional) { }
-    virtual void postVisit(grammar::ast::ConditionalStatement &conditional) { }
+    virtual void post_visit(grammar::ast::ConditionalStatement &conditional) { }
 
-    virtual void preVisit(grammar::ast::Parameter &parameter) { }
-    virtual void postVisit(grammar::ast::Parameter &parameter) { }
+    virtual void pre_visit(grammar::ast::Parameter &parameter) { }
+    virtual void post_visit(grammar::ast::Parameter &parameter) { }
 
-    virtual void preVisit(grammar::ast::ParameterList &list) { }
-    virtual void postVisit(grammar::ast::ParameterList &list) { }
+    virtual void pre_visit(grammar::ast::ParameterList &list) { }
+    virtual void post_visit(grammar::ast::ParameterList &list) { }
 
-    virtual void preVisit(grammar::ast::VarDecl &decl) { }
-    virtual void preIdVisit(grammar::ast::VarDecl &decl) { }
-    virtual void postVisit(grammar::ast::VarDecl &decl) { }
+    virtual void pre_visit(grammar::ast::VarDecl &decl) { }
+    virtual void pre_id_visit(grammar::ast::VarDecl &decl) { }
+    virtual void post_visit(grammar::ast::VarDecl &decl) { }
 
-    virtual void preVisit(grammar::ast::VarDeclAssign &decl) { }
-    virtual void preExpVisit(grammar::ast::VarDeclAssign &decl) { }
-    virtual void postVisit(grammar::ast::VarDeclAssign &decl) { }
+    virtual void pre_visit(grammar::ast::VarDeclAssign &decl) { }
+    virtual void pre_exp_visit(grammar::ast::VarDeclAssign &decl) { }
+    virtual void post_visit(grammar::ast::VarDeclAssign &decl) { }
 
-    virtual void preVisit(grammar::ast::VarDeclStatement &decl) { }
-    virtual void postVisit(grammar::ast::VarDeclStatement &decl) { }
+    virtual void pre_visit(grammar::ast::VarDeclStatement &decl) { }
+    virtual void post_visit(grammar::ast::VarDeclStatement &decl) { }
 
-    virtual void preVisit(grammar::ast::FuncDecl &decl) { }
-    virtual void preIdVisit(grammar::ast::FuncDecl &decl) { }
-    virtual void preParameterListVisit(grammar::ast::FuncDecl &decl) { }
-    virtual void preBlockVisit(grammar::ast::FuncDecl &decl) { }
-    virtual void postVisit(grammar::ast::FuncDecl &decl) { }
+    virtual void pre_visit(grammar::ast::FuncDecl &decl) { }
+    virtual void pre_id_visit(grammar::ast::FuncDecl &decl) { }
+    virtual void pre_parameter_list_visit(grammar::ast::FuncDecl &decl) { }
+    virtual void pre_block_visit(grammar::ast::FuncDecl &decl) { }
+    virtual void post_visit(grammar::ast::FuncDecl &decl) { }
 
-    virtual void preVisit(grammar::ast::PrintStatement &print) { }
-    virtual void postVisit(grammar::ast::PrintStatement &print) { }
+    virtual void pre_visit(grammar::ast::PrintStatement &print) { }
+    virtual void post_visit(grammar::ast::PrintStatement &print) { }
 
-    virtual void preVisit(grammar::ast::ReturnStatement &ret) { }
-    virtual void postVisit(grammar::ast::ReturnStatement &ret) { }
+    virtual void pre_visit(grammar::ast::ReturnStatement &ret) { }
+    virtual void post_visit(grammar::ast::ReturnStatement &ret) { }
 
-    virtual void preVisit(grammar::ast::BlockLine &blockLine) { }
-    virtual void postVisit(grammar::ast::BlockLine &blockLine) { }
+    virtual void pre_visit(grammar::ast::BlockLine &block_line) { }
+    virtual void post_visit(grammar::ast::BlockLine &block_line) { }
 };
 
 class TreeTraveler : boost::static_visitor<> {

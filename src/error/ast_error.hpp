@@ -12,26 +12,26 @@ class ASTError : public CompilerError {
 
 public:
     template <typename T>
-    ASTError(const std::string& msg, const T& node, const std::string& errorType)
-        : CompilerError(buildErrorMessage(msg, node, errorType)) {}
+    ASTError(const std::string& msg, const T& node, const std::string& error_type)
+        : CompilerError(build_error_message(msg, node, error_type)) {}
 
-    ASTError(const std::string& msg, const std::string& errorType)
-        : CompilerError(errorType + ": " +  msg + "\n") {}
+    ASTError(const std::string& msg, const std::string& error_type)
+        : CompilerError(error_type + ": " +  msg + "\n") {}
 
 private: 
 
     template <typename T>
-    static std::string buildErrorMessage(const std::string& msg, const T& node, const std::string& errorType) {
+    static std::string build_error_message(const std::string& msg, const T& node, const std::string& error_type) {
       static_assert(std::is_base_of<grammar::ast::LocationInfo, T>::value,"T must be a subclass of LocationInfo");
       std::ostringstream oss;
       oss << node;
-      const auto lineNumber = node.line;
+      const auto line_number = node.line;
       const auto column = node.column;
-      std::string errorMessage = errorType + ": " + msg + "\n";
-      errorMessage += "Error found at " + std::to_string(lineNumber) + ":" +
+      std::string error_message = error_type + ": " + msg + "\n";
+      error_message += "Error found at " + std::to_string(line_number) + ":" +
                       std::to_string(column) + " " + oss.str();
 
-      return errorMessage;
+      return error_message;
     }
 };
 

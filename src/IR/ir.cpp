@@ -2,7 +2,7 @@
 
 using std::get;
 
-IRL::IRL(long offset) : offset(offset) {}
+IRL::IRL(size_t offset) : offset(offset) {}
 ImmediateValue::ImmediateValue(int v) : value(v) {}
 ImmediateData::ImmediateData(std::string v) : value(v) {}
 /// precondition: There is room on the stack for the new register

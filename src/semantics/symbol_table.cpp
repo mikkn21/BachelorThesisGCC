@@ -4,9 +4,9 @@
 #include <stdexcept>
 #include <typeinfo>
 
-struct print_visitor {
+struct PrintVisitor {
     std::ostream& os;
-    print_visitor(std::ostream& os) : os(os) {}
+    PrintVisitor(std::ostream& os) : os(os) {}
 
     template<typename T>
     void operator()(const T& t) const {
@@ -30,7 +30,7 @@ struct SymbolTypeEqualityVisitor {
 struct SymbolTypeToStringVisitor {
     template <typename T>
     std::string operator()(const T &t) {
-        return t.toString();
+        return t.to_string();
     }
 };
 
@@ -51,16 +51,16 @@ public:
     }
 
 
-    SymbolType operator()(const grammar::ast::ArrayType &arrayType) {
-        SymbolType type = (*this)(arrayType.type);
-        return ArraySymbolType{std::make_shared<SymbolType>(type), arrayType.dim};
+    SymbolType operator()(const grammar::ast::ArrayType &array_type) {
+        SymbolType type = (*this)(array_type.type);
+        return ArraySymbolType{std::make_shared<SymbolType>(type), array_type.dim};
     }
 
     
-    SymbolType operator()(const grammar::ast::ClassType &astType) {  
-        auto classSymbol = dynamic_cast<ClassSymbol *>(astType.id.sym);
-        // NOTE: that classSymbol might be null if the class is defined after the type is used
-        return ClassSymbolType{classSymbol};
+    SymbolType operator()(const grammar::ast::ClassType &ast_type) {  
+        auto class_symbol = dynamic_cast<ClassSymbol *>(ast_type.id.sym);
+        // NOTE: that class_symbol might be null if the class is defined after the type is used
+        return ClassSymbolType{class_symbol};
     }
 };
 
@@ -86,80 +86,80 @@ bool ClassSymbolType::operator==(const ClassSymbolType &other) const {
 }
 
 bool ArraySymbolType::operator==(const ArraySymbolType &other) const {
-    return (dimensions == other.dimensions) && (*elementType.get() == *other.elementType.get());
+    return (dimensions == other.dimensions) && (*element_type.get() == *other.element_type.get());
 }
 
-std::string BoolType::toString() const {
+std::string BoolType::to_string() const {
     return "bool";
 }
 
-std::string IntType::toString() const {
+std::string IntType::to_string() const {
     return "int";
 }
 
-std::string ClassSymbolType::toString() const {
+std::string ClassSymbolType::to_string() const {
     return "class<" + symbol->decl->id.id + ">";
 }
 
-std::string ArraySymbolType::toString() const {
-    return "Array of " + elementType->toString();
+std::string ArraySymbolType::to_string() const {
+    return "Array of " + element_type->to_string();
 }
 
-std::string SymbolType::toString() const {
+std::string SymbolType::to_string() const {
     return boost::apply_visitor(SymbolTypeToStringVisitor{}, *this);
 }
 
-SymbolType convertType(grammar::ast::Type type) {
+SymbolType convert_type(grammar::ast::Type type) {
     auto visitor = AstTypeConverterVisitor{};
     return boost::apply_visitor(visitor, type);
 }
 
-FuncSymbol::FuncSymbol(grammar::ast::FuncDecl *funcDecl, SymbolTable *scope) : symTab(scope){ 
-    for (auto i : funcDecl->parameter_list.parameter){
+FuncSymbol::FuncSymbol(grammar::ast::FuncDecl *func_decl, SymbolTable *scope) : sym_tab(scope){ 
+    for (auto i : func_decl->parameter_list.parameter){
         try {
             auto decl = boost::get<grammar::ast::VarDecl>(i);
-            parameters.push_back(convertType(decl.type));
+            parameters.push_back(convert_type(decl.type));
         } catch (boost::bad_get& e) {
-            throw SemanticsError("Expected VarDecl in parameter list", *funcDecl);
+            throw SemanticsError("Expected VarDecl in parameter list", *func_decl);
         }
     }
-    returnType = convertType(funcDecl->type);
+    return_type = convert_type(func_decl->type);
     scope->creator = this;
 }
 
 
-ClassSymbol::ClassSymbol(grammar::ast::ClassDecl *decl, SymbolTable *scope) : decl(decl), symbolTable(scope){ 
+ClassSymbol::ClassSymbol(grammar::ast::ClassDecl *decl, SymbolTable *scope) : decl(decl), symbol_table(scope){ 
 }
  
-VarSymbol::VarSymbol(grammar::ast::VarDecl *varDecl) : varDecl(varDecl) {
-    type = convertType(varDecl->type);
+VarSymbol::VarSymbol(grammar::ast::VarDecl *var_decl) : var_decl(var_decl) {
+    type = convert_type(var_decl->type);
 }
 
-SymbolType FuncSymbol::toType() {
+SymbolType FuncSymbol::to_type() {
     throw std::runtime_error("FuncSymbol cannot be converted to a SymbolType");
 }
 
-SymbolType ClassSymbol::toType() {
+SymbolType ClassSymbol::to_type() {
     return ClassSymbolType{this};
 }
 
-SymbolType VarSymbol::toType() {
+SymbolType VarSymbol::to_type() {
     return type;
 }
 
 FuncSymbol::~FuncSymbol() {
-    delete(symTab);
+    delete(sym_tab);
 }
 
 ClassSymbol::~ClassSymbol() {
-    delete(symbolTable);
+    delete(symbol_table);
 }
 
 // Outer-most scope
 SymbolTable::SymbolTable() : depth(0) { }
 
 // One of the inner scopes
-SymbolTable::SymbolTable(SymbolTable *parentScope) : parentScope(parentScope), depth(parentScope->depth + 1) { }
+SymbolTable::SymbolTable(SymbolTable *parent_scope) : parent_scope(parent_scope), depth(parent_scope->depth + 1) { }
 
 SymbolTable::~SymbolTable(){
     for (const auto &i : entries){
@@ -168,17 +168,17 @@ SymbolTable::~SymbolTable(){
 }
 
 void SymbolTable::insert(std::string key, VarSymbol* symbol) {
-    if (symbol->varDecl->id.scope->creator != nullptr) {
-        auto& parameter_list = symbol->varDecl->id.scope->creator->parameters;
+    if (symbol->var_decl->id.scope->creator != nullptr) {
+        auto& parameter_list = symbol->var_decl->id.scope->creator->parameters;
         auto it = std::find(parameter_list.begin(), parameter_list.end(), symbol->type);
 
         if (it != parameter_list.end()) {
-            symbol->local_id = --parameterCounter; // is a parameter
+            symbol->local_id = --parameter_counter; // is a parameter
         } else {
-            symbol->local_id = ++registerCounter; // is not a parameter, but a local variable
+            symbol->local_id = ++register_counter; // is not a parameter, but a local variable
         }
     } else {
-            symbol->local_id = ++registerCounter; // is not a parameter, but a local variable
+            symbol->local_id = ++register_counter; // is not a parameter, but a local variable
     }
 
     entries.emplace(key, symbol); 
@@ -188,7 +188,7 @@ void SymbolTable::insert(std::string key, Symbol *symbol) {
     entries.emplace(key, symbol); 
 }
 
-Symbol *SymbolTable::findLocal(std::string key) const {
+Symbol *SymbolTable::find_local(std::string key) const {
     auto x = entries.find(key);
     if (x == entries.end()) {
         return nullptr;
@@ -201,10 +201,10 @@ Symbol *SymbolTable::findLocal(std::string key) const {
 Symbol *SymbolTable::find(std::string key) const {
     auto x = entries.find(key);
     if (x == entries.end()) {
-        if (parentScope == nullptr) {
+        if (parent_scope == nullptr) {
             return nullptr;
         } else {
-            return parentScope->find(key);
+            return parent_scope->find(key);
         }
     }
     else {

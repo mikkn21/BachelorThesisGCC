@@ -4,9 +4,8 @@
 
 #include "symbol_table.hpp"
 
-void symbol_collection_phase2(grammar::ast::Prog &prog, SymbolTable *symTab);
+void symbol_collection_phase2(grammar::ast::Prog &prog, SymbolTable *sym_tab);
 
-    
     
 
 #endif

@@ -16,7 +16,7 @@ namespace grammar::compiler {
 
 struct CompilerReturnObj {
 private:
-    std::unique_ptr<SymbolTable> globalScope;
+    std::unique_ptr<SymbolTable> global_scope;
 
 public:
     ast::Prog ast; 
@@ -24,8 +24,8 @@ public:
     IR ir;
     // Essembly
 
-    void setGlobalScope(std::unique_ptr<SymbolTable> globalScope) {
-        this->globalScope = std::move(globalScope);
+    void setGlobalScope(std::unique_ptr<SymbolTable> global_scope) {
+        this->global_scope = std::move(global_scope);
     }
 };
 
@@ -39,16 +39,16 @@ enum StopAfter {
 
 class CompilerOptions {
 public:
-    std::optional<StopAfter> stopAfter;
-    bool printAst = false ;
-    bool printInput = false;
-    bool printCodeGeneration = false;
-    bool printRegisterAllocation = false;
+    std::optional<StopAfter> stop_after;
+    bool print_ast = false ;
+    bool print_input = false;
+    bool print_code_generation = false;
+    bool print_register_allocation = false;
 };
 
-std::string getFileContent(std::string_view input);
-std::unique_ptr<CompilerReturnObj> compileFromFile(std::string_view input, const CompilerOptions &options);
-std::unique_ptr<CompilerReturnObj> compileFromString(std::string_view input, const CompilerOptions &options);
+std::string get_file_content(std::string_view input);
+std::unique_ptr<CompilerReturnObj> compile_from_file(std::string_view input, const CompilerOptions &options);
+std::unique_ptr<CompilerReturnObj> compile_from_string(std::string_view input, const CompilerOptions &options);
 
 }
 
