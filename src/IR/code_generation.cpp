@@ -274,7 +274,7 @@ void IRVisitor::post_visit(grammar::ast::ArrayIndex &index) {
         index_targets.push_back(get_target(pop(temp_storage)));
     }
 
-    // TODO: Check valid index
+
     // TODO: Make sure arrays are also 0-initialized at the beginning of their scope
 
     // Static link
@@ -291,6 +291,12 @@ void IRVisitor::post_visit(grammar::ast::ArrayIndex &index) {
         code.push(instruction);
     }
 
+    // Check that the index is valid (i.e. inside the dimensions of the array)
+    for (size_t i = 1; i < index.indices.size(); i++) {
+        code.push(Instruction(Op::CMPQ, Arg(index_targets[i], DIR()), Arg(array_ptr, IRL(-i * 8)), "Compare index " + std::to_string(i) + " with the corresponding dimension size"));
+        // Need to check whether it's greater than or equal, in which case we need to die - but how do we kill ourselves?
+    }
+
     // Get a pointer to the correct index
     code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()))); // make space on stack for generic register value
     code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()))); // make space on stack for generic register value
@@ -303,24 +309,7 @@ void IRVisitor::post_visit(grammar::ast::ArrayIndex &index) {
     code.push(Instruction(Op::MOVQ, Arg(index_targets.front(), DIR()), Arg(intermediate_value, DIR()), "Initialize the intermediate value"));
     code.push(Instruction(Op::IMULQ, Arg(ImmediateValue(8), DIR()), Arg(intermediate_value, DIR()), "Translate the first index to byte address"));
     code.push(Instruction(Op::ADDQ, Arg(intermediate_value, DIR()), Arg(index_address, DIR()), "Add the first index to the address"));
-    
-    // z y x  
-    // [10,4,3] || 1,2,3,4 | 5,6,7,8 | 9,10,11,12
-    // [1,2,3] [4,5,6] [7,8,9]
-    // index : [2,1,3]
-    
-    // 4{x} * 2{I}  
-    // 10 * 3 
-    
-    // x = 1 * i
-    // y = x * i
-    // z = (x * y ) * i 
-    // 4d = (z * y * x) * i 
 
-    // |x| * 1  
-    // 
-
-    // address += d_{i-1} * I_i 
     // Multi-dimensional array indexing
     if (index.indices.size() > 1) {
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(intermediate_product, DIR()), "Initialize the product"));
