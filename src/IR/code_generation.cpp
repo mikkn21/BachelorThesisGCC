@@ -25,9 +25,9 @@ public:
 
 /// Expects there to be space on the stack for the result register taken as input. 
 /// uses register R8 and R9, so should be saved before use
-std::vector<Instruction> static_link_instructions(int depth, int target_local_id, GenericRegister result) {
+std::vector<Instruction> static_link_read(int depth, int target_local_id, GenericRegister read_result) {
     std::vector<Instruction> instructions;
-    instructions.push_back(Instruction(Op::MOVQ, Arg(Register::RBP, DIR()), Arg(Register::R8, DIR()), "starting static linking"));
+    instructions.push_back(Instruction(Op::MOVQ, Arg(Register::RBP, DIR()), Arg(Register::R8, DIR()), "starting static linking read"));
     // std::cout << "depth: " << depth << std::endl;
     for (auto i = 0; i < depth; i++) {
         instructions.push_back(Instruction(Op::MOVQ, Arg(Register::R8, IRL(16)), Arg(Register::R9, DIR())));
@@ -38,7 +38,26 @@ std::vector<Instruction> static_link_instructions(int depth, int target_local_id
     instructions.push_back(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(Register::RBP, DIR()))); // set RBP to R8, so generic register points to correct memory location.
     instructions.push_back(Instruction(Op::MOVQ, Arg(target, DIR()), Arg(Register::R8, DIR()), "temporarely save result"));
     instructions.push_back(Instruction(Op::MOVQ, Arg(Register::R9, DIR()), Arg(Register::RBP, DIR()), "restore RBP")); // restore RBP
-    instructions.push_back(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(result, DIR()), "move result to result register"));
+    instructions.push_back(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(read_result, DIR()), "move result to result register"));
+    return instructions;
+}
+
+/// uses register R8, R9 and R10, so should be saved before use
+std::vector<Instruction> static_link_write(int depth, int target_local_id, TargetType write_value) {
+    std::vector<Instruction> instructions;
+    instructions.push_back(Instruction(Op::MOVQ, Arg(Register::RBP, DIR()), Arg(Register::R8, DIR()), "starting static linking write"));
+    // std::cout << "depth: " << depth << std::endl;
+    for (auto i = 0; i < depth; i++) {
+        instructions.push_back(Instruction(Op::MOVQ, Arg(Register::R8, IRL(16)), Arg(Register::R9, DIR())));
+        instructions.push_back(Instruction(Op::MOVQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR())));
+    }
+    GenericRegister target = GenericRegister(target_local_id);
+
+    instructions.push_back(Instruction(Op::MOVQ, Arg(write_value, DIR()), Arg(Register::R10, DIR()), "put write value in temp storage")); // save RBP
+    instructions.push_back(Instruction(Op::MOVQ, Arg(Register::RBP, DIR()), Arg(Register::R9, DIR()), "save RBP")); // save RBP
+    instructions.push_back(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(Register::RBP, DIR()))); // set RBP to R8, so generic register points to correct memory location.
+    instructions.push_back(Instruction(Op::MOVQ, Arg(Register::R10, DIR()), Arg(target, DIR()), "assign value to target"));
+    instructions.push_back(Instruction(Op::MOVQ, Arg(Register::R9, DIR()), Arg(Register::RBP, DIR()), "restore RBP")); // restore RBP
     return instructions;
 }
 
@@ -203,12 +222,17 @@ private:
     }
 
     void post_visit(grammar::ast::VarAssign &var_assign) {
-        //AstValue value = pop(temp_storage);
-        auto target = get_target(pop(temp_storage));
-        VarSymbol *var_symbol = get_var_symbols(var_assign.id_access.ids.back().sym);
-        int local_id = var_symbol->local_id;
-        code.push(Instruction(Op::MOVQ, Arg(target, DIR()), Arg(Register::R8, DIR())));
-        code.push(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(GenericRegister(local_id), DIR())));
+      //AstValue value = pop(temp_storage);
+      auto target = get_target(pop(temp_storage));
+      VarSymbol *var_symbol = get_var_symbols(var_assign.id_access.ids.back().sym);
+      int current_depth = var_assign.id_access.ids.back().scope->depth;
+      int target_depth = var_symbol->var_decl->id.scope->depth;
+      int difference = current_depth - target_depth;
+      int local_id = var_symbol->local_id;
+      auto static_linking_code = static_link_write(difference, local_id, target);
+      for (auto instruction : static_linking_code) {
+          code.push(instruction);
+      }
     }
 
     void post_visit(grammar::ast::VarDeclAssign &var_decl_assign) {
@@ -216,6 +240,7 @@ private:
         code.push(Instruction(Op::MOVQ, Arg(target, DIR()), Arg(Register::R8, DIR())));
         code.push(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(GenericRegister(var_decl_assign.decl.sym->local_id), DIR())));
     }
+
 
     void pre_visit(int &i) {
         temp_storage.push(i);
@@ -234,7 +259,7 @@ private:
         code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()))); // make space on stack for generic register value
         auto id = ++var_expr.id_access.ids.back().scope->register_counter;
         GenericRegister result_register = GenericRegister(id);
-        auto static_linking_code = static_link_instructions(difference, var_symbol->local_id, result_register);
+        auto static_linking_code = static_link_read(difference, var_symbol->local_id, result_register);
         for (auto instruction : static_linking_code) {
             code.push(instruction);
         }
@@ -315,10 +340,11 @@ private:
         // std::cout << "current depth: " << current_depth << "target depth: " << target_depth << "difference: " << difference << std::endl;
         code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()))); // make space on stack for generic register value
         GenericRegister array_ptr = GenericRegister(++scope->register_counter);
-        auto static_linking_code = static_link_instructions(difference, target_symbol->local_id, array_ptr);
+        auto static_linking_code = static_link_read(difference, target_symbol->local_id, array_ptr);
         for (auto instruction : static_linking_code) {
             code.push(instruction);
         }
+
 
         // Get a pointer to the correct index
         code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()))); // make space on stack for generic register value
@@ -347,6 +373,8 @@ private:
 
         temp_storage.push(index_address);
     }
+
+
 
     void post_visit(grammar::ast::ArrayIndexExp &index_exp) {
         TargetType index_ptr = get_target(pop(temp_storage));
