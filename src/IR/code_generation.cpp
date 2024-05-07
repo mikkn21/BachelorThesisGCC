@@ -231,13 +231,12 @@ void IRVisitor::preVisit(bool &b) {
 // can
 void IRVisitor::postVisit(grammar::ast::VarExpression &var_expr) {
     if (var_expr.idAccess.ids.size() > 1){
-
         auto frontId = var_expr.idAccess.ids.front();
         auto frontSym = getVarSymbol(frontId.sym); // auto frontLocalId = frontSym->local_id;
         auto target_depth = frontSym->varDecl->id.scope->depth;
         int current_depth = var_expr.idAccess.ids.back().scope->depth;
         int difference = current_depth - target_depth;
-
+        //lmao
         code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()))); // make space on stack for generic register value
         GenericRegister result_register = GenericRegister(++frontId.scope->registerCounter);
         auto staticLinkingCode = static_link_instructions(difference, frontSym->local_id, result_register);
