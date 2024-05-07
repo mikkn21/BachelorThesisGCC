@@ -15,8 +15,8 @@ enum class Op {
 struct DIR {};
 struct IND {};
 struct IRL {
-    size_t offset;
-    IRL(size_t offset);
+    long offset;
+    IRL(long offset);
 };
 
 using MemAccessType = std::variant<DIR, IND, IRL>;

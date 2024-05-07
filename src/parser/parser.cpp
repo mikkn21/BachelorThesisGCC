@@ -34,11 +34,10 @@ namespace grammar {
         } // namespace
 
         struct LocationHandler {
-	    template<typename Iterator, typename Context>
-	    void on_success(const Iterator &first, const Iterator &last, ast::LocationInfo &loc_info, const Context &) {
-		    loc_info.line = get_line(first);
-		    loc_info.column = get_column(first, last, space_per_tabs);
-	       }
+            template<typename Iterator, typename Context>
+            void on_success(const Iterator &first, const Iterator &last, ast::LocationInfo &loc_info, const Context &) {
+                loc_info.line = get_line(first);
+            }
         };
 
         #define RULE(ast, name) \
