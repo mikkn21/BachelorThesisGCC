@@ -41,10 +41,14 @@ BOOST_AUTO_TEST_CASE(StatementExpressionMatchComplex) {testTypeCheckString("int 
 BOOST_AUTO_TEST_CASE(ReturnFuncFalse) {testTypeCheckString("int main() { int f() { return false;} return 0; }", TestingOutcome::FAILED);}
 BOOST_AUTO_TEST_CASE(ReturnFuncTrue) {testTypeCheckString("int main() { int f() { return 2;} return 0; }", TestingOutcome::SUCCESS);}
 BOOST_AUTO_TEST_CASE(ReturnVarSimple) {testTypeCheckString("int main() { int f() { int x = 2; return x;} return 0; }", TestingOutcome::SUCCESS);}
-BOOST_AUTO_TEST_CASE(ReturnDeadCode) {testTypeCheckString("int main() { int f() { int x = 2; return x; x = 40 + 2; } return 0; }", TestingOutcome::FAILED);}
+BOOST_AUTO_TEST_CASE(ReturnDeadCode) {testTypeCheckString("int main() { int f() { int x = 2; return x; x = 40 + 2; } return 0; }", TestingOutcome::SUCCESS);}
 
 // Print
 BOOST_AUTO_TEST_CASE(PrintFunc) {testTypeCheckString("int main() { int f() { print(2); return 0;} return 0; }", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(PrintBool) {testTypeCheckString("int main(){ bool x = true; print(x); return 0; }", TestingOutcome::SUCCESS);}
+
+BOOST_AUTO_TEST_CASE(PrintArray) {testTypeCheckString("int main(){ int[1] arr = new int[10]; print(arr);  return 0; }", TestingOutcome::FAILED);}
+BOOST_AUTO_TEST_CASE(PrintStruct) {testTypeCheckString("class T { int x; } int main(){ T t = new T(); print(t);  return 0; }", TestingOutcome::FAILED);}
 
 // While
 BOOST_AUTO_TEST_CASE(WhileGuardBoolTrue) {testTypeCheckString("int main() { int f() {while (true) {} return 2;} return 0;} ", TestingOutcome::SUCCESS);}
@@ -109,6 +113,12 @@ BOOST_AUTO_TEST_CASE(FuncCalledBeforeDeclared) {testTypeCheckString("int main() 
 
 BOOST_AUTO_TEST_CASE(DeclareNotInitYet) {testTypeCheckFile("../tests/typeTests/shadow.chad", TestingOutcome::SUCCESS);}
 BOOST_AUTO_TEST_CASE(ParameterFunctionCall) {testTypeCheckFile("../tests/typeTests/functionParam.chad", TestingOutcome::SUCCESS);}
+
+
+BOOST_AUTO_TEST_CASE(NestedFunctionReturnTypes) {testTypeCheckString("int main() { int f() { bool g() { return true; } return 0;}   return 0;}", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(NestedFunctionReturnTypes2) {testTypeCheckString("int main() { int f() { bool g() { return 0; } return 0;}   return 0;}", TestingOutcome::FAILED);}
+
+BOOST_AUTO_TEST_CASE(WhileReturnTest) {testTypeCheckString("int main() { while(true) {return 0;}  return 0;}", TestingOutcome::SUCCESS);}
 
 
 // if 
@@ -179,3 +189,15 @@ BOOST_AUTO_TEST_CASE(FuncWithClassProperty) {testTypeCheckString("class T {int y
 BOOST_AUTO_TEST_CASE(SimpleDotFail) {testTypeCheckString("int main() { class T { int x; } T a = new T(); return a.y;}", TestingOutcome::FAILED);}
 BOOST_AUTO_TEST_CASE(SimpleDotFail2) {testTypeCheckString("int main() { class T {} T a = new T(); return a.x;}", TestingOutcome::FAILED);}
 BOOST_AUTO_TEST_CASE(SimpleDotFail3) {testTypeCheckString("int main() { class T { int x; } T a = new T(); return a.x.y;}", TestingOutcome::FAILED);}
+
+
+BOOST_AUTO_TEST_CASE(ReturnFuncNotMain) {testTypeCheckString("int main() { int f() {return 0;} }", TestingOutcome::FAILED);}
+BOOST_AUTO_TEST_CASE(ReturnIfElse) {testTypeCheckString("int main(){ if(true) {return 0;} else if(true) { return 0;} else {return 0;}   }", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(ReturnIfElse2) {testTypeCheckString("int main(){ if(true) {return 0;} else if(true) { } else {return 0;}   }", TestingOutcome::FAILED);}
+BOOST_AUTO_TEST_CASE(ReturnIfElse3) {testTypeCheckString("int main(){  while(true){return 0;}  }", TestingOutcome::FAILED);}
+BOOST_AUTO_TEST_CASE(ReturnIfElse4) {testTypeCheckString("int main(){  while(true){return 0;} return 0;  }", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(ReturnIfElse5) {testTypeCheckString("int main(){ if(true) { int x = 4;} else {return 0;}  }", TestingOutcome::FAILED);}
+BOOST_AUTO_TEST_CASE(ReturnIfElse6) {testTypeCheckString("int main(){ if(true){ int x = 4;} else if(true){return 0;} else{ int y = 4;} return 0;  }", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(ReturnIfElse7) {testTypeCheckString("int main(){ if(true){ int x = 4;} else if(true){return 0;} else{ int y = 4;}   }", TestingOutcome::FAILED);}
+
+BOOST_AUTO_TEST_CASE(ReturnInOnly1Branche) {testTypeCheckFile("../tests/typeTests/return.chad", TestingOutcome::FAILED);}

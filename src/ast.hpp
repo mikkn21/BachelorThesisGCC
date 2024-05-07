@@ -373,6 +373,7 @@ namespace grammar
 
         struct Prog : LocationInfo {
             std::vector<Decl> decls; 
+            SymbolTable *global_scope = nullptr;
         public:
             friend std::ostream& operator<<(std::ostream& os, const Prog& exp);
         };

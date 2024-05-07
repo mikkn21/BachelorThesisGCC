@@ -142,7 +142,7 @@ public:
     SymbolTable* global_scope;
     std::stack<grammar::ast::WhileStatement*> while_stack;
 
-    IRVisitor(SymbolTable* global_scope) : Visitor(), global_scope(global_scope) {}
+    IRVisitor(grammar::ast::Prog &prog) : Visitor(), global_scope(prog.global_scope) {}
 
 private:
     std::vector<std::string> function_container;
@@ -541,9 +541,9 @@ private:
 
 };
 
-IR intermediate_code_generation(grammar::ast::Prog &prog, SymbolTable *global_scope) {
+IR intermediate_code_generation(grammar::ast::Prog &prog) {
     
-    auto visitor = IRVisitor(global_scope);
+    auto visitor = IRVisitor(prog);
     visitor.code.new_scope(); // add global scope
     auto traveler = TreeTraveler(visitor);
     traveler(prog);

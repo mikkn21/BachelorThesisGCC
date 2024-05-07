@@ -2,27 +2,22 @@
 #include "typeChecking.hpp"
 #include "../visitor.hpp"
 #include "../semantics/symbol_table.hpp"
+#include "return_checker.hpp"
+
 
 class TypeChecker : public Visitor {
-
-    // the current function we are inside of
-    FuncSymbol* func = nullptr;
-    bool has_func_returned = false;
-
+    
     // The stack of types
     std::stack<SymbolType> type_stack = std::stack<SymbolType>();    
-    std::vector<SymbolType> func_call_args = std::vector<SymbolType>();
-
-    const SymbolTable *global_scope;
 
 public:
-    TypeChecker(SymbolTable *global_scope) : global_scope(global_scope) {}
+    TypeChecker() {}
 
 private:
 
     // Check that there is a main function and it adheres to the rules of our main function
     void pre_visit(grammar::ast::Prog &prog) override {
-        Symbol *main_symbol = global_scope->find_local("main");
+        Symbol *main_symbol = prog.global_scope->find_local("main");
         if (main_symbol == nullptr) {
             throw TypeCheckError("main function not declared");
         }
@@ -92,7 +87,7 @@ private:
 
     // Check that the expression in the if statement evaluates to a bool
     // Checks both if and else if (since they are both if nodes in the ast)
-    void post_visit(grammar::ast::IfStatement &if_statement) override {
+    void pre_block_visit(grammar::ast::IfStatement &if_statement) override {
         // exp
         auto t1 = pop(type_stack);
         
@@ -102,6 +97,7 @@ private:
             throw TypeCheckError("if(" + oss.str()   + "):  do not evaluate to bool", if_statement);
         }
     }
+
 
 
     void post_visit(grammar::ast::VarDeclAssign &var_decl) override {  
@@ -146,26 +142,27 @@ private:
         type_stack.push(last_id.sym->to_type());
     }
 
-    void pre_visit(grammar::ast::BlockLine &block_line) override {
-        has_func_returned = false;
-    }
 
     void post_visit(grammar::ast::ReturnStatement &rtn) override {
         auto t1 = pop(type_stack);
-        auto t2 = func->return_type;
+        auto t2 = pop(type_stack);
+        // auto t2 = func->return_type;
         if (t1 != t2) {
             throw TypeCheckError("Return type " + t2.to_string() + " does not match function return type " + t1.to_string(), rtn);
         }
-
-        has_func_returned = true;
+        type_stack.push(t2);
     }
 
     void pre_visit(grammar::ast::FuncDecl &func_decl) override {
-        func = func_decl.sym;
+        type_stack.push(func_decl.sym->return_type); 
+        // func = func_decl.sym;
     }
 
-    void post_visit(grammar::ast::PrintStatement &_) override {
-        pop(type_stack);
+    void post_visit(grammar::ast::PrintStatement &print) override {
+        auto exp_type = pop(type_stack);
+        if (exp_type != IntType() && exp_type != BoolType()) {
+            throw TypeCheckError("Print statement only supports int and bool", print);
+        }
     }
 
     template <typename T>
@@ -231,10 +228,11 @@ private:
     }
 
     void post_visit(grammar::ast::FuncDecl &func_decl) override {
-        if (!has_func_returned) {
-            throw TypeCheckError("Function " + func_decl.id.id + " does not always return", func_decl);
-        }
-        func = func->sym_tab->parent_scope->creator;
+        // if (!has_func_returned) {
+        //     throw TypeCheckError("Function " + func_decl.id.id + " does not always return", func_decl);
+        // }
+        // func = func->sym_tab->parent_scope->creator;
+        pop(type_stack);
     }
 
     void post_visit(bool &val) override {
@@ -295,10 +293,12 @@ private:
 }; 
 
 
-void type_checker(grammar::ast::Prog &prog, SymbolTable *global_scope) {
-    auto visitor = TypeChecker(global_scope);
+void type_checker(grammar::ast::Prog &prog) {
+    auto visitor = TypeChecker();
     auto traveler = TreeTraveler(visitor);
     traveler(prog);
+
+    return_checker(prog);
 }
 
 

@@ -53,7 +53,7 @@ private:
 
 public: 
 
-    SymbolCollectionVisitor(SymbolTable *sym_tab) : Visitor(), current_symbol_table(sym_tab) { }
+    SymbolCollectionVisitor(grammar::ast::Prog &prog) : Visitor(), current_symbol_table(prog.global_scope) { }
 
     void pre_visit(grammar::ast::WhileStatement &while_statement) override {
         while_statement.start_label = generate_unique_label("while_statement");
@@ -195,8 +195,8 @@ public:
     }
 };
 
-void symbol_collection(grammar::ast::Prog &prog, SymbolTable *sym_tab) {
-    auto visitor = SymbolCollectionVisitor(sym_tab);
+void symbol_collection(grammar::ast::Prog &prog) {
+    auto visitor = SymbolCollectionVisitor(prog);
     auto traveler = TreeTraveler(visitor);
     traveler(prog);
 }

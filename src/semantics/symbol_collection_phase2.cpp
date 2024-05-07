@@ -10,9 +10,9 @@ private:
     SymbolTable *current_symbol_table; // Has to be a pointer, not a reference!!!
 
 public: 
-
-    SymbolCollectionVisitorPhase2(SymbolTable *sym_tab) : Visitor(), current_symbol_table(sym_tab) { }
-
+    
+    SymbolCollectionVisitorPhase2(grammar::ast::Prog &prog) : Visitor(), current_symbol_table(prog.global_scope) { }
+   
     void pre_visit(grammar::ast::FuncDecl &func_decl) override {
         current_symbol_table = func_decl.sym->sym_tab;
     }
@@ -102,8 +102,8 @@ public:
     }
 };
 
-void symbol_collection_phase2(grammar::ast::Prog &prog, SymbolTable *sym_tab) {
-    auto visitor = SymbolCollectionVisitorPhase2(sym_tab);
+void symbol_collection_phase2(grammar::ast::Prog &prog) {
+    auto visitor = SymbolCollectionVisitorPhase2(prog);
     auto traveler = TreeTraveler(visitor);
     traveler(prog);
 }

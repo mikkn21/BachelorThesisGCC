@@ -15,18 +15,11 @@
 namespace grammar::compiler {
 
 struct CompilerReturnObj {
-private:
-    std::unique_ptr<SymbolTable> global_scope;
 
 public:
-    ast::Prog ast; 
-    // Other options not implemented 
+    ast::Prog ast;
+    std::unique_ptr<SymbolTable> global_scope;
     IR ir;
-    // Essembly
-
-    void setGlobalScope(std::unique_ptr<SymbolTable> global_scope) {
-        this->global_scope = std::move(global_scope);
-    }
 };
 
 enum StopAfter {

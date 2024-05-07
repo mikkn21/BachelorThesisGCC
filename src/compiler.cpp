@@ -52,20 +52,22 @@ namespace grammar::compiler {
             return obj;
         }
 
-        std::unique_ptr<SymbolTable> global_scope = std::make_unique<SymbolTable>();
-        symbol_collection(obj->ast, global_scope.get());
-        symbol_collection_phase2(obj->ast, global_scope.get());
+        obj->global_scope = std::make_unique<SymbolTable>();
+        obj->ast.global_scope = obj->global_scope.get();
+
+        symbol_collection(obj->ast);
+        symbol_collection_phase2(obj->ast);
 
         if (options.stop_after == StopAfterSymbolCollection ) {
             return obj;
         }
 
-        type_checker(obj->ast, global_scope.get());
+        type_checker(obj->ast);
 
         if (options.stop_after == StopAfterTypeCheck ) {
             return obj;
         }
-        obj->ir = intermediate_code_generation(obj->ast, global_scope.get()); 
+        obj->ir = intermediate_code_generation(obj->ast); 
 
         if (options.print_code_generation){
             std::cout << "CodeGen:\n" << obj->ir << std::endl;
@@ -84,8 +86,6 @@ namespace grammar::compiler {
         }
 
         emit(obj->ir);        
-
-        obj->setGlobalScope(std::move(global_scope));
 
         return obj;
     }
