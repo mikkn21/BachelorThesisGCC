@@ -1,20 +1,7 @@
 
-int x;
-
 int main() {
-    print(x);
-    x = 10;
-    print(x);
-    int y = 20;
-    int f() {
-        print(y);
-        y = y+30;
-        print(y);
-        x = x+1;
-        print(x);
-        return 0;
-    }
-    f();
+    int[2] arr = new int[10, 20];
+    print(arr[2,3]);
     return 0;
 }
 

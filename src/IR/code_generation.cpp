@@ -291,19 +291,19 @@ private:
             sizes.push_back(pop(temp_storage));
         }
 
-        TargetType memSize = Register::RDI;
-
-        code.push(Instruction(Op::PUSHQ, Arg(memSize, DIR()), "Save that shit"));
-
+        code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()))); // make space on stack for generic register value
+        TargetType memSize = GenericRegister(++arr.scope->register_counter);
 
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(8), DIR()), Arg(memSize, DIR()), "initialize memory size" ));
         for (auto value : sizes) {
             code.push(Instruction(Op::IMULQ, Arg(get_target(value), DIR()), Arg(memSize, DIR()), "calculate memory"));
         }
         code.push(Instruction(Op::ADDQ, Arg(ImmediateValue(arr.sizes.size() * 8), DIR()), Arg(memSize, DIR()), "found size of memory"));
-        
+
         // allocate memory
-        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::MEM_ALLOC, DIR()), Arg(memSize, DIR()), "allocate memory of found memory size"));
+        // code.push(Instruction(Op::PUSHQ, Arg(, DIR())));
+        code.push(Instruction(Op::MOVQ, Arg(memSize, DIR()), Arg(Register::RDI, DIR()), "set memory size for allocation" ));
+        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::MEM_ALLOC, DIR()), Arg(Register::RDI, DIR()), "allocate memory of found memory size"));
         
         code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()))); // make space on stack for generic register value
         GenericRegister arrayStart = GenericRegister(++arr.scope->register_counter);
@@ -313,10 +313,28 @@ private:
         for (size_t i = 0; i < sizes.size(); i++) {
             code.push(Instruction(Op::MOVQ, Arg(get_target(sizes[i]), DIR()), Arg(arrayStart, IRL(i * 8)), "set size of dimension " + std::to_string(i + 1)));
         }
+
+        // setup zero initialization loop
+        code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()))); // counter for initialization loop
+        GenericRegister counter = GenericRegister(++arr.scope->register_counter);
+
+
+        code.push(Instruction(Op::MOVQ, Arg(arrayStart, DIR()), Arg(counter, DIR()), "initialize counter for initialization loop"));
+        code.push(Instruction(Op::ADDQ, Arg(memSize, DIR()), Arg(arrayStart, DIR()), "Store end of array"));
+        // NOTE: arrayStart is now the end of the array
+        code.push(Instruction(Op::LABEL, Arg(Label(arr.loop_label), DIR())));
+
+        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(0), DIR()), Arg(counter, IND()), "Set array element value to 0"));
+        
+        code.push(Instruction(Op::ADDQ, Arg(ImmediateValue(8), DIR()), Arg(counter, DIR()), "increment counter"));
+       
+        code.push(Instruction(Op::CMPQ, Arg(arrayStart, DIR()), Arg(counter, DIR()), "check if we are done initializing"));
+        code.push(Instruction(Op::JG, Arg(Label(arr.loop_label), DIR()), "if we are done initializing, jump to end of initialization loop"));
+
+        code.push(Instruction(Op::SUBQ, Arg(memSize, DIR()), Arg(arrayStart, DIR()), "restore end of array to be start of array"));
+        // NOTE: arrayStart is now the start of the array again
         // set the array pointer to point to the first element of the array
         code.push(Instruction(Op::ADDQ, Arg(ImmediateValue(sizes.size() * 8), DIR()), Arg(arrayStart, DIR()), "set array pointer to point to first element" ));
-
-        code.push(Instruction(Op::POPQ, Arg(memSize, DIR()), "pop that shit"));
         
         temp_storage.push(arrayStart);
     }

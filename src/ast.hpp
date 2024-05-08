@@ -351,6 +351,7 @@ namespace grammar
             PrimitiveType prim_type;
             std::vector<Expression> sizes; 
             SymbolTable *scope = nullptr;
+            std::string loop_label;
         public: 
             friend std::ostream& operator<<(std::ostream& os, const ArrayInitExp &exp);
         };

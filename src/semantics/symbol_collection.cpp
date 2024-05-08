@@ -83,6 +83,7 @@ public:
 
     void pre_visit(grammar::ast::ArrayInitExp &init) override {
         init.scope = current_symbol_table;
+        init.loop_label = generate_unique_label("array_init_loop");
     }
 
     void pre_visit(grammar::ast::VarAssign &var_assign) override {

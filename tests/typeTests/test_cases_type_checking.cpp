@@ -156,6 +156,11 @@ BOOST_AUTO_TEST_CASE(ArrayIndex3) {testTypeCheckString("int main() { int[2] a = 
 BOOST_AUTO_TEST_CASE(ArrayMixedTypes) {testTypeCheckString("int main() { int[3] a = new int[1,2, true]; return 0; } ", TestingOutcome::FAILED);}
 BOOST_AUTO_TEST_CASE(ArrayMixedTypes2) {testTypeCheckString("int main() { int[1] a = new int[20]; a[15] = true; return 0; } ", TestingOutcome::FAILED);}
 
+BOOST_AUTO_TEST_CASE(ArrayDimNeg) {testTypeCheckString("int main() { int[0] a = new int[20]; return 0; } ", TestingOutcome::FAILED);}
+BOOST_AUTO_TEST_CASE(ArrayDimNotNeg) {testTypeCheckString("int main() { int[1] a = new int[20]; return 0; } ", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(ArrayDimNeg2) {testTypeCheckString("int main() { int[-12] a = new int[20]; return 0; } ", TestingOutcome::FAILED);}
+
+
 BOOST_AUTO_TEST_CASE(IllegalIndexingWithFunction) {testTypeCheckString("int main() { int f () { return 0; } f[2]; return 0; } ", TestingOutcome::FAILED);}
 BOOST_AUTO_TEST_CASE(IllegalIndexingWithFunction2) {testTypeCheckString("int main() { int f () { return 0; } f()[2]; return 0; } ", TestingOutcome::FAILED);}
 BOOST_AUTO_TEST_CASE(IllegalIndexingWithClass) {testTypeCheckString("class T { } int main() { T[1]; return 0; } ", TestingOutcome::FAILED);}

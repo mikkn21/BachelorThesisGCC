@@ -170,7 +170,7 @@ private:
         auto int_type = IntType();
         for (size_t i = 0; i < vec.size(); i++){
             auto type = pop(type_stack);
-            if (type != int_type) {
+            if (type != int_type) { // check that the dimensions are ints
                 return false;
             }
         }
@@ -178,6 +178,9 @@ private:
     }
 
     void post_visit(grammar::ast::ArrayType &array_type) override {
+        if (array_type.dim < 1) {
+            throw TypeCheckError("Array must have at least one positive dimension", array_type);
+        }
         pop(type_stack);
     }
 
