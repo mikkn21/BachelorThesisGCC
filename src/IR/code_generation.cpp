@@ -157,6 +157,8 @@ private:
         // Remove local variables from the stack
         code.push(Instruction(Op::MOVQ, Arg(Register::RBP, DIR()), Arg(Register::R8, DIR())));
         code.push(Instruction(Op::ADDQ, Arg(ImmediateValue(callee_offset), DIR()), Arg(Register::R8, DIR())));
+        // The above instruction is actually equal to a subtraction, as 'callee_offset' is a negative value.
+        // The intention of these three instructions is to move the stack pointer up to right after the calle saves.
         code.push(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(Register::RSP, DIR())));
 
         code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_RESTORE, DIR())));
