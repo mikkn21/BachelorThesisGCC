@@ -196,8 +196,9 @@ void IRVisitor::postVisit(grammar::ast::VarAssign &varAssign) {
             code.push(instruction);
         }
 
-        code.push(Instruction(Op::MOVQ, Arg(Register::RBP, IRL(40+varSymbols[0]->local_id * -8)), Arg(Register::R8, DIR()), "copy rbp to r8 to avoid destroying rbp"));
         // code.push(Instruction(Op::SUBQ, Arg(ImmediateValue(40), DIR()), Arg(Register::R8, DIR()), "setting rbp to start of local variables"));
+        code.push(Instruction(Op::MOVQ, Arg(Register::RBP, IRL(callee_offset+varSymbols[0]->local_id * -8)), Arg(Register::R8, DIR()), "copy rbp to r8 to avoid destroying rbp, varAssign"));
+        // The above line equates to -40 + -8/-16... Which is correct because the first id will always be accessed on the stack, and therefore IRL access needs to be negative
         for (int i = 1; i < varSymbols.size()-1; i++) {
             //std::cout << varSymbols[i]->varDecl->id.id << ": " << varSymbols[i]->local_id << std::endl;
             code.push(Instruction(Op::MOVQ, Arg(Register::R8, IRL(varSymbols[i]->local_id * 8)), Arg(Register::R9, DIR()), "accessing member relative to it's scope")); /// for the first access this is relative to current scope
@@ -236,7 +237,6 @@ void IRVisitor::postVisit(grammar::ast::VarExpression &var_expr) {
         auto target_depth = frontSym->varDecl->id.scope->depth;
         int current_depth = var_expr.idAccess.ids.back().scope->depth;
         int difference = current_depth - target_depth;
-        //lmao
         code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()))); // make space on stack for generic register value
         GenericRegister result_register = GenericRegister(++frontId.scope->registerCounter);
         auto staticLinkingCode = static_link_instructions(difference, frontSym->local_id, result_register);
@@ -244,8 +244,9 @@ void IRVisitor::postVisit(grammar::ast::VarExpression &var_expr) {
             code.push(instruction);
         }
 
-        code.push(Instruction(Op::MOVQ, Arg(Register::RBP, IRL(40+frontSym->local_id * -8)), Arg(Register::R8, DIR()), "copy rbp to r8 to avoid destroying rbp"));
         // code.push(Instruction(Op::SUBQ, Arg(ImmediateValue(40), DIR()), Arg(Register::R8, DIR()), "setting rbp to start of local variables"));
+        code.push(Instruction(Op::MOVQ, Arg(Register::RBP, IRL(callee_offset+frontSym->local_id * -8)), Arg(Register::R8, DIR()), "copy rbp to r8 to avoid destroying rbp, var_exp"));
+        // The above line equates to -40 + -8/-16... Which is correct because the first id will always be accessed on the stack, and therefore IRL access needs to be negative
         for (int i = 1; i < var_expr.idAccess.ids.size()-1; i++) {
             code.push(Instruction(Op::MOVQ, Arg(Register::R8, IRL(getVarSymbol(var_expr.idAccess.ids[i].sym)->local_id * 8)), Arg(Register::R9, DIR()), "accessing member relative to it's scope")); // for the first access this is relative to current scope
             code.push(Instruction(Op::MOVQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR()), "moving pointer to r8 to set up for future IRL access")); // this line is needed for structs of structs
@@ -441,11 +442,6 @@ void IRVisitor::postVisit(grammar::ast::ObjInst &obj){
     code.push(Instruction(Op::PROCEDURE, Arg(Procedure::MEM_ALLOC, DIR()), Arg(ImmediateValue(attrs.size() * 8), DIR()), "allocating space for variables"));
     code.push(Instruction(Op::MOVQ, Arg(Register::RAX, DIR()), Arg(resultRegister, DIR()), "returning address to resultRegister")); 
     for (int i = 0 ; i < attrs.size() ; ++i) {
-        //std::cout << "attr: " << attrs[i]->varDecl->id.id << std::endl;
-        //std::cout << "index: " << getVarSymbol(temp->findLocal(attrs[i]->varDecl->id.id))->local_id << std::endl;
-        // The fucky above line indicates how to find the offset of a variable.
-        // This is useful as it should be able to be multiplied by 8 to get the offset necessary to access the variable.
-        // Which should be run in a loop over idAccess in varAssign
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(0), DIR()), Arg(resultRegister, IRL(8*i)), "initializing variable " + attrs[i]->varDecl->id.id));
     }
 

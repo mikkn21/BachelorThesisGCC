@@ -1,4 +1,9 @@
+class F{
+    int x;
+    int y;
+}
+
 int main(){
-    print(5);
+    F f = new F();
     return 0;
 }
