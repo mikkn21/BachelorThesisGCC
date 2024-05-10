@@ -307,14 +307,12 @@ void IRVisitor::postVisit(grammar::ast::PrintStatement &print) {
     code.push(Instruction(Op::PROCEDURE, Arg(Procedure::PRINT, DIR()), Arg(target, DIR())));
 }
 
-// TODO: Decide if we allow break/continue in functions 
 void IRVisitor::postVisit(grammar::ast::BreakStatement &breakStatement) {
     grammar::ast::WhileStatement *currentWhileloop = while_stack.top();
     std::string endLabel = currentWhileloop->end_label;
     code.push(Instruction(Op::JMP, Arg(Label(endLabel), DIR())));
 }
 
-// TODO: Decide if we allow break/continue in functions 
 void IRVisitor::postVisit(grammar::ast::ContinueStatement &continueStatement) {
     grammar::ast::WhileStatement *currentWhileloop = while_stack.top();
     std::string startLabel = currentWhileloop->start_label;
@@ -367,7 +365,6 @@ void IRVisitor::postVisit(grammar::ast::ConditionalStatement &condStatement) {
 void IRVisitor::preVisit(grammar::ast::Prog &prog) {
     code.push(Instruction(Op::MOVQ, Arg(Register::RSP, DIR()), Arg(Register::RBP, DIR()), "set rbp for global scope")); // set rbp
     code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_SAVE, DIR())));
-    // std::cout << globalScope->get_var_symbols().size() << std::endl;
     int varCount = globalScope->get_var_symbols().size();
     for (int i = 0; i < varCount; i++) {
         code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()), "initialize global variable to 0"));
@@ -489,9 +486,6 @@ void FunctionOrderManager::new_scope() {
 
 /// pushes an instruction to the current scope
 void FunctionOrderManager::push(Instruction instruction) {
-    // auto l = current_function_index.top();
-    // std::cout << "l: " << l << std::endl;
-    // std::cout << "func: " << list_of_funcs[l] << std::endl;
     list_of_funcs[current_function_index.top()].push_back(instruction);
 }
 
