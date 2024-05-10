@@ -4,7 +4,6 @@ class T {
 
  int main() {
      T a = new T();
+     print(a.x);
      return 0;
  } 
-
- 

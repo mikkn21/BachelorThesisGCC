@@ -223,11 +223,11 @@ namespace grammar
         }
 
         std::ostream& operator<<(std::ostream& os, const grammar::ast::ParameterList &input) {
-            if (input.parameter.empty()) {
+            if (input.parameters.empty()) {
                 return os;
             }
 
-            const auto parameters = input.parameter;
+            const auto parameters = input.parameters;
             os << parameters[0];
             for (unsigned long i = 1; i < parameters.size(); i++) {
                 os << ", ";

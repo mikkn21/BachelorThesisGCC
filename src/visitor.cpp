@@ -170,7 +170,7 @@ template <>
 void TreeTraveler::operator()(grammar::ast::ClassDecl &class_decl) {
     visitor.pre_visit(class_decl);
     (*this)(class_decl.id);
-    visitor.pre_id_visit(class_decl); 
+    visitor.pre_attr_visit(class_decl); 
     (*this)(class_decl.attr);
     visitor.post_visit(class_decl);
 }
@@ -328,7 +328,7 @@ void TreeTraveler::operator()(grammar::ast::VarDeclAssign &decl) {
 template <>
 void TreeTraveler::operator()(grammar::ast::ParameterList &parameter_list) {
     visitor.pre_visit(parameter_list);
-    (*this)(parameter_list.parameter);
+    (*this)(parameter_list.parameters);
     visitor.post_visit(parameter_list);
 }
 

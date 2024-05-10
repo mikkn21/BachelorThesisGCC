@@ -1,8 +1,9 @@
 #include "symbol_table.hpp"
 #include "semantics_error.hpp"
 #include <iostream>
-#include <stdexcept>
-#include <typeinfo>
+#include <memory>
+#include <set>
+#include <vector>
 
 struct PrintVisitor {
     std::ostream& os;
@@ -89,6 +90,18 @@ bool ArraySymbolType::operator==(const ArraySymbolType &other) const {
     return (dimensions == other.dimensions) && (*element_type.get() == *other.element_type.get());
 }
 
+bool FuncSymbolType::operator==(const FuncSymbolType &other) const {
+    bool equals = return_type == other.return_type && symbol->func_decl->id.id == other.symbol->func_decl->id.id;
+
+    size_t i = 0;
+    while (equals && i < parameters.size()) {
+        equals = parameters[i] == other.parameters[i];
+        i++;
+    }
+
+    return equals;
+}
+
 std::string BoolType::to_string() const {
     return "bool";
 }
@@ -102,7 +115,20 @@ std::string ClassSymbolType::to_string() const {
 }
 
 std::string ArraySymbolType::to_string() const {
-    return "Array of " + element_type->to_string();
+    return "array<" + element_type->to_string() + ">";
+}
+
+std::string FuncSymbolType::to_string() const {
+    std::string s =  "func:" + symbol->func_decl->id.id + "<" + return_type->to_string() + ">";
+    s += "<";
+    for (size_t i = 0; i < parameters.size(); i++) {
+        s += parameters[i].to_string();
+        if (i != parameters.size() - 1) {
+            s += ", ";
+        }
+    }
+    s += ">";
+    return s;
 }
 
 std::string SymbolType::to_string() const {
@@ -115,15 +141,22 @@ SymbolType convert_type(grammar::ast::Type type) {
 }
 
 FuncSymbol::FuncSymbol(grammar::ast::FuncDecl *func_decl, SymbolTable *scope) : sym_tab(scope){ 
-    for (auto i : func_decl->parameter_list.parameter){
-        try {
-            auto decl = boost::get<grammar::ast::VarDecl>(i);
+    std::vector<SymbolType> parameters = std::vector<SymbolType>();
+    for (auto parameter : func_decl->parameter_list.parameters){
+        try { 
+            auto decl = boost::get<grammar::ast::VarDecl>(parameter);
             parameters.push_back(convert_type(decl.type));
         } catch (boost::bad_get& e) {
             throw SemanticsError("Expected VarDecl in parameter list", *func_decl);
         }
     }
-    return_type = convert_type(func_decl->type);
+    
+    type = FuncSymbolType{
+        .symbol = this,
+        .parameters = parameters,
+        .return_type = std::make_shared<SymbolType>(convert_type(func_decl->type))
+    };
+    
     scope->creator = this;
 }
 
@@ -136,7 +169,7 @@ VarSymbol::VarSymbol(grammar::ast::VarDecl *var_decl) : var_decl(var_decl) {
 }
 
 SymbolType FuncSymbol::to_type() {
-    throw std::runtime_error("FuncSymbol cannot be converted to a SymbolType");
+    return type;
 }
 
 SymbolType ClassSymbol::to_type() {
@@ -167,15 +200,25 @@ SymbolTable::~SymbolTable(){
     }
 }
 
-void SymbolTable::insert(std::string key, VarSymbol* symbol) {
+void SymbolTable::insert(std::string key, VarSymbol *symbol) {
     if (symbol->var_decl->id.scope->creator != nullptr) {
-        auto& parameter_list = symbol->var_decl->id.scope->creator->parameters;
-        auto it = std::find(parameter_list.begin(), parameter_list.end(), symbol->type);
+        auto& parameter_list = symbol->var_decl->id.scope->creator->func_decl->parameter_list.parameters;
+        bool is_parameter = false;
+        for (size_t i = 0; i < parameter_list.size(); i++) {
+            if (auto *decl = boost::get<grammar::ast::VarDecl>(&parameter_list[i])) {
+                if (decl == symbol->var_decl) {
+                    is_parameter = true;
+                    break;
+                }
+            } else {
+                throw SemanticsError("Expected VarDecl in parameter", *symbol->var_decl->id.scope->creator->func_decl);
+            }
+        }
 
-        if (it != parameter_list.end()) {
-            symbol->local_id = --parameter_counter; // is a parameter
-        } else {
-            symbol->local_id = ++register_counter; // is not a parameter, but a local variable
+        if (is_parameter) {
+            symbol->local_id = --parameter_counter;
+        } else { // Is a local variable
+            symbol->local_id = ++register_counter;
         }
     } else {
             symbol->local_id = ++register_counter; // is not a parameter, but a local variable

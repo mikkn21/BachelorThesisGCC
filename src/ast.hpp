@@ -297,7 +297,7 @@ namespace grammar
         };        
 
         struct ParameterList : LocationInfo { 
-            std::vector<Parameter> parameter; 
+            std::vector<Parameter> parameters; 
         public:
             friend std::ostream& operator<<(std::ostream& os, const ParameterList &exp);
         };

@@ -90,7 +90,7 @@ BOOST_AUTO_TEST_CASE(ParameterWrongType) {testTypeCheckString("int main() {int f
 BOOST_AUTO_TEST_CASE(ParameterWrongTypeInReturn) {testTypeCheckString("int main() {int f(bool x) { return x; } return 0;}", TestingOutcome::FAILED);}
 
 // Arguments
-BOOST_AUTO_TEST_CASE(Argument) {testTypeCheckString("int main() {int f(int x) { return 0; } f(2); return 0;}", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(Argument) {testTypeCheckString("int main() {int f(bool x) { return 0; } f(true); return 0;}", TestingOutcome::SUCCESS);}
 BOOST_AUTO_TEST_CASE(ArgumentWrong) {testTypeCheckString("int main() {int f(int x) { return 0; } f(true); return 0;}", TestingOutcome::FAILED);}
 BOOST_AUTO_TEST_CASE(TooFewArguments) {testTypeCheckString("int main() {int f(int x) { return 0; } f(); return 0;}", TestingOutcome::FAILED);}
 BOOST_AUTO_TEST_CASE(TooFewArguments2) {testTypeCheckString("int main() {int f(int x, int y) { return 0; } f(2); return 0;}", TestingOutcome::FAILED);}

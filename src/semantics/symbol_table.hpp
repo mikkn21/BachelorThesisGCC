@@ -30,14 +30,17 @@ struct ClassSymbolType {
     std::string to_string() const;
 };
 
-// TODO: Changed from std::variant to boost::variant
-struct SymbolType : public boost::variant<IntType, BoolType, ArraySymbolType, ClassSymbolType /*, TypeAlias,*/ > {
-    // IntType,
-    // BoolType
-    //ArrayType
-    //Class, future implementation
-    using boost::variant<IntType, BoolType, ArraySymbolType, ClassSymbolType>::variant;
-    using boost::variant<IntType, BoolType, ArraySymbolType, ClassSymbolType>::operator=;
+struct FuncSymbolType {
+    FuncSymbol *symbol;
+    std::vector<SymbolType> parameters;
+    std::shared_ptr<SymbolType> return_type;
+    bool operator==(const FuncSymbolType &other) const;
+    std::string to_string() const;
+};
+
+struct SymbolType : public boost::variant<IntType, BoolType, ArraySymbolType, ClassSymbolType, FuncSymbolType /*, TypeAlias,*/ > {
+    using boost::variant<IntType, BoolType, ArraySymbolType, ClassSymbolType, FuncSymbolType>::variant;
+    using boost::variant<IntType, BoolType, ArraySymbolType, ClassSymbolType, FuncSymbolType>::operator=;
     bool operator==(const SymbolType &other) const;
     bool operator!=(const SymbolType &other) const;
     std::string to_string() const;
@@ -57,10 +60,9 @@ class FuncSymbol : public Symbol{
 public:
     FuncSymbol(grammar::ast::FuncDecl *func_decl, SymbolTable *sym_tab);
     ~FuncSymbol() override;
-    std::vector<SymbolType> parameters;
-    SymbolType return_type;
     grammar::ast::FuncDecl *func_decl;
     SymbolTable *sym_tab;
+    FuncSymbolType type;
     SymbolType to_type() override;
 };
 

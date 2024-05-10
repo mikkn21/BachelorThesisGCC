@@ -112,7 +112,7 @@ BOOST_FUSION_ADAPT_STRUCT(
 
 BOOST_FUSION_ADAPT_STRUCT(
     grammar::ast::ParameterList,
-    (std::vector<grammar::ast::Parameter>, parameter)
+    (std::vector<grammar::ast::Parameter>, parameters)
 )
 
 BOOST_FUSION_ADAPT_STRUCT(

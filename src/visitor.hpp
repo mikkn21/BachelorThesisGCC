@@ -24,7 +24,7 @@ public:
     virtual void post_visit(grammar::ast::ClassType &type) { }
 
     virtual void pre_visit(grammar::ast::ClassDecl &class_decl) {}
-    virtual void pre_id_visit(grammar::ast::ClassDecl &class_decl) {} 
+    virtual void pre_attr_visit(grammar::ast::ClassDecl &class_decl) {} 
     virtual void post_visit(grammar::ast::ClassDecl &class_decl) {}
 
     virtual void pre_visit(grammar::ast::ObjInst &objInst) {}
