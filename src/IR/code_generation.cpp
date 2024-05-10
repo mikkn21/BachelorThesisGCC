@@ -7,7 +7,7 @@
 #include <vector>
 #include <stack>
 
-const int callee_offset = -40;
+const int callee_offset = -40; // TODO: this should be referenced from a shared file so all occurences of this has a common variable. Or it should be removed
 
 using AstValue = std::variant<int, bool, GenericRegister>;
 
@@ -146,12 +146,11 @@ public:
 
 private:
     std::vector<std::string> function_container;
-    std::stack<AstValue> temp_storage;
+    std::stack<AstValue> intermediary_storage;
 
 
     void post_visit(grammar::ast::ReturnStatement &return_statement) {
-        //AstValue value = pop(temp_storage);
-        auto target = get_target(pop(temp_storage));
+        auto target = get_target(pop(intermediary_storage));
         code.push(Instruction(Op::MOVQ, Arg(target, DIR()), Arg(Register::RAX, DIR())));
 
         // Remove local variables from the stack
@@ -191,8 +190,8 @@ private:
 
         // add arguments to stack in reverse order
         for (long unsigned int i = 0; i < func_call.argument_list.arguments.size(); i++) {
-            //AstValue value = pop(temp_storage);
-            auto target = get_target(pop(temp_storage));
+            //AstValue value = pop(intermediary_storage);
+            auto target = get_target(pop(intermediary_storage));
             code.push(Instruction(Op::PUSHQ, Arg(target, DIR()), "pushing register argument"));
         }
         int callee_depth = dynamic_cast<FuncSymbol*>(func_call.id.sym)->sym_tab->parent_scope->depth;
@@ -212,7 +211,7 @@ private:
         code.push(Instruction(Op::ADDQ, Arg(ImmediateValue((func_call.argument_list.arguments.size()+1) * 8), DIR()), Arg(Register::RSP, DIR()), "remove arguments and static link from stack")); 
         code.push(Instruction(Op::MOVQ, Arg(Register::RAX, DIR()), Arg(result, DIR()), "save result from function call")); 
         code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLER_RESTORE, DIR())));
-        temp_storage.push(result); // pushing the result of the function
+        intermediary_storage.push(result); // pushing the result of the function
     }
 
     VarSymbol *get_var_symbols(Symbol *symbol) {
@@ -224,8 +223,8 @@ private:
     }
 
     void post_visit(grammar::ast::VarAssign &var_assign) {
-      //AstValue value = pop(temp_storage);
-      auto target = get_target(pop(temp_storage));
+      //AstValue value = pop(intermediary_storage);
+      auto target = get_target(pop(intermediary_storage));
       VarSymbol *var_symbol = get_var_symbols(var_assign.id_access.ids.back().sym);
       int current_depth = var_assign.id_access.ids.back().scope->depth;
       int target_depth = var_symbol->var_decl->id.scope->depth;
@@ -238,18 +237,18 @@ private:
     }
 
     void post_visit(grammar::ast::VarDeclAssign &var_decl_assign) {
-        auto target = get_target(pop(temp_storage));
+        auto target = get_target(pop(intermediary_storage));
         code.push(Instruction(Op::MOVQ, Arg(target, DIR()), Arg(Register::R8, DIR())));
         code.push(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(GenericRegister(var_decl_assign.decl.sym->local_id), DIR())));
     }
 
 
     void pre_visit(int &i) {
-        temp_storage.push(i);
+        intermediary_storage.push(i);
     }
 
     void pre_visit(bool &b) {
-        temp_storage.push(b);
+        intermediary_storage.push(b);
     }
 
     void post_visit(grammar::ast::VarExpression &var_expr) {
@@ -257,7 +256,6 @@ private:
         auto target_depth = var_symbol->var_decl->id.scope->depth;
         int current_depth = var_expr.id_access.ids.back().scope->depth;
         int difference = current_depth - target_depth;
-        // std::cout << "current depth: " << current_depth << "target depth: " << target_depth << "difference: " << difference << std::endl;
         code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()))); // make space on stack for generic register value
         auto id = ++var_expr.id_access.ids.back().scope->register_counter;
         GenericRegister result_register = GenericRegister(id);
@@ -265,7 +263,7 @@ private:
         for (auto instruction : static_linking_code) {
             code.push(instruction);
         }
-        temp_storage.push(result_register);
+        intermediary_storage.push(result_register);
     }
 
     void post_visit(grammar::ast::Rhs &op_exp) {
@@ -273,8 +271,8 @@ private:
         code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()))); // make space on stack for generic register
         GenericRegister result = GenericRegister(++op_exp.scope->register_counter);
 
-        auto r_target = get_target(pop(temp_storage));
-        auto l_target = get_target(pop(temp_storage));
+        auto r_target = get_target(pop(intermediary_storage));
+        auto l_target = get_target(pop(intermediary_storage));
 
         code.push(Instruction(Op::MOVQ, Arg(l_target, DIR()), Arg(Register::R8, DIR())));
         code.push(Instruction(Op::MOVQ, Arg(r_target, DIR()), Arg(Register::R9, DIR())));
@@ -284,13 +282,13 @@ private:
             code.push(instruction);
         }
 
-        temp_storage.push(result);  
+        intermediary_storage.push(result);  
     }
 
     void post_visit(grammar::ast::ArrayInitExp &arr) {
         std::vector<AstValue> sizes;
         for (auto size : arr.sizes) {
-            sizes.push_back(pop(temp_storage));
+            sizes.push_back(pop(intermediary_storage));
         }
 
         code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()))); // make space on stack for generic register value
@@ -338,14 +336,14 @@ private:
         // set the array pointer to point to the first element of the array
         code.push(Instruction(Op::ADDQ, Arg(ImmediateValue(sizes.size() * 8), DIR()), Arg(arrayStart, DIR()), "set array pointer to point to first element" ));
         
-        temp_storage.push(arrayStart);
+        intermediary_storage.push(arrayStart);
     }
 
 
     void post_visit(grammar::ast::ArrayIndex &index) {
         std::vector<TargetType> index_targets;
         for (size_t i = 0; i < index.indices.size(); i++) {
-            index_targets.push_back(get_target(pop(temp_storage)));
+            index_targets.push_back(get_target(pop(intermediary_storage)));
         }
 
         // TODO: Check valid index
@@ -391,27 +389,27 @@ private:
             }
         }
 
-        temp_storage.push(index_address);
+        intermediary_storage.push(index_address);
     }
 
 
 
     void post_visit(grammar::ast::ArrayIndexExp &index_exp) {
-        TargetType index_ptr = get_target(pop(temp_storage));
+        TargetType index_ptr = get_target(pop(intermediary_storage));
         code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()))); // make space on stack for generic register value
         GenericRegister result = GenericRegister(++index_exp.index.id_access.ids.front().scope->register_counter);
         code.push(Instruction(Op::MOVQ, Arg(index_ptr, IND()), Arg(result, DIR()), "Unwrap the index pointer"));
-        temp_storage.push(result);
+        intermediary_storage.push(result);
     }
 
     void post_visit(grammar::ast::ArrayIndexAssign &assign) {
-        TargetType value = get_target(pop(temp_storage));
-        TargetType index_ptr = get_target(pop(temp_storage));
+        TargetType value = get_target(pop(intermediary_storage));
+        TargetType index_ptr = get_target(pop(intermediary_storage));
         code.push(Instruction(Op::MOVQ, Arg(value, DIR()), Arg(index_ptr, IND()), "Assign the value to the array index"));
     }
 
     void post_visit(grammar::ast::PrintStatement &print) {
-        auto target = get_target(pop(temp_storage));
+        auto target = get_target(pop(intermediary_storage));
         code.push(Instruction(Op::PROCEDURE, Arg(Procedure::PRINT, DIR()), Arg(target, DIR())));
     }
 
@@ -433,7 +431,7 @@ private:
     }
 
     void pre_block_visit(grammar::ast::WhileStatement &while_statement) {
-        auto target = get_target(pop(temp_storage));
+        auto target = get_target(pop(intermediary_storage));
         code.push(Instruction(Op::MOVQ, Arg(target, DIR()), Arg(Register::RAX, DIR())));
         code.push(Instruction(Op::CMPQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RAX, DIR())));
         while_stack.push(&while_statement); // push current whileloop on loop stack
@@ -451,7 +449,7 @@ private:
     }
 
     void pre_block_visit(grammar::ast::IfStatement &if_statement) {
-        auto target = get_target(pop(temp_storage));
+        auto target = get_target(pop(intermediary_storage));
         code.push(Instruction(Op::MOVQ, Arg(target, DIR()), Arg(Register::RAX, DIR())));
         code.push(Instruction(Op::CMPQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RAX, DIR())));
         code.push(Instruction(Op::JNE, Arg(Label(if_statement.next_label), DIR())));

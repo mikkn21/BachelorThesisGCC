@@ -3,7 +3,7 @@
 const int callee_offset = -40;
 const int arg_offset = 16;
 
-std::vector<Instruction> generic_translate(Instruction instruction) {
+std::vector<Instruction> generic_translate(Instruction instruction) { // Does not work with procedures.
     std::vector<Instruction> instructions;
     Instruction translated_instruction = Instruction(instruction.operation, instruction.comment);
     std::vector<Register> registers = {Register::R11, Register::R12, Register::R13};
