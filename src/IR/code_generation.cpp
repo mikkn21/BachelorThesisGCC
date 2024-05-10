@@ -471,7 +471,6 @@ private:
     void pre_visit(grammar::ast::Prog &prog) {
         code.push(Instruction(Op::MOVQ, Arg(Register::RSP, DIR()), Arg(Register::RBP, DIR()), "set rbp for global scope")); // set rbp
         code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_SAVE, DIR())));
-        // std::cout << global_scope->get_var_symbols().size() << std::endl;
         int var_count = global_scope->get_var_symbols().size();
         for (int i = 0; i < var_count; i++) {
             code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()), "initialize global variable to 0"));
