@@ -180,18 +180,16 @@ private:
         type_stack.push(t2);
     }
 
-    
-
-    void pre_parameter_list_visit(grammar::ast::FuncDecl &func_decl) override {
-        pop(type_stack);
-    }
-
     void pre_visit(grammar::ast::FuncDecl &func_decl) override {
         type_stack.push(*func_decl.sym->type.return_type.get()); 
     }
 
+    void pre_parameter_list_visit(grammar::ast::FuncDecl &func_decl) override {
+        pop(type_stack); // Id
+    }
+
     void post_visit(grammar::ast::FuncDecl &func_decl) override {
-        pop(type_stack);
+        pop(type_stack); // Return type
     }
 
     void post_visit(grammar::ast::PrintStatement &print) override {
@@ -215,7 +213,7 @@ private:
         if (array_type.dim < 1) {
             throw TypeCheckError("Array must have at least one positive dimension", array_type);
         }
-        pop(type_stack);
+        pop(type_stack); // Dimension (which is an int)
     }
 
     void post_visit(grammar::ast::ArrayInitExp &exp) override {
