@@ -19,6 +19,7 @@ BOOST_AUTO_TEST_CASE(StaticLinkingRead) {test_assembly_file("static_linking_read
 BOOST_AUTO_TEST_CASE(StaticLinkingWrite) {test_assembly_file("static_linking_write.chad","0\n10\n20\n50\n11");}
 BOOST_AUTO_TEST_CASE(Arrays) {test_assembly_file("test_arrays.chad","42\n17\n29\n8");}
 BOOST_AUTO_TEST_CASE(ArraysInit) {test_assembly_file("test_array_init.chad","0\n0\n0\n0");}
+BOOST_AUTO_TEST_CASE(BasicStructs) {test_assembly_file("basic_structs.chad","0\n3\n0\n0\n3\n0\n5");}
 //  BOOST_AUTO_TEST_CASE(BadCode) {test_assembly_file("badCode.chad", "0");}
 
 

@@ -1,7 +1,7 @@
-
-int main() {
-    int[2] arr = new int[10, 20];
-    print(arr[2,3]);
-    return 0;
+class F {
 }
 
+int main(){
+    F f = new F();
+    return 0;
+}
