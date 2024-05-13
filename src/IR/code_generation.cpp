@@ -149,7 +149,7 @@ private:
     std::stack<AstValue> intermediary_storage;
 public: 
 
-    void post_visit(grammar::ast::ReturnStatement &return_statement) {
+    void post_visit(grammar::ast::ReturnStatement &return_statement) override {
         auto target = get_target(pop(intermediary_storage));
         code.push(Instruction(Op::MOVQ, Arg(target, DIR()), Arg(Register::RAX, DIR())));
 
@@ -166,7 +166,7 @@ public:
         code.push(Instruction(Op::RET));
     }
 
-    void pre_visit(grammar::ast::FuncDecl &func_decl) {
+    void pre_visit(grammar::ast::FuncDecl &func_decl) override {
         code.new_scope();
         code.push(Instruction(Op::LABEL, Arg(Label(func_decl.label), DIR())));
         code.push(Instruction(Op::PUSHQ, Arg(Register::RBP, DIR()), "save old rbp"));
@@ -178,11 +178,11 @@ public:
         }
     }
 
-    void post_visit(grammar::ast::FuncDecl &func_decl) {
+    void post_visit(grammar::ast::FuncDecl &func_decl) override {
         code.end_scope();
     }
 
-    void post_visit(grammar::ast::FunctionCall &func_call) {
+    void post_visit(grammar::ast::FunctionCall &func_call) override {
         code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()), "make space on stack")); // make space on stack for generic register value
         GenericRegister result = GenericRegister(++func_call.id.scope->register_counter); // register for the function result to be stored in
 
@@ -222,7 +222,7 @@ public:
         }
     }
 
-    void post_visit(grammar::ast::VarAssign &var_assign) {
+    void post_visit(grammar::ast::VarAssign &var_assign) override {
         auto target = get_target(pop(intermediary_storage));
         std::vector<VarSymbol*> var_symbols;
         for (auto id : var_assign.id_access.ids) {
@@ -263,7 +263,7 @@ public:
         }        
     }
 
-    void post_visit(grammar::ast::VarDeclAssign &var_decl_assign) {
+    void post_visit(grammar::ast::VarDeclAssign &var_decl_assign) override {
         std::cout << "before" << std::endl;
         auto target = get_target(pop(intermediary_storage));
         std::cout << "after" << std::endl;
@@ -272,15 +272,15 @@ public:
     }
 
 
-    void pre_visit(int &i) {
+    void pre_visit(int &i) override {
         intermediary_storage.push(i);
     }
 
-    void pre_visit(bool &b) {
+    void pre_visit(bool &b) override {
         intermediary_storage.push(b);
     }
 
-    void post_visit(grammar::ast::VarExpression &var_expr) {
+    void post_visit(grammar::ast::VarExpression &var_expr) override {
         if (var_expr.id_access.ids.size() > 1){
             auto frontId = var_expr.id_access.ids.front();
             auto frontSym = get_var_symbols(frontId.sym); // auto frontLocalId = frontSym->local_id;
@@ -321,7 +321,7 @@ public:
         }
     }
 
-    void post_visit(grammar::ast::Rhs &op_exp) {
+    void post_visit(grammar::ast::Rhs &op_exp) override {
         // future optimization: calculate immediate values immediately to optimize program.
         code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()))); // make space on stack for generic register
         GenericRegister result = GenericRegister(++op_exp.scope->register_counter);
@@ -340,7 +340,7 @@ public:
         intermediary_storage.push(result);  
     }
 
-    void post_visit(grammar::ast::ArrayInitExp &arr) {
+    void post_visit(grammar::ast::ArrayInitExp &arr) override {
         std::vector<AstValue> sizes;
         for (auto size : arr.sizes) {
             sizes.push_back(pop(intermediary_storage));
@@ -395,7 +395,7 @@ public:
     }
 
 
-    void post_visit(grammar::ast::ArrayIndex &index) {
+    void post_visit(grammar::ast::ArrayIndex &index) override {
         std::vector<TargetType> index_targets;
         for (size_t i = 0; i < index.indices.size(); i++) {
             index_targets.push_back(get_target(pop(intermediary_storage)));
@@ -449,7 +449,7 @@ public:
 
 
 
-    void post_visit(grammar::ast::ArrayIndexExp &index_exp) {
+    void post_visit(grammar::ast::ArrayIndexExp &index_exp) override {
         TargetType index_ptr = get_target(pop(intermediary_storage));
         code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()))); // make space on stack for generic register value
         GenericRegister result = GenericRegister(++index_exp.index.id_access.ids.front().scope->register_counter);
@@ -457,35 +457,34 @@ public:
         intermediary_storage.push(result);
     }
 
-    void post_visit(grammar::ast::ArrayIndexAssign &assign) {
+    void post_visit(grammar::ast::ArrayIndexAssign &assign) override {
         TargetType value = get_target(pop(intermediary_storage));
         TargetType index_ptr = get_target(pop(intermediary_storage));
         code.push(Instruction(Op::MOVQ, Arg(value, DIR()), Arg(index_ptr, IND()), "Assign the value to the array index"));
     }
 
-    void post_visit(grammar::ast::PrintStatement &print) {
+    void post_visit(grammar::ast::PrintStatement &print) override {
         auto target = get_target(pop(intermediary_storage));
         code.push(Instruction(Op::PROCEDURE, Arg(Procedure::PRINT, DIR()), Arg(target, DIR())));
     }
 
-    void post_visit(grammar::ast::BreakStatement &break_statement) {
+    void post_visit(grammar::ast::BreakStatement &break_statement) override {
         grammar::ast::WhileStatement *current_while_loop = while_stack.top();
         std::string end_label = current_while_loop->end_label;
         code.push(Instruction(Op::JMP, Arg(Label(end_label), DIR())));
     }
 
-    void post_visit(grammar::ast::ContinueStatement &continue_statement) {
+    void post_visit(grammar::ast::ContinueStatement &continue_statement) override {
         grammar::ast::WhileStatement *current_while_loop = while_stack.top();
         std::string start_label = current_while_loop->start_label;
         code.push(Instruction(Op::JMP, Arg(Label(start_label), DIR())));
     }
 
-    void pre_visit(grammar::ast::WhileStatement &while_statement) {
-
+    void pre_visit(grammar::ast::WhileStatement &while_statement) override {
         code.push(Instruction(Op::LABEL, Arg(Label(while_statement.start_label), DIR())));
     }
 
-    void pre_block_visit(grammar::ast::WhileStatement &while_statement) {
+    void pre_block_visit(grammar::ast::WhileStatement &while_statement) override {
         auto target = get_target(pop(intermediary_storage));
         code.push(Instruction(Op::MOVQ, Arg(target, DIR()), Arg(Register::RAX, DIR())));
         code.push(Instruction(Op::CMPQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RAX, DIR())));
@@ -493,36 +492,36 @@ public:
         code.push(Instruction(Op::JNE, Arg(Label(while_statement.end_label), DIR())));
     }
 
-    void post_visit(grammar::ast::WhileStatement &while_statement) {
+    void post_visit(grammar::ast::WhileStatement &while_statement) override {
         pop(while_stack); 
         code.push(Instruction(Op::JMP, Arg(Label(while_statement.start_label), DIR())));
         code.push(Instruction(Op::LABEL, Arg(Label(while_statement.end_label), DIR())));
     }
 
-    void pre_visit(grammar::ast::IfStatement &if_statement) {
+    void pre_visit(grammar::ast::IfStatement &if_statement) override {
         code.push(Instruction(Op::LABEL, Arg(Label(if_statement.label), DIR())));
     }
 
-    void pre_block_visit(grammar::ast::IfStatement &if_statement) {
+    void pre_block_visit(grammar::ast::IfStatement &if_statement) override {
         auto target = get_target(pop(intermediary_storage));
         code.push(Instruction(Op::MOVQ, Arg(target, DIR()), Arg(Register::RAX, DIR())));
         code.push(Instruction(Op::CMPQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RAX, DIR())));
         code.push(Instruction(Op::JNE, Arg(Label(if_statement.next_label), DIR())));
     }
 
-    void post_visit(grammar::ast::IfStatement &if_statement) {
+    void post_visit(grammar::ast::IfStatement &if_statement) override {
         code.push(Instruction(Op::JMP, Arg(Label(if_statement.end_if_label), DIR())));
     }
 
-    void pre_visit(grammar::ast::ElseStatement &else_statement) {
+    void pre_visit(grammar::ast::ElseStatement &else_statement) override {
         code.push(Instruction(Op::LABEL, Arg(Label(else_statement.label), DIR())));
     }
 
-    void post_visit(grammar::ast::ConditionalStatement &cond_statement) {
+    void post_visit(grammar::ast::ConditionalStatement &cond_statement) override {
         code.push(Instruction(Op::LABEL, Arg(Label(cond_statement.end_if_label), DIR())));
     }
 
-    void post_visit(grammar::ast::ObjInst &obj) {
+    void post_visit(grammar::ast::ObjInst &obj) override {
         auto temp = dynamic_cast<ClassSymbol*>(obj.id.sym)->symbol_table;
         auto attrs = temp->get_var_symbols();
 
@@ -537,7 +536,7 @@ public:
         intermediary_storage.push(result_register); 
     }
 
-    void pre_visit(grammar::ast::Prog &prog) {
+    void pre_visit(grammar::ast::Prog &prog) override {
         code.push(Instruction(Op::MOVQ, Arg(Register::RSP, DIR()), Arg(Register::RBP, DIR()), "set rbp for global scope")); // set rbp
         code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_SAVE, DIR())));
         int var_count = global_scope->get_var_symbols().size();
@@ -605,7 +604,7 @@ public:
         push_mem_alloc_function();
     }
 
-    void post_visit(grammar::ast::Prog &prog) {
+    void post_visit(grammar::ast::Prog &prog) override {
         code.push(Instruction(Op::PUSHQ, Arg(Register::RBP, DIR()), "setting static link")); // Settting static link.
         code.push(Instruction(Op::CALL, Arg(Label("main"), DIR())));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(60), DIR()), Arg(Register::RAX, DIR())));
