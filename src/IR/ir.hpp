@@ -1,6 +1,7 @@
 #ifndef IR_HPP
 #define IR_HPP
 
+#include <list>
 #include <vector>
 #include <variant>
 #include <optional>
@@ -9,7 +10,7 @@
 
 
 enum class Op {
-   MOVQ, PUSH, POP, CALL, RET, CMPQ, JMP, JE, JNE, JL, JLE, JG, JGE, ADDQ, SUBQ, IMULQ, IDIVQ, LABEL, PROCEDURE, ANDQ, ORQ, XORQ, PUSHQ, POPQ, SETL, SETG, SETLE, SETGE, SETE, SETNE, SYSCALL, NOTHING
+   MOVQ, CALL, RET, CMPQ, JMP, JE, JNE, JL, JLE, JG, JGE, ADDQ, SUBQ, IMULQ, IDIVQ, LABEL, PROCEDURE, ANDQ, ORQ, XORQ, PUSHQ, POPQ, SETL, SETG, SETLE, SETGE, SETE, SETNE, SYSCALL, NOTHING
 };
 
 struct DIR {};
@@ -34,12 +35,19 @@ struct ImmediateData {
 struct GenericRegister {
     long local_id; // TODO: should this not be a long long?
     GenericRegister(long local_id);
+    
+    bool operator<(const GenericRegister& other) const {
+        return local_id < other.local_id;
+    }
+
+    bool operator==(const GenericRegister& other) const {
+        return local_id == other.local_id;
+    }
 };
 
 enum class Register {
-    RAX, RBX, RCX, RDX, RSI, RDI, R8, R8B, R9, R10, R10B, R11, R12, R13, R14, R15, RSP, RBP, 
+    RAX, RBX, RCX, RDX, RSI, RDI, R8, R8B, R9, R10, R10B, R11, R12, R13, R14, R15, RSP, RBP
 };
-
 struct Label {
     std::string label;
     Label(const std::string& label);
@@ -49,6 +57,7 @@ enum class Procedure {
     CALLEE_SAVE, CALLEE_RESTORE, CALLER_SAVE, CALLER_RESTORE, PRINT, MEM_ALLOC,
 };
 
+//TODO: why is it called ImmediateData?
 using TargetType = std::variant<ImmediateValue, ImmediateData, Register, GenericRegister, Label, Procedure>;
 
 struct Arg {
@@ -61,13 +70,14 @@ struct Instruction {
     Op operation;
     std::vector<Arg> args;
     std::optional<std::string> comment;
+    std::optional<Instruction*> alternative_successor = std::nullopt;
 
-    Instruction(Op op, std::optional<std::string> comment = std::nullopt);
-    Instruction(Op op, Arg arg1, std::optional<std::string> comment = std::nullopt);
-    Instruction(Op op, Arg arg1, Arg arg2, std::optional<std::string> comment = std::nullopt);
+    Instruction(Op op, std::optional<std::string> comment = std::nullopt, std::optional<Instruction*> alternative = std::nullopt);
+    Instruction(Op op, Arg arg1, std::optional<std::string> comment = std::nullopt, std::optional<Instruction*> alternative = std::nullopt);
+    Instruction(Op op, Arg arg1, Arg arg2, std::optional<std::string> comment = std::nullopt, std::optional<Instruction*> alternative = std::nullopt);
 };
 
-using IR = std::vector<Instruction>;
+using IR = std::list<Instruction>;
 
 std::ostream& operator<<(std::ostream& os, const Instruction &instruction);
 std::ostream& operator<<(std::ostream& os, const Op op);

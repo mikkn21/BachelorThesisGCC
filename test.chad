@@ -1,7 +1,6 @@
-class F {
-}
 
-int main(){
-    F f = new F();
+int main() {
+    int x = 1;
+    print(x);
     return 0;
 }

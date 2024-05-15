@@ -4,6 +4,7 @@
 #include "semantics/symbol_collection_phase2.hpp"
 #include "type_checking/typeChecking.hpp"
 #include "semantics/symbol_collection.hpp"
+#include "optimizations/coloring_by_simplification.hpp"
 
 
 namespace grammar::compiler {
@@ -76,6 +77,8 @@ namespace grammar::compiler {
             return obj;
         }
         obj->ir = register_allocation(obj->ir); 
+        register_allocation2(obj->ir); 
+
 
         if (options.stop_after == StopAfterRegAlloc){
             return obj;

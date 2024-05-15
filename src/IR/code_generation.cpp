@@ -1,6 +1,7 @@
 #include "code_generation.hpp"
 #include "../semantics/symbol_table.hpp"
 #include "../visitor.hpp"
+#include "link_instructions.hpp"
 
 #include <cstddef>
 #include <string>
@@ -242,7 +243,7 @@ public:
 
             code.push(Instruction(Op::MOVQ, Arg(Register::RBP, IRL(callee_offset+var_symbols[0]->local_id * -8)), Arg(Register::R8, DIR()), "copy rbp to r8 to avoid destroying rbp, varAssign"));
             // The above line equates to -40 + -8/-16... Which is correct because the first id will always be accessed on the stack, and therefore IRL access needs to be negative
-            for (int i = 1; i < var_symbols.size()-1; i++) {
+            for (size_t i = 1; i < var_symbols.size()-1; i++) {
                 code.push(Instruction(Op::MOVQ, Arg(Register::R8, IRL(var_symbols[i]->local_id * 8)), Arg(Register::R9, DIR()), "accessing member relative to it's scope")); /// for the first access this is relative to current scope
                 code.push(Instruction(Op::MOVQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR()), "moving pointer to r8 to set up for future IRL access")); // this line is needed for structs of structs
             } // by the end of this loop the scope / block of data where varAssign.idAccess.back() is located should be in R8
@@ -298,7 +299,7 @@ public:
 
             code.push(Instruction(Op::MOVQ, Arg(Register::RBP, IRL(callee_offset+frontSym->local_id * -8)), Arg(Register::R8, DIR()), "copy rbp to r8 to avoid destroying rbp, var_exp"));
             // The above line equates to -40 + -8/-16... Which is correct because the first id will always be accessed on the stack, and therefore IRL access needs to be negative
-            for (int i = 1; i < var_expr.id_access.ids.size()-1; i++) {
+            for (size_t i = 1; i < var_expr.id_access.ids.size()-1; i++) {
                 code.push(Instruction(Op::MOVQ, Arg(Register::R8, IRL(get_var_symbols(var_expr.id_access.ids[i].sym)->local_id * 8)), Arg(Register::R9, DIR()), "accessing member relative to it's scope")); // for the first access this is relative to current scope
                 code.push(Instruction(Op::MOVQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR()), "moving pointer to r8 to set up for future IRL access")); // this line is needed for structs of structs
             }
@@ -471,13 +472,13 @@ public:
     void post_visit(grammar::ast::BreakStatement &break_statement) override {
         grammar::ast::WhileStatement *current_while_loop = while_stack.top();
         std::string end_label = current_while_loop->end_label;
-        code.push(Instruction(Op::JMP, Arg(Label(end_label), DIR())));
+        code.push(Instruction(Op::JMP, Arg(Label(end_label), DIR()), "break statement"));
     }
 
     void post_visit(grammar::ast::ContinueStatement &continue_statement) override {
         grammar::ast::WhileStatement *current_while_loop = while_stack.top();
         std::string start_label = current_while_loop->start_label;
-        code.push(Instruction(Op::JMP, Arg(Label(start_label), DIR())));
+        code.push(Instruction(Op::JMP, Arg(Label(start_label), DIR()), "continue statement"));
     }
 
     void pre_visit(grammar::ast::WhileStatement &while_statement) override {
@@ -530,7 +531,7 @@ public:
 
         code.push(Instruction(Op::PROCEDURE, Arg(Procedure::MEM_ALLOC, DIR()), Arg(ImmediateValue(attrs.size() * 8), DIR()), "allocating space for variables"));
         code.push(Instruction(Op::MOVQ, Arg(Register::RAX, DIR()), Arg(result_register, DIR()), "returning address to resultRegister")); 
-        for (int i = 0 ; i < attrs.size() ; ++i) {
+        for (size_t i = 0 ; i < attrs.size() ; ++i) {
             code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(0), DIR()), Arg(result_register, IRL(8*i)), "initializing variable " + attrs[i]->var_decl->id.id));
         }
         intermediary_storage.push(result_register); 
@@ -540,7 +541,7 @@ public:
         code.push(Instruction(Op::MOVQ, Arg(Register::RSP, DIR()), Arg(Register::RBP, DIR()), "set rbp for global scope")); // set rbp
         code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_SAVE, DIR())));
         int var_count = global_scope->get_var_symbols().size();
-        for (int i = 0; i < var_count; i++) {
+        for (size_t i = 0; i < var_count; i++) {
             code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()), "initialize global variable to 0"));
         }
     }
@@ -632,9 +633,10 @@ IR intermediate_code_generation(grammar::ast::Prog &prog) {
     auto traveler = TreeTraveler(visitor);
     traveler(prog);
     visitor.code.end_scope(); // end global scope
-    return visitor.code.get_instructions();
+    IR instructions = visitor.code.get_instructions();
+    link_instructions(instructions);
+    return instructions;
 }
-
 
 FunctionOrderManager::FunctionOrderManager() : current_function_index(), list_of_funcs() {}
 

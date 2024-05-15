@@ -10,15 +10,21 @@ GenericRegister::GenericRegister(long i) : local_id(i) {}
 Label::Label(const std::string& l) : label(l) {}
 Arg::Arg(TargetType target, MemAccessType access_type) : target(target), access_type(access_type) {}
 
-Instruction::Instruction(Op op, std::optional<std::string> comment)
-    : operation(op), comment(comment) {}
+Instruction::Instruction(Op op, std::optional<std::string> comment, std::optional<Instruction*> alternative)
+    : operation(op), comment(comment), alternative_successor(alternative) {}
 
-Instruction::Instruction(Op op, Arg arg1, std::optional<std::string> comment)
-    : operation(op), comment(comment) { args.reserve(1); args.push_back(arg1); }
+Instruction::Instruction(Op op, Arg arg1, std::optional<std::string> comment, std::optional<Instruction*> alternative)
+    : operation(op), comment(comment), alternative_successor(alternative) {
+    args.reserve(1);
+    args.push_back(arg1);
+}
 
-Instruction::Instruction(Op op, Arg arg1, Arg arg2, std::optional<std::string> comment)
-    : operation(op), comment(comment) { args.reserve(2); args.push_back(arg1); args.push_back(arg2); }
-
+Instruction::Instruction(Op op, Arg arg1, Arg arg2, std::optional<std::string> comment, std::optional<Instruction*> alternative)
+    : operation(op), comment(comment), alternative_successor(alternative) {
+    args.reserve(2);
+    args.push_back(arg1);
+    args.push_back(arg2);
+}
 std::ostream& operator<<(std::ostream& os, const Arg arg) {
     if (std::holds_alternative<ImmediateValue>(arg.target)) {
         os << "$" << std::get<ImmediateValue>(arg.target).value;
@@ -61,7 +67,6 @@ std::ostream& operator<<(std::ostream& os, const Op op) {
     switch (op) {
         case Op::MOVQ:          os << "movq";       break;
         case Op::PUSHQ:          os << "pushq";       break;
-        case Op::POP:           os << "pop";        break;
         case Op::CALL:          os << "call";       break;
         case Op::RET:           os << "ret";        break;
         case Op::CMPQ:          os << "cmpq";       break;
@@ -82,7 +87,6 @@ std::ostream& operator<<(std::ostream& os, const Op op) {
         case Op::ORQ:           os << "orq";       break;
         case Op::XORQ:          os << "xorq";       break;
         case Op::POPQ:          os << "popq";       break;
-        case Op::PUSH:          os << "push";       break;
         case Op::SETL:          os << "setl";       break;
         case Op::SETG:          os << "setg";       break;
         case Op::SETE:          os << "sete";       break;
