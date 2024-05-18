@@ -62,6 +62,10 @@ private:
         pop(type_stack);
     }
 
+    void post_visit(grammar::ast::BetaExpression &beta) override {
+        type_stack.push(BetaType());
+    }
+
     void post_visit(grammar::ast::FunctionCall &func_call) override {
 
         // Get arguments types from stack

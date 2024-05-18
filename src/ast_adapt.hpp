@@ -11,6 +11,11 @@ BOOST_FUSION_ADAPT_STRUCT(grammar::ast::BreakStatement)
 BOOST_FUSION_ADAPT_STRUCT(grammar::ast::ContinueStatement)
 
 BOOST_FUSION_ADAPT_STRUCT(
+    grammar::ast::BetaExpression,
+    (std::string, beta)
+)
+
+BOOST_FUSION_ADAPT_STRUCT(
     grammar::ast::BinopExps,
     (grammar::ast::Expression, lhs),
     (std::vector<grammar::ast::Rhs>, rhss)

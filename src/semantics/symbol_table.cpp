@@ -2,7 +2,6 @@
 #include "semantics_error.hpp"
 #include <iostream>
 #include <memory>
-#include <set>
 #include <vector>
 
 struct PrintVisitor {
@@ -15,17 +14,49 @@ struct PrintVisitor {
     }
 };
 
-struct SymbolTypeEqualityVisitor {
-    template <typename T, typename E>
-    bool operator()(const T &t, const E &e) const { // TODO: added const
-        return false;
-    }
+struct SymbolTypeEqualityVisitor : boost::static_visitor<bool> {
+    // bool operator()(const SymbolType &t, const SymbolType &e) const {
+    //     std::cout << "beta3" << std::endl;
+    //     std::cout << t.to_string() << std::endl;
+    //     std::cout << e.to_string() << std::endl;
+    //
+    //     if (auto *beta = boost::get<BetaType>(&t)) {
+    //         return *beta == e;
+    //     }
+    //
+    //     if (auto *beta = boost::get<BetaType>(&e)) {
+    //         std::cout << "beta5" << std::endl;
+    //     }
+    //
+    //     return false;
+    // }
 
     template <typename T>
-    bool operator()(const T &t1, const T &t2) const { // TODO: added const
+    bool operator()(const T &t1, const T &t2) const {
         return t1 == t2;
     }
 
+    template <typename T, typename E>
+    bool operator()(const T &t, const E &e) const {
+        return false;
+    }
+
+    // Beta
+    bool operator()(const BetaType &beta, const ClassSymbolType &class_type) const {
+        return true;
+    }
+
+    bool operator()(const BetaType &beta, const ArraySymbolType &array_type) const {
+        return true;
+    }
+
+    bool operator()(const ClassSymbolType &class_type, const BetaType &beta) const {
+        return true;
+    }
+
+    bool operator()(const ArraySymbolType &array_type, const BetaType &beta) const {
+        return true;
+    }
 };
 
 struct SymbolTypeToStringVisitor {
@@ -37,7 +68,7 @@ struct SymbolTypeToStringVisitor {
 
 struct AstTypeConverterVisitor : boost::static_visitor<SymbolType> {
 public: 
-    AstTypeConverterVisitor() = default; // TODO: Added this default constructor
+    AstTypeConverterVisitor() = default;
 
     SymbolType operator()(const grammar::ast::PrimitiveType &t) {
         auto const type = t.type;
@@ -60,13 +91,13 @@ public:
     
     SymbolType operator()(const grammar::ast::ClassType &ast_type) {  
         auto class_symbol = dynamic_cast<ClassSymbol *>(ast_type.id.sym);
-        // NOTE: that class_symbol might be null if the class is defined after the type is used
+        // NOTE: class_symbol might be null if the class is defined after the type is used
         return ClassSymbolType{class_symbol};
     }
 };
 
 bool SymbolType::operator==(const SymbolType &other) const {
-    return boost::apply_visitor(SymbolTypeEqualityVisitor{}, *this, other);
+    return boost::apply_visitor(SymbolTypeEqualityVisitor(), *this, other);
 }
 
 
@@ -84,6 +115,10 @@ bool IntType::operator==(const IntType &other) const {
 
 bool ClassSymbolType::operator==(const ClassSymbolType &other) const {
     return symbol->decl->id.id == other.symbol->decl->id.id;
+}
+
+bool BetaType::operator==(const BetaType &other) const {
+    return true;
 }
 
 bool ArraySymbolType::operator==(const ArraySymbolType &other) const {
@@ -104,6 +139,10 @@ bool FuncSymbolType::operator==(const FuncSymbolType &other) const {
 
 std::string BoolType::to_string() const {
     return "bool";
+}
+
+std::string BetaType::to_string() const {
+    return "beta";
 }
 
 std::string IntType::to_string() const {

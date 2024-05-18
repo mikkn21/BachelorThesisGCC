@@ -45,9 +45,13 @@ namespace grammar
         std::ostream& operator<<(std::ostream& os, const grammar::ast::LocationInfo &location_info) {
             return os << "[" << location_info.line << ", " << location_info.column << "]";
         };
-        
+
         std::ostream& operator<<(std::ostream& os, const grammar::ast::BreakStatement &brk) {
             return os << "break;";
+        };
+
+        std::ostream& operator<<(std::ostream& os, const grammar::ast::BetaExpression &beta) {
+            return os << "beta";
         };
 
         std::ostream& operator<<(std::ostream& os, const grammar::ast::ContinueStatement &continue_statement) {

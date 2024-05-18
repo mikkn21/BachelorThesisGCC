@@ -181,6 +181,8 @@ BOOST_AUTO_TEST_CASE(SimpleClass3) {testTypeCheckString("int main() { T a = new 
 BOOST_AUTO_TEST_CASE(SimpleClass4) {testTypeCheckString("int main() { T a = new T(); return 0;} class T { }", TestingOutcome::SUCCESS);}
 BOOST_AUTO_TEST_CASE(ClassNotExist) {testTypeCheckString("int main() { T a; return 0;}", TestingOutcome::FAILED);}
 BOOST_AUTO_TEST_CASE(ClassNotExist2) {testTypeCheckString("int main() { T a = new T(); return 0;}", TestingOutcome::FAILED);}
+BOOST_AUTO_TEST_CASE(ClassesEqual) {testTypeCheckString("class T{} int main() { T a = new T(); T b = new T(); a == b; return 0;}", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(ClassesNotEqual) {testTypeCheckString("class T{} class E{} int main() { T a = new T(); E b = new E(); a == b; return 0;}", TestingOutcome::FAILED);}
 
 // Dot operator 
 BOOST_AUTO_TEST_CASE(SimpleDot) {testTypeCheckString("int main() { class T { int x; } T a = new T(); return a.x;}", TestingOutcome::SUCCESS);}
@@ -206,3 +208,21 @@ BOOST_AUTO_TEST_CASE(ReturnIfElse6) {testTypeCheckString("int main(){ if(true){ 
 BOOST_AUTO_TEST_CASE(ReturnIfElse7) {testTypeCheckString("int main(){ if(true){ int x = 4;} else if(true){return 0;} else{ int y = 4;}   }", TestingOutcome::FAILED);}
 
 BOOST_AUTO_TEST_CASE(ReturnInOnly1Branche) {testTypeCheckFile("../tests/typeTests/return.chad", TestingOutcome::FAILED);}
+
+// Beta
+BOOST_AUTO_TEST_CASE(BetaEqualBeta) {testTypeCheckString("class T {} int main(){ T a = new T(); beta == beta; return 0; }", TestingOutcome::SUCCESS);}
+
+BOOST_AUTO_TEST_CASE(BetaClassEqual) {testTypeCheckString("class T {} int main(){ T a = new T(); a == beta; return 0; }", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(BetaClassEqual2) {testTypeCheckString("class T {} int main(){ T a = new T(); beta == a; return 0; }", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(BetaClassAssign) {testTypeCheckString("class T {} int main(){ T a = beta; return 0; }", TestingOutcome::SUCCESS);}
+
+BOOST_AUTO_TEST_CASE(BetaArrayEqual) {testTypeCheckString("int main(){ int[3] arr; arr == beta; return 0; }", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(BetaArrayEqual2) {testTypeCheckString("int main(){ int[3] arr; beta == arr; return 0; }", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(BetaArrayAssign) {testTypeCheckString("int main(){ int[3] arr = beta; return 0; }", TestingOutcome::SUCCESS);}
+
+BOOST_AUTO_TEST_CASE(BetaPrimitiveEqual) {testTypeCheckString("int main(){ int x = 0; bool y = true; x == beta; y == beta; return 0; }", TestingOutcome::FAILED);}
+BOOST_AUTO_TEST_CASE(BetaPrimitiveEqual2) {testTypeCheckString("int main(){ int x = 0; bool y = true; beta == x; beta == y; return 0; }", TestingOutcome::FAILED);}
+BOOST_AUTO_TEST_CASE(BetaPrimitiveAssign) {testTypeCheckString("int main(){ int x = beta; return 0; }", TestingOutcome::FAILED);}
+BOOST_AUTO_TEST_CASE(BetaPrimitiveAssign2) {testTypeCheckString("int main(){ bool x = beta; return 0; }", TestingOutcome::FAILED);}
+
+

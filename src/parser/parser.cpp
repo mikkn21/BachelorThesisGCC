@@ -65,6 +65,7 @@ namespace grammar {
 
         RULE(ast::BreakStatement, break_statement)
         RULE(ast::ContinueStatement, continue_statement)
+        RULE(ast::BetaExpression, beta_expression)
 
         RULE(ast::Id, id)
         RULE(ast::PrimitiveType, primitive_type)
@@ -123,11 +124,12 @@ namespace grammar {
                     ("true", "true")
                     ("false", "false")
                     ("new", "new")
+                    ("beta", "beta")
                     ("print", "print"); 
             }
         } reserved_keywords_instance; 
 
-        
+
         // highest to lowset precedence
         const auto mul_op = x3::string("*") | x3::string("/") | x3::string("%");
         const auto add_op = x3::string("+") | x3::string("-");
@@ -150,7 +152,7 @@ namespace grammar {
  
         // --- Precedens stuff  
         const auto expression_par_def = ('(' >> expression) > ')';
-        const auto expression_base =  expression_par | array_init_exp | obj_inst | function_call | array_index_exp | var_expression | id_access | x3::int_ | x3::bool_;
+        const auto expression_base =  expression_par | beta_expression | array_init_exp | obj_inst | function_call | array_index_exp | var_expression | id_access | x3::int_ | x3::bool_;
 
         const auto expression_def = logical_or;
 
@@ -195,6 +197,7 @@ namespace grammar {
 
         const auto break_statement_def = x3::lit("break") > ';';
         const auto continue_statement_def = x3::lit("continue") > ';';
+        const auto beta_expression_def = x3::string("beta");
 
         const auto class_decl_def = x3::lit("class ") > id > '{' > *var_decl_statement > '}';
         const auto obj_inst_def = x3::lit("new ") > id > '(' > argument_list > ')';
@@ -263,7 +266,8 @@ namespace grammar {
             class_type,
             id_access,
             break_statement,
-            continue_statement
+            continue_statement,
+            beta_expression
         )
 
         grammar::ast::Prog parse(std::string_view src)

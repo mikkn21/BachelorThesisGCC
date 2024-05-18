@@ -17,9 +17,14 @@ struct BoolType {
     std::string to_string() const;
 };
 
+struct BetaType {
+    bool operator==(const BetaType &other) const;
+    std::string to_string() const;
+};
+
 struct ArraySymbolType {
     std::shared_ptr<SymbolType> element_type;
-    int dimensions; // TODO: should we not change this to size_t?
+    int dimensions;
     bool operator==(const ArraySymbolType &other) const;
     std::string to_string() const;
 };
@@ -38,9 +43,9 @@ struct FuncSymbolType {
     std::string to_string() const;
 };
 
-struct SymbolType : public boost::variant<IntType, BoolType, ArraySymbolType, ClassSymbolType, FuncSymbolType /*, TypeAlias,*/ > {
-    using boost::variant<IntType, BoolType, ArraySymbolType, ClassSymbolType, FuncSymbolType>::variant;
-    using boost::variant<IntType, BoolType, ArraySymbolType, ClassSymbolType, FuncSymbolType>::operator=;
+struct SymbolType : public boost::variant<IntType, BoolType, BetaType, ArraySymbolType, ClassSymbolType, FuncSymbolType /*, TypeAlias,*/ > {
+    using boost::variant<IntType, BoolType, BetaType, ArraySymbolType, ClassSymbolType, FuncSymbolType>::variant;
+    using boost::variant<IntType, BoolType, BetaType, ArraySymbolType, ClassSymbolType, FuncSymbolType>::operator=;
     bool operator==(const SymbolType &other) const;
     bool operator!=(const SymbolType &other) const;
     std::string to_string() const;

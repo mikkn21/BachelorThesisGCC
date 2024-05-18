@@ -99,6 +99,13 @@ void TreeTraveler::operator()(grammar::ast::ClassType &type) {
 }
 
 // Expressions
+
+template <>
+void TreeTraveler::operator()(grammar::ast::BetaExpression &beta) {
+    visitor.pre_visit(beta);
+    visitor.post_visit(beta);
+}
+
 template <>
 void TreeTraveler::operator()(int &value) {
     visitor.pre_visit(value);

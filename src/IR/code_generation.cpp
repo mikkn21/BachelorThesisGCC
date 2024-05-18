@@ -265,9 +265,7 @@ public:
     }
 
     void post_visit(grammar::ast::VarDeclAssign &var_decl_assign) override {
-        std::cout << "before" << std::endl;
         auto target = get_target(pop(intermediary_storage));
-        std::cout << "after" << std::endl;
         code.push(Instruction(Op::MOVQ, Arg(target, DIR()), Arg(Register::R8, DIR())));
         code.push(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(GenericRegister(var_decl_assign.decl.sym->local_id), DIR())));
     }
@@ -279,6 +277,10 @@ public:
 
     void pre_visit(bool &b) override {
         intermediary_storage.push(b);
+    }
+
+    void pre_visit(grammar::ast::BetaExpression &beta) override {
+        intermediary_storage.push(0);
     }
 
     void post_visit(grammar::ast::VarExpression &var_expr) override {

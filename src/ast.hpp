@@ -45,6 +45,12 @@ namespace grammar
             friend std::ostream& operator<<(std::ostream& os, const Id &exp);
         };
 
+        struct BetaExpression : public LocationInfo {
+            std::string beta;
+        public:
+            friend std::ostream& operator<<(std::ostream& os, const BetaExpression &beta);
+        };
+
         struct BreakStatement : public LocationInfo {
         public:
             friend std::ostream& operator<<(std::ostream& os, const BreakStatement &exp);
@@ -73,7 +79,7 @@ namespace grammar
             friend std::ostream& operator<<(std::ostream& os, const PrimitiveType &exp); 
         };
 
-        struct Expression : public boost::spirit::x3::variant<int, boost::spirit::x3::forward_ast<BinopExps>, bool, VarExpression, boost::spirit::x3::forward_ast<ExpressionPar>, boost::spirit::x3::forward_ast<FunctionCall>, boost::spirit::x3::forward_ast<ArrayInitExp>, boost::spirit::x3::forward_ast<ArrayIndexExp>, boost::spirit::x3::forward_ast<ObjInst>, IdAccess>, LocationInfo {
+        struct Expression : public boost::spirit::x3::variant<int, BetaExpression, boost::spirit::x3::forward_ast<BinopExps>, bool, VarExpression, boost::spirit::x3::forward_ast<ExpressionPar>, boost::spirit::x3::forward_ast<FunctionCall>, boost::spirit::x3::forward_ast<ArrayInitExp>, boost::spirit::x3::forward_ast<ArrayIndexExp>, boost::spirit::x3::forward_ast<ObjInst>, IdAccess>, LocationInfo {
             using base_type::base_type;   
             using base_type::operator=;
         public:

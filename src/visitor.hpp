@@ -72,6 +72,9 @@ public:
     virtual void pre_visit(grammar::ast::ContinueStatement &cont) { }
     virtual void post_visit(grammar::ast::ContinueStatement &cont) { }
 
+    virtual void pre_visit(grammar::ast::BetaExpression &beta) { }
+    virtual void post_visit(grammar::ast::BetaExpression &beta) { }
+
     virtual void pre_visit(grammar::ast::VarExpression &exp) { }
     virtual void post_visit(grammar::ast::VarExpression &exp) { }
 
