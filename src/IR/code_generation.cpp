@@ -196,6 +196,7 @@ VarSymbol *getVarSymbol(Symbol *symbol) {
 }
 //lmao
 void IRVisitor::postVisit(grammar::ast::VarAssign &varAssign) {
+    std::cout << "assign" << std::endl;
     auto value = getTarget(pop(temp_storage));
     std::vector<VarSymbol*> varSymbols;
     for (auto id : varAssign.idAccess.ids) {
@@ -234,6 +235,7 @@ void IRVisitor::postVisit(grammar::ast::VarAssign &varAssign) {
 }
 
 void IRVisitor::postVisit(grammar::ast::VarDeclAssign &var_decl_assign) {
+    std::cout << "decl assign" << std::endl;
     auto target = getTarget(pop(temp_storage));
     code.push(Instruction(Op::MOVQ, Arg(target, DIR()), Arg(Register::R8, DIR())));
     code.push(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(GenericRegister(var_decl_assign.decl.sym->local_id), DIR())));
@@ -449,6 +451,7 @@ void IRVisitor::pushStandardFunctions() {
 }
 
 void IRVisitor::postVisit(grammar::ast::ObjInst &obj){
+    std::cout << "obj inst" << std::endl;
     auto temp = dynamic_cast<ClassSymbol*>(obj.id.sym)->symbolTable;
     auto attrs = temp->get_var_symbols();
 

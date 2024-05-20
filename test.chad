@@ -1,18 +1,10 @@
-class F{
-    G g;
+class A{
     int x;
     int y;
-}
-
-class G{
-    int a;
-    int b;
-    int c;
+    int z;
 }
 
 int main(){
-    F f = new F();
-    f.x = 2;
-    print(f.x);
+    A a = new A();
     return 0;
 }
