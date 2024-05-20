@@ -56,7 +56,7 @@ std::vector<Instruction> static_link_write(int depth, int target_local_id, Targe
 
     instructions.push_back(Instruction(Op::MOVQ, Arg(write_value, DIR()), Arg(Register::R10, DIR()), "put write value in temp storage")); // save RBP
     instructions.push_back(Instruction(Op::MOVQ, Arg(Register::RBP, DIR()), Arg(Register::R9, DIR()), "save RBP")); // save RBP
-    instructions.push_back(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(Register::RBP, DIR()))); // set RBP to R8, so generic register points to correct memory location.
+    instructions.push_back(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(Register::RBP, DIR()), "set RBP to R8, so generic register points to correct memory location")); // set RBP to R8, so generic register points to correct memory location.
     instructions.push_back(Instruction(Op::MOVQ, Arg(Register::R10, DIR()), Arg(target, DIR()), "assign value to target"));
     instructions.push_back(Instruction(Op::MOVQ, Arg(Register::R9, DIR()), Arg(Register::RBP, DIR()), "restore RBP")); // restore RBP
     return instructions;
@@ -232,11 +232,13 @@ public:
 
         if (var_assign.id_access.ids.size() > 1) {
             code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()), "make space on stack"));
+            GenericRegister result = GenericRegister(++var_assign.id_access.ids.front().scope->register_counter);
             int target_depth = var_symbols.front()->var_decl->id.scope->depth;
             int current_depth = var_assign.id_access.ids.front().scope->depth;
             int difference = current_depth - target_depth;
 
-            auto static_linkCode = static_link_write(difference, var_symbols.front()->local_id, target);
+            auto static_linkCode = static_link_read(difference, var_symbols.front()->local_id, result);
+            // read is used here because the static link needed here is to read the var containing pointer to the class
             for (auto instruction : static_linkCode) {
                 code.push(instruction);
             }
@@ -528,8 +530,8 @@ public:
         auto temp = dynamic_cast<ClassSymbol*>(obj.id.sym)->symbol_table;
         auto attrs = temp->get_var_symbols();
 
-        code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR())));
-        GenericRegister result_register = GenericRegister(++temp->register_counter);
+        code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()), "make space on stack for generic register value"));
+        GenericRegister result_register = GenericRegister(++obj.id.scope->register_counter);
 
         code.push(Instruction(Op::PROCEDURE, Arg(Procedure::MEM_ALLOC, DIR()), Arg(ImmediateValue(attrs.size() * 8), DIR()), "allocating space for variables"));
         code.push(Instruction(Op::MOVQ, Arg(Register::RAX, DIR()), Arg(result_register, DIR()), "returning address to resultRegister")); 
