@@ -434,6 +434,7 @@ void IRVisitor::postVisit(grammar::ast::ObjInst &obj){
     auto temp = dynamic_cast<ClassSymbol*>(obj.id.sym)->symbolTable;
     auto attrs = temp->get_var_symbols();
 
+    code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR())));
     GenericRegister resultRegister = GenericRegister(++temp->registerCounter);
 
     code.push(Instruction(Op::PROCEDURE, Arg(Procedure::MEM_ALLOC, DIR()), Arg(ImmediateValue(attrs.size() * 8), DIR()), "allocating space for variables"));
@@ -441,7 +442,6 @@ void IRVisitor::postVisit(grammar::ast::ObjInst &obj){
     for (int i = 0 ; i < attrs.size() ; ++i) {
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(0), DIR()), Arg(resultRegister, IRL(8*i)), "initializing variable " + attrs[i]->varDecl->id.id));
     }
-
     temp_storage.push(resultRegister); 
 }
 
