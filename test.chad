@@ -12,9 +12,7 @@ class G{
 
 int main(){
     F f = new F();
-    f.g = new G();
-    f.g.a = 3;
-    print(f.g.a);
+    f.x = 2;
     print(f.x);
     return 0;
 }

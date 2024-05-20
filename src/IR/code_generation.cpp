@@ -29,6 +29,24 @@ std::vector<Instruction> static_link_instructions(int depth, int target_local_id
     return instructions;
 }
 
+std::vector<Instruction> static_link_write(int depth, int target_local_id, TargetType write_value) {
+    std::vector<Instruction> instructions;
+    instructions.push_back(Instruction(Op::MOVQ, Arg(Register::RBP, DIR()), Arg(Register::R8, DIR()), "starting static linking write"));
+    // std::cout << "depth: " << depth << std::endl;
+    for (auto i = 0; i < depth; i++) {
+        instructions.push_back(Instruction(Op::MOVQ, Arg(Register::R8, IRL(16)), Arg(Register::R9, DIR())));
+        instructions.push_back(Instruction(Op::MOVQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR())));
+    }
+    GenericRegister target = GenericRegister(target_local_id);
+
+    instructions.push_back(Instruction(Op::MOVQ, Arg(write_value, DIR()), Arg(Register::R10, DIR()), "put write value in temp storage")); // save RBP
+    instructions.push_back(Instruction(Op::MOVQ, Arg(Register::RBP, DIR()), Arg(Register::R9, DIR()), "save RBP")); // save RBP
+    instructions.push_back(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(Register::RBP, DIR()))); // set RBP to R8, so generic register points to correct memory location.
+    instructions.push_back(Instruction(Op::MOVQ, Arg(Register::R10, DIR()), Arg(target, DIR()), "assign value to target"));
+    instructions.push_back(Instruction(Op::MOVQ, Arg(Register::R9, DIR()), Arg(Register::RBP, DIR()), "restore RBP")); // restore RBP
+    return instructions;
+}
+
 std::vector<Instruction> binopInstructions(std::string op, GenericRegister result){
     std::vector<Instruction> code;
     if (op == "+") {
