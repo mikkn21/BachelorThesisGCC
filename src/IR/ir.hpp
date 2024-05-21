@@ -7,17 +7,18 @@
 #include <optional>
 #include <iostream>
 #include "../error/compiler_error.hpp"
+#include "../semantics/symbol_table.hpp"
 
 
 enum class Op {
-   MOVQ, CALL, RET, CMPQ, JMP, JE, JNE, JL, JLE, JG, JGE, ADDQ, SUBQ, IMULQ, IDIVQ, LABEL, PROCEDURE, ANDQ, ORQ, XORQ, PUSHQ, POPQ, SETL, SETG, SETLE, SETGE, SETE, SETNE, SYSCALL, NOTHING
+   MOVQ, CALL, RET, CMPQ, JMP, JE, JNE, JL, JLE, JG, JGE, ADDQ, SUBQ, IMULQ, IDIVQ, LABEL, PROCEDURE, ANDQ, ORQ, XORQ, PUSHQ, POPQ, SETL, SETG, SETLE, SETGE, SETE, SETNE, SYSCALL, NOTHING, LEAQ
 };
 
 struct DIR {};
 struct IND {};
 struct IRL {
-    long offset;
-    IRL(long offset);
+    std::variant<long, std::string> offset;
+    IRL(std::variant<long, std::string> offset);
 };
 
 using MemAccessType = std::variant<DIR, IND, IRL>;
@@ -32,9 +33,13 @@ struct ImmediateData {
     ImmediateData(std::string value);
 };
 
+using GenericRegisterType = std::variant<IntType, BoolType, BetaType, ArraySymbolType, ClassSymbolType, FuncSymbolType>;
+
 struct GenericRegister {
     long local_id; // TODO: should this not be a long long?
+    GenericRegisterType type;
     GenericRegister(long local_id);
+    GenericRegister(long local_id, GenericRegisterType type);
     
     bool operator<(const GenericRegister& other) const {
         return local_id < other.local_id;
@@ -46,7 +51,7 @@ struct GenericRegister {
 };
 
 enum class Register {
-    RAX, RBX, RCX, RDX, RSI, RDI, R8, R8B, R9, R10, R10B, R11, R12, R13, R14, R15, RSP, RBP
+    RAX, RBX, RCX, RDX, RSI, RDI, R8, R8B, R9, R10, R10B, R11, R12, R13, R14, R15, RSP, RBP, RIP
 };
 struct Label {
     std::string label;

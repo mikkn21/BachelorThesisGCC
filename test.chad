@@ -1,20 +1,4 @@
-class F{
-    G g;
-    int x;
-    int y;
-}
-
-class G{
-    int a;
-    int b;
-    int c;
-}
-
 int main(){
-    F f = new F();
-    f.g = new G();
-    f.g.a = 3;
-    print(f.g.a);
-    print(f.x);
+    print(beta);
     return 0;
 }

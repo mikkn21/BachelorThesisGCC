@@ -10,7 +10,7 @@
 
 const int callee_offset = -40; // TODO: this should be referenced from a shared file so all occurences of this has a common variable. Or it should be removed
 
-using AstValue = std::variant<int, bool, GenericRegister>;
+using AstValue = std::variant<int, bool, GenericRegister, BetaType>;
 
 class FunctionOrderManager {
 private:
@@ -129,6 +129,8 @@ TargetType get_target(AstValue value) {
         return ImmediateValue(std::get<int>(value));
     } else if (std::holds_alternative<bool>(value)) {
         return ImmediateValue(std::get<bool>(value));
+    } else if (std::holds_alternative<BetaType>(value)) {
+        return ImmediateData(std::get<BetaType>(value).to_string());
     } else if (std::holds_alternative<GenericRegister>(value)) {
         return std::get<GenericRegister>(value);
     } else {
@@ -282,7 +284,7 @@ public:
     }
 
     void pre_visit(grammar::ast::BetaExpression &beta) override {
-        intermediary_storage.push(0);
+        intermediary_storage.push(BetaType());
     }
 
     void post_visit(grammar::ast::VarExpression &var_expr) override {
@@ -294,12 +296,6 @@ public:
             int difference = current_depth - target_depth;
 
             code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()))); // make space on stack for generic register value
-            GenericRegister result_register = GenericRegister(++frontId.scope->register_counter);
-
-            auto staticLinkingCode = static_link_read(difference, frontSym->local_id, result_register);
-            for (auto instruction : staticLinkingCode) {
-                code.push(instruction);
-            }
 
             code.push(Instruction(Op::MOVQ, Arg(Register::RBP, IRL(callee_offset+frontSym->local_id * -8)), Arg(Register::R8, DIR()), "copy rbp to r8 to avoid destroying rbp, var_exp"));
             // The above line equates to -40 + -8/-16... Which is correct because the first id will always be accessed on the stack, and therefore IRL access needs to be negative
@@ -307,9 +303,24 @@ public:
                 code.push(Instruction(Op::MOVQ, Arg(Register::R8, IRL(get_var_symbols(var_expr.id_access.ids[i].sym)->local_id * 8)), Arg(Register::R9, DIR()), "accessing member relative to it's scope")); // for the first access this is relative to current scope
                 code.push(Instruction(Op::MOVQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR()), "moving pointer to r8 to set up for future IRL access")); // this line is needed for structs of structs
             }
-            code.push(Instruction(Op::MOVQ, Arg(Register::R8, IRL(get_var_symbols(var_expr.id_access.ids.back().sym)->local_id * 8)), Arg(result_register, DIR()), "get value from member of class and save to temporary register")); 
+            if (get_var_symbols(var_expr.id_access.ids.front().sym)->type.which() == 4){ // this breaks if we change the ordering of the different types in SymbolType
+                GenericRegister result_register = GenericRegister(++frontId.scope->register_counter, ClassSymbolType());
+                auto staticLinkingCode = static_link_read(difference, frontSym->local_id, result_register);
+                for (auto instruction : staticLinkingCode) {
+                    code.push(instruction);
+                }
+                code.push(Instruction(Op::MOVQ, Arg(Register::R8, IRL(get_var_symbols(var_expr.id_access.ids.back().sym)->local_id * 8)), Arg(result_register, DIR()), "get value from member of class and save to temporary register")); 
+                intermediary_storage.push(result_register);
+            } else {
+                GenericRegister result_register = GenericRegister(++frontId.scope->register_counter);
+                auto staticLinkingCode = static_link_read(difference, frontSym->local_id, result_register);
+                for (auto instruction : staticLinkingCode) {
+                    code.push(instruction);
+                }
+                code.push(Instruction(Op::MOVQ, Arg(Register::R8, IRL(get_var_symbols(var_expr.id_access.ids.back().sym)->local_id * 8)), Arg(result_register, DIR()), "get value from member of class and save to temporary register")); 
+                intermediary_storage.push(result_register);
+            }
             
-            intermediary_storage.push(result_register);
         } else {
             VarSymbol *var_symbol = dynamic_cast<VarSymbol*>(var_expr.id_access.ids.back().sym);
             auto target_depth = var_symbol->var_decl->id.scope->depth;
@@ -317,12 +328,21 @@ public:
             int difference = current_depth - target_depth;
             code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()))); // make space on stack for generic register value
             auto id = ++var_expr.id_access.ids.back().scope->register_counter;
-            GenericRegister result_register = GenericRegister(id);
-            auto static_linking_code = static_link_read(difference, var_symbol->local_id, result_register);
-            for (auto instruction : static_linking_code) {
-                code.push(instruction);
+            if (var_symbol->type.which() == 4) { // this breaks if we change the ordering of the different types in SymbolType
+                GenericRegister result_register = GenericRegister(id, ClassSymbolType());
+                auto static_linking_code = static_link_read(difference, var_symbol->local_id, result_register);
+                for (auto instruction : static_linking_code) {
+                    code.push(instruction);
+                }
+                intermediary_storage.push(result_register);
+            } else {
+                GenericRegister result_register = GenericRegister(id);
+                auto static_linking_code = static_link_read(difference, var_symbol->local_id, result_register);
+                for (auto instruction : static_linking_code) {
+                    code.push(instruction);
+                }
+                intermediary_storage.push(result_register);
             }
-            intermediary_storage.push(result_register);
         }
     }
 
@@ -371,7 +391,7 @@ public:
 
         // Set the size of each dimension of  the array
         for (size_t i = 0; i < sizes.size(); i++) {
-            code.push(Instruction(Op::MOVQ, Arg(get_target(sizes[i]), DIR()), Arg(arrayStart, IRL(i * 8)), "set size of dimension " + std::to_string(i + 1)));
+            code.push(Instruction(Op::MOVQ, Arg(get_target(sizes[i]), DIR()), Arg(arrayStart, IRL(long(i * 8))), "set size of dimension " + std::to_string(i + 1)));
         }
 
         // setup zero initialization loop
@@ -441,7 +461,7 @@ public:
         if (index.indices.size() > 1) {
             code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(intermediate_product, DIR()), "Initialize the product"));
             for (size_t i = 1; i < index.indices.size(); i++) {
-                code.push(Instruction(Op::IMULQ, Arg(array_ptr, IRL(-i * 8)), Arg(intermediate_product, DIR()), "Multiply with the previous product"));
+                code.push(Instruction(Op::IMULQ, Arg(array_ptr, IRL(long(-i * 8))), Arg(intermediate_product, DIR()), "Multiply with the previous product"));
                 code.push(Instruction(Op::MOVQ, Arg(index_targets[i], DIR()), Arg(intermediate_value, DIR()), "Initialize the intermediate value"));
                 code.push(Instruction(Op::IMULQ, Arg(intermediate_product, DIR()), Arg(intermediate_value, DIR()), "Multiply the intermediate value and product"));
                 code.push(Instruction(Op::IMULQ, Arg(ImmediateValue(8), DIR()), Arg(intermediate_value, DIR()), "Translate the intermediate value to a byte address"));
@@ -470,7 +490,17 @@ public:
 
     void post_visit(grammar::ast::PrintStatement &print) override {
         auto target = get_target(pop(intermediary_storage));
-        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::PRINT, DIR()), Arg(target, DIR())));
+        if (std::holds_alternative<GenericRegister>(target)) {
+            auto reg = std::get<GenericRegister>(target);
+            if (std::holds_alternative<ClassSymbolType>(reg.type)) {
+                code.push(Instruction(Op::MOVQ, Arg(reg, DIR()), Arg(Register::RAX, DIR())));
+                code.push(Instruction(Op::CALL, Arg(Label("compare_util"), DIR())));
+            }
+        } else if (std::holds_alternative<ImmediateData>(target)) {
+            code.push(Instruction(Op::CALL, Arg(Label("print_beta"), DIR())));
+        } else {
+            code.push(Instruction(Op::PROCEDURE, Arg(Procedure::PRINT, DIR()), Arg(target, DIR())));
+        }
     }
 
     void post_visit(grammar::ast::BreakStatement &break_statement) override {
@@ -536,7 +566,7 @@ public:
         code.push(Instruction(Op::PROCEDURE, Arg(Procedure::MEM_ALLOC, DIR()), Arg(ImmediateValue(attrs.size() * 8), DIR()), "allocating space for variables"));
         code.push(Instruction(Op::MOVQ, Arg(Register::RAX, DIR()), Arg(result_register, DIR()), "returning address to resultRegister")); 
         for (size_t i = 0 ; i < attrs.size() ; ++i) {
-            code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(0), DIR()), Arg(result_register, IRL(8*i)), "initializing variable " + attrs[i]->var_decl->id.id));
+            code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(0), DIR()), Arg(result_register, IRL(long(8*i))), "initializing variable " + attrs[i]->var_decl->id.id));
         }
         intermediary_storage.push(result_register); 
     }
@@ -604,9 +634,61 @@ public:
         code.push(Instruction(Op::RET));
     }
 
+    void push_print_beta_function(){
+        code.push(Instruction(Op::LABEL, Arg(Label("compare_util"), DIR())));
+        code.push(Instruction(Op::CMPQ, Arg(ImmediateValue(0), DIR()), Arg(Register::RAX, DIR())));
+        code.push(Instruction(Op::JNE, Arg(Label("object_label"), DIR())));
+        code.push(Instruction(Op::JE, Arg(Label("beta_label"), DIR())));
+
+        code.push(Instruction(Op::LABEL, Arg(Label("object_label"), DIR())));
+        code.push(Instruction(Op::CALL, Arg(Label("print_object"), DIR())));
+        code.push(Instruction(Op::JMP, Arg(Label("end_label"), DIR())));
+
+        code.push(Instruction(Op::LABEL, Arg(Label("beta_label"), DIR())));
+        code.push(Instruction(Op::CALL, Arg(Label("print_beta"), DIR())));
+        code.push(Instruction(Op::JMP, Arg(Label("end_label"), DIR())));
+
+        code.push(Instruction(Op::LABEL, Arg(Label("print_beta"), DIR())));
+        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RAX, DIR()), "System call number for write"));
+        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RDI, DIR()), "File descriptor for stdout"));
+        code.push(Instruction(Op::LEAQ, Arg(Register::RIP, IRL("null")), Arg(Register::RSI, DIR()), "Address of string to print"));
+        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(5), DIR()), Arg(Register::RDX, DIR()), "Length of string to print"));
+        code.push(Instruction(Op::SYSCALL));
+        code.push(Instruction(Op::RET));
+
+        code.push(Instruction(Op::LABEL, Arg(Label("print_object"), DIR())));
+        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RAX, DIR()), "System call number for write"));
+        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RDI, DIR()), "File descriptor for stdout"));
+        code.push(Instruction(Op::LEAQ, Arg(Register::RIP, IRL("object")), Arg(Register::RSI, DIR()), "Address of string to print"));
+        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(7), DIR()), Arg(Register::RDX, DIR()), "Length of string to print"));
+        code.push(Instruction(Op::SYSCALL));
+        code.push(Instruction(Op::RET));
+
+        code.push(Instruction(Op::LABEL, Arg(Label("end_label"), DIR())));
+        code.push(Instruction(Op::RET));
+    }
+
+    void push_print_object_function(){
+        code.push(Instruction(Op::LABEL, Arg(Label("print_object"), DIR())));
+        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RAX, DIR()), "System call number for write"));
+        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RDI, DIR()), "File descriptor for stdout"));
+        code.push(Instruction(Op::LEAQ, Arg(Register::RIP, IRL("object")), Arg(Register::RSI, DIR()), "Address of string to print"));
+        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(7), DIR()), Arg(Register::RDX, DIR()), "Length of string to print"));
+        code.push(Instruction(Op::SYSCALL));
+        code.push(Instruction(Op::RET));
+    }
+
+    void push_print_compare_function(){
+        code.push(Instruction(Op::LABEL, Arg(Label("compare_util"), DIR())));
+        code.push(Instruction(Op::CMPQ, Arg(ImmediateValue(0), DIR()), Arg(Register::RAX, DIR())));
+        code.push(Instruction(Op::JNE, Arg(Label("print_object"), DIR())));
+        code.push(Instruction(Op::JE, Arg(Label("print_beta"), DIR())));
+    }
+
     void push_standard_functions() {
         push_print_function();
         push_mem_alloc_function();
+        push_print_beta_function();
     }
 
     void post_visit(grammar::ast::Prog &prog) override {

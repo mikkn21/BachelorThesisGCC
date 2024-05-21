@@ -199,7 +199,10 @@ private:
     void post_visit(grammar::ast::PrintStatement &print) override {
         auto exp_type = pop(type_stack);
         if (exp_type != IntType() && exp_type != BoolType()) {
-            throw TypeCheckError("Print statement only supports int and bool", print);
+            if (auto* type = boost::get<BetaType>(&exp_type)) {
+            } else {
+                throw TypeCheckError("Print statement only supports int and bool", print);            
+            }
         }
     }
 

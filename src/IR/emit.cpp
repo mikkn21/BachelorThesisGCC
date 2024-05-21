@@ -99,6 +99,13 @@ string print_stack_value(long offset) {
     return s;
 }
 
+string print_data_string(string data){
+    string s = caller_save() + ""
+    "\tcall print_beta\n"
+    "" + callee_restore();
+    return s;
+}
+
 string procedure(Instruction instruction) {
     if (holds_alternative<Procedure>(instruction.args[0].target)) {
         switch (get<Procedure>(instruction.args[0].target)) {
@@ -106,8 +113,14 @@ string procedure(Instruction instruction) {
                 if (holds_alternative<ImmediateValue>(instruction.args[1].target)) {
                     return print_immediate_value(get<ImmediateValue>(instruction.args[1].target).value);
                 } else if (holds_alternative<Register>(instruction.args[1].target)) {
-
-                    return print_stack_value(get<IRL>(instruction.args[1].access_type).offset);
+                    // 
+                    auto offset = get<IRL>(instruction.args[1].access_type).offset;
+                    if (holds_alternative<long>(offset)) return print_stack_value(get<long>(offset));
+                    // else if (holds_alternative<string>(offset)) { 
+                    //     std::cout << "In string on emit" << std::endl; 
+                    //     return print_data_string(get<string>(offset));
+                    // } 
+                    // The above code is for in case we ever wish to generalize printing .data segments
                 } else {
                     throw IRError("Not implemented yet");
                 }
@@ -140,6 +153,8 @@ void emit_to_file(IR ir) {
     ofstream output_file("chad.s");
     if (output_file.is_open()) {
         output_file << ".data\n";
+        output_file << "null: .ascii \"beta\\n\"\n";
+        output_file << "object: .ascii \"object\\n\"\n";
         output_file << "newline: .ascii \"\\n\"\n\n";
         output_file << ".text\n";
         output_file << ".globl _start\n";
