@@ -46,9 +46,8 @@ BOOST_AUTO_TEST_CASE(ReturnDeadCode) {testTypeCheckString("int main() { int f() 
 // Print
 BOOST_AUTO_TEST_CASE(PrintFunc) {testTypeCheckString("int main() { int f() { print(2); return 0;} return 0; }", TestingOutcome::SUCCESS);}
 BOOST_AUTO_TEST_CASE(PrintBool) {testTypeCheckString("int main(){ bool x = true; print(x); return 0; }", TestingOutcome::SUCCESS);}
-
-BOOST_AUTO_TEST_CASE(PrintArray) {testTypeCheckString("int main(){ int[1] arr = new int[10]; print(arr);  return 0; }", TestingOutcome::FAILED);}
-BOOST_AUTO_TEST_CASE(PrintStruct) {testTypeCheckString("class T { int x; } int main(){ T t = new T(); print(t);  return 0; }", TestingOutcome::FAILED);}
+BOOST_AUTO_TEST_CASE(PrintArray) {testTypeCheckString("int main(){ int[1] arr = new int[10]; print(arr);  return 0; }", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(PrintStruct) {testTypeCheckString("class T { int x; } int main(){ T t = new T(); print(t);  return 0; }", TestingOutcome::SUCCESS);}
 
 // While
 BOOST_AUTO_TEST_CASE(WhileGuardBoolTrue) {testTypeCheckString("int main() { int f() {while (true) {} return 2;} return 0;} ", TestingOutcome::SUCCESS);}

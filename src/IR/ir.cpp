@@ -1,14 +1,10 @@
 #include "ir.hpp"
-#include "../semantics/symbol_table.hpp"
 
-using std::get;
-
-IRL::IRL(std::variant<long, std::string> offset) : offset(offset) {}
+IRL::IRL(long offset) : offset(offset) {}
 ImmediateValue::ImmediateValue(int v) : value(v) {}
 ImmediateData::ImmediateData(std::string v) : value(v) {}
 /// precondition: There is room on the stack for the new register
 GenericRegister::GenericRegister(long i) : local_id(i) {}
-GenericRegister::GenericRegister(long i, GenericRegisterType type) : local_id(i), type(type) {}
 Label::Label(const std::string& l) : label(l) {}
 Arg::Arg(TargetType target, MemAccessType access_type) : target(target), access_type(access_type) {}
 
@@ -36,10 +32,7 @@ std::ostream& operator<<(std::ostream& os, const Arg arg) {
         if (std::holds_alternative<IND>(arg.access_type)) {
             os << "(" << std::get<Register>(arg.target) << ")";
         } else if (std::holds_alternative<IRL>(arg.access_type)) {
-            auto offset = std::get<IRL>(arg.access_type).offset;
-            if (std::holds_alternative<long>(offset)) os << get<long>(offset);
-            else if (std::holds_alternative<std::string>(offset)) os << get<std::string>(offset);
-            os << "(" << std::get<Register>(arg.target) << ")";
+            os << std::get<IRL>(arg.access_type).offset << "(" << std::get<Register>(arg.target) << ")";
         } else if (std::holds_alternative<DIR>(arg.access_type)) {
             os << std::get<Register>(arg.target);
         } else {

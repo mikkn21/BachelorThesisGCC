@@ -99,7 +99,7 @@ string print_stack_value(long offset) {
     return s;
 }
 
-string print_data_string(string data){
+string print_class_string(string data){
     string s = caller_save() + ""
     "\tcall print_beta\n"
     "" + callee_restore();
@@ -114,8 +114,8 @@ string procedure(Instruction instruction) {
                     return print_immediate_value(get<ImmediateValue>(instruction.args[1].target).value);
                 } else if (holds_alternative<Register>(instruction.args[1].target)) {
                     // 
-                    auto offset = get<IRL>(instruction.args[1].access_type).offset;
-                    if (holds_alternative<long>(offset)) return print_stack_value(get<long>(offset));
+                    long offset = get<IRL>(instruction.args[1].access_type).offset;
+                    return print_stack_value(offset);
                     // else if (holds_alternative<string>(offset)) { 
                     //     std::cout << "In string on emit" << std::endl; 
                     //     return print_data_string(get<string>(offset));
@@ -153,8 +153,11 @@ void emit_to_file(IR ir) {
     ofstream output_file("chad.s");
     if (output_file.is_open()) {
         output_file << ".data\n";
-        output_file << "null: .ascii \"beta\\n\"\n";
+        output_file << "true: .ascii \"true\\n\"\n";
+        output_file << "false: .ascii \"false\\n\"\n";
+        output_file << "beta: .ascii \"beta\\n\"\n";
         output_file << "object: .ascii \"object\\n\"\n";
+        output_file << "array: .ascii \"array\\n\"\n";
         output_file << "newline: .ascii \"\\n\"\n\n";
         output_file << ".text\n";
         output_file << ".globl _start\n";

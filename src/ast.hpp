@@ -5,12 +5,14 @@
 #include <boost/spirit/home/x3/support/ast/variant.hpp>
 #include <boost/optional.hpp>
 #include <vector>
+#include <memory>
 
 class FuncSymbol;
 class ClassSymbol;
 class VarSymbol;
 class Symbol;
 class SymbolTable;
+class SymbolType;
 
 namespace grammar 
 { 
@@ -137,6 +139,7 @@ namespace grammar
 
         struct PrintStatement : LocationInfo {
             Expression exp;
+            std::shared_ptr<SymbolType> input_type;
         public:
             friend std::ostream& operator<<(std::ostream& os, const PrintStatement &exp);
         };

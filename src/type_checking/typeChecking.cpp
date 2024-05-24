@@ -4,6 +4,7 @@
 #include "../semantics/symbol_table.hpp"
 #include "return_checker.hpp"
 #include <iostream>
+#include <memory>
 
 
 class TypeChecker : public Visitor {
@@ -198,12 +199,10 @@ private:
 
     void post_visit(grammar::ast::PrintStatement &print) override {
         auto exp_type = pop(type_stack);
-        if (exp_type != IntType() && exp_type != BoolType()) {
-            if (auto* type = boost::get<BetaType>(&exp_type)) {
-            } else {
-                throw TypeCheckError("Print statement only supports int and bool", print);            
-            }
+        if (exp_type != IntType() && exp_type != BoolType() && exp_type != BetaType()) {
+            throw TypeCheckError("Print statements only supports ints, bools, objects and arrays", print);
         }
+        print.input_type = std::make_shared<SymbolType>(exp_type);
     }
 
     bool are_all_ints(std::vector<SymbolType> types) {

@@ -1,16 +1,18 @@
 #include "code_generation.hpp"
 #include "../semantics/symbol_table.hpp"
 #include "../visitor.hpp"
+#include "ir.hpp"
 #include "link_instructions.hpp"
 
 #include <cstddef>
+#include <stdexcept>
 #include <string>
 #include <vector>
 #include <stack>
 
 const int callee_offset = -40; // TODO: this should be referenced from a shared file so all occurences of this has a common variable. Or it should be removed
 
-using AstValue = std::variant<int, bool, GenericRegister, BetaType>;
+using AstValue = std::variant<int, bool, GenericRegister>;
 
 class FunctionOrderManager {
 private:
@@ -129,8 +131,6 @@ TargetType get_target(AstValue value) {
         return ImmediateValue(std::get<int>(value));
     } else if (std::holds_alternative<bool>(value)) {
         return ImmediateValue(std::get<bool>(value));
-    } else if (std::holds_alternative<BetaType>(value)) {
-        return ImmediateData(std::get<BetaType>(value).to_string());
     } else if (std::holds_alternative<GenericRegister>(value)) {
         return std::get<GenericRegister>(value);
     } else {
@@ -284,7 +284,7 @@ public:
     }
 
     void pre_visit(grammar::ast::BetaExpression &beta) override {
-        intermediary_storage.push(BetaType());
+        intermediary_storage.push(0);
     }
 
     void post_visit(grammar::ast::VarExpression &var_expr) override {
@@ -304,7 +304,7 @@ public:
                 code.push(Instruction(Op::MOVQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR()), "moving pointer to r8 to set up for future IRL access")); // this line is needed for structs of structs
             }
             if (get_var_symbols(var_expr.id_access.ids.front().sym)->type.which() == 4){ // this breaks if we change the ordering of the different types in SymbolType
-                GenericRegister result_register = GenericRegister(++frontId.scope->register_counter, ClassSymbolType());
+                GenericRegister result_register = GenericRegister(++frontId.scope->register_counter);
                 auto staticLinkingCode = static_link_read(difference, frontSym->local_id, result_register);
                 for (auto instruction : staticLinkingCode) {
                     code.push(instruction);
@@ -329,7 +329,7 @@ public:
             code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()))); // make space on stack for generic register value
             auto id = ++var_expr.id_access.ids.back().scope->register_counter;
             if (var_symbol->type.which() == 4) { // this breaks if we change the ordering of the different types in SymbolType
-                GenericRegister result_register = GenericRegister(id, ClassSymbolType());
+                GenericRegister result_register = GenericRegister(id);
                 auto static_linking_code = static_link_read(difference, var_symbol->local_id, result_register);
                 for (auto instruction : static_linking_code) {
                     code.push(instruction);
@@ -490,16 +490,22 @@ public:
 
     void post_visit(grammar::ast::PrintStatement &print) override {
         auto target = get_target(pop(intermediary_storage));
-        if (std::holds_alternative<GenericRegister>(target)) {
-            auto reg = std::get<GenericRegister>(target);
-            if (std::holds_alternative<ClassSymbolType>(reg.type)) {
-                code.push(Instruction(Op::MOVQ, Arg(reg, DIR()), Arg(Register::RAX, DIR())));
-                code.push(Instruction(Op::CALL, Arg(Label("compare_util"), DIR())));
-            }
-        } else if (std::holds_alternative<ImmediateData>(target)) {
-            code.push(Instruction(Op::CALL, Arg(Label("print_beta"), DIR())));
-        } else {
+        SymbolType type = *print.input_type.get();
+        if (type == BoolType()) {
+            code.push(Instruction(Op::MOVQ, Arg(target, DIR()), Arg(Register::RDI, DIR()), "Move value to rdi for print"));
+            code.push(Instruction(Op::CALL, Arg(Label("print_bool"), DIR())));
+        } else if (type == IntType()) {
             code.push(Instruction(Op::PROCEDURE, Arg(Procedure::PRINT, DIR()), Arg(target, DIR())));
+        } else if (boost::get<ClassSymbolType>(&type) != nullptr) {
+            code.push(Instruction(Op::MOVQ, Arg(target, DIR()), Arg(Register::RDI, DIR()), "Move value to rdi for print"));
+            code.push(Instruction(Op::CALL, Arg(Label("print_object"), DIR())));
+        } else if (boost::get<ArraySymbolType>(&type) != nullptr) {
+            code.push(Instruction(Op::MOVQ, Arg(target, DIR()), Arg(Register::RDI, DIR()), "Move value to rdi for print"));
+            code.push(Instruction(Op::CALL, Arg(Label("print_array"), DIR())));
+        } else if (boost::get<BetaType>(&type) != nullptr) {
+            code.push(Instruction(Op::CALL, Arg(Label("print_beta"), DIR())));
+        } else { // Should not happen since it has been type checked
+            throw std::runtime_error("Unsupported type for printing");
         }
     }
 
@@ -574,7 +580,7 @@ public:
     void pre_visit(grammar::ast::Prog &prog) override {
         code.push(Instruction(Op::MOVQ, Arg(Register::RSP, DIR()), Arg(Register::RBP, DIR()), "set rbp for global scope")); // set rbp
         code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_SAVE, DIR())));
-        int var_count = global_scope->get_var_symbols().size();
+        size_t var_count = global_scope->get_var_symbols().size();
         for (size_t i = 0; i < var_count; i++) {
             code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()), "initialize global variable to 0"));
         }
@@ -614,7 +620,91 @@ public:
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RDX, DIR()), "len"));
         code.push(Instruction(Op::SYSCALL));
         code.push(Instruction(Op::RET));
+    }
 
+    void push_print_bool_function() {
+        std::string print_false_label = ".print_bool_false";
+        code.push(Instruction(Op::LABEL, Arg(Label("print_bool"), DIR())));
+
+        code.push(Instruction(Op::CMPQ, Arg(ImmediateValue(0), DIR()), Arg(Register::RDI, DIR())));
+        code.push(Instruction(Op::JE, Arg(Label(print_false_label), DIR())));
+
+        // Print true
+        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RAX, DIR()), "System call number for write"));
+        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RDI, DIR()), "File descriptor for stdout"));
+        code.push(Instruction(Op::MOVQ, Arg(ImmediateData("true"), DIR()), Arg(Register::RSI, DIR()), "Address of 'true'"));
+        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(5), DIR()), Arg(Register::RDX, DIR()), "Length of string to print"));
+        code.push(Instruction(Op::SYSCALL));
+        code.push(Instruction(Op::RET));
+
+        // Print false
+        code.push(Instruction(Op::LABEL, Arg(Label(print_false_label), DIR())));
+        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RAX, DIR()), "System call number for write"));
+        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RDI, DIR()), "File descriptor for stdout"));
+        code.push(Instruction(Op::MOVQ, Arg(ImmediateData("false"), DIR()), Arg(Register::RSI, DIR()), "Address of 'false'"));
+        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(6), DIR()), Arg(Register::RDX, DIR()), "Length of string to print"));
+        code.push(Instruction(Op::SYSCALL));
+        code.push(Instruction(Op::RET));
+    }
+
+    void push_print_object_function() {
+        std::string print_null_label = ".print_object_null";
+        code.push(Instruction(Op::LABEL, Arg(Label("print_object"), DIR())));
+
+        code.push(Instruction(Op::CMPQ, Arg(ImmediateValue(0), DIR()), Arg(Register::RDI, DIR())));
+        code.push(Instruction(Op::JE, Arg(Label(print_null_label), DIR())));
+
+        // Print object
+        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RAX, DIR()), "System call number for write"));
+        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RDI, DIR()), "File descriptor for stdout"));
+        code.push(Instruction(Op::MOVQ, Arg(ImmediateData("object"), DIR()), Arg(Register::RSI, DIR()), "Address of 'object'"));
+        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(6), DIR()), Arg(Register::RDX, DIR()), "Length of string to print"));
+        code.push(Instruction(Op::SYSCALL));
+        code.push(Instruction(Op::RET));
+
+        // Print beta
+        code.push(Instruction(Op::LABEL, Arg(Label(print_null_label), DIR())));
+        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RAX, DIR()), "System call number for write"));
+        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RDI, DIR()), "File descriptor for stdout"));
+        code.push(Instruction(Op::MOVQ, Arg(ImmediateData("beta"), DIR()), Arg(Register::RSI, DIR()), "Address of 'beta'"));
+        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(4), DIR()), Arg(Register::RDX, DIR()), "Length of string to print"));
+        code.push(Instruction(Op::SYSCALL));
+        code.push(Instruction(Op::RET));
+    }
+
+    void push_print_array_function() {
+        std::string print_null_label = ".print_array_null";
+        code.push(Instruction(Op::LABEL, Arg(Label("print_array"), DIR())));
+
+        code.push(Instruction(Op::CMPQ, Arg(ImmediateValue(0), DIR()), Arg(Register::RDI, DIR())));
+        code.push(Instruction(Op::JE, Arg(Label(print_null_label), DIR())));
+
+        // Print object
+        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RAX, DIR()), "System call number for write"));
+        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RDI, DIR()), "File descriptor for stdout"));
+        code.push(Instruction(Op::MOVQ, Arg(ImmediateData("array"), DIR()), Arg(Register::RSI, DIR()), "Address of 'array'"));
+        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(5), DIR()), Arg(Register::RDX, DIR()), "Length of string to print"));
+        code.push(Instruction(Op::SYSCALL));
+        code.push(Instruction(Op::RET));
+
+        // Print beta
+        code.push(Instruction(Op::LABEL, Arg(Label(print_null_label), DIR())));
+        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RAX, DIR()), "System call number for write"));
+        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RDI, DIR()), "File descriptor for stdout"));
+        code.push(Instruction(Op::MOVQ, Arg(ImmediateData("beta"), DIR()), Arg(Register::RSI, DIR()), "Address of 'beta'"));
+        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(4), DIR()), Arg(Register::RDX, DIR()), "Length of string to print"));
+        code.push(Instruction(Op::SYSCALL));
+        code.push(Instruction(Op::RET));
+    }
+
+    void push_print_beta_function() {
+        code.push(Instruction(Op::LABEL, Arg(Label("print_beta"), DIR())));
+        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RAX, DIR()), "System call number for write"));
+        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RDI, DIR()), "File descriptor for stdout"));
+        code.push(Instruction(Op::MOVQ, Arg(ImmediateData("beta"), DIR()), Arg(Register::RSI, DIR()), "Address of 'beta'"));
+        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(4), DIR()), Arg(Register::RDX, DIR()), "Length of string to print"));
+        code.push(Instruction(Op::SYSCALL));
+        code.push(Instruction(Op::RET));
     }
 
     void push_mem_alloc_function() {
@@ -634,60 +724,12 @@ public:
         code.push(Instruction(Op::RET));
     }
 
-    void push_print_beta_function(){
-        code.push(Instruction(Op::LABEL, Arg(Label("compare_util"), DIR())));
-        code.push(Instruction(Op::CMPQ, Arg(ImmediateValue(0), DIR()), Arg(Register::RAX, DIR())));
-        code.push(Instruction(Op::JNE, Arg(Label("object_label"), DIR())));
-        code.push(Instruction(Op::JE, Arg(Label("beta_label"), DIR())));
-
-        code.push(Instruction(Op::LABEL, Arg(Label("object_label"), DIR())));
-        code.push(Instruction(Op::CALL, Arg(Label("print_object"), DIR())));
-        code.push(Instruction(Op::JMP, Arg(Label("end_label"), DIR())));
-
-        code.push(Instruction(Op::LABEL, Arg(Label("beta_label"), DIR())));
-        code.push(Instruction(Op::CALL, Arg(Label("print_beta"), DIR())));
-        code.push(Instruction(Op::JMP, Arg(Label("end_label"), DIR())));
-
-        code.push(Instruction(Op::LABEL, Arg(Label("print_beta"), DIR())));
-        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RAX, DIR()), "System call number for write"));
-        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RDI, DIR()), "File descriptor for stdout"));
-        code.push(Instruction(Op::LEAQ, Arg(Register::RIP, IRL("null")), Arg(Register::RSI, DIR()), "Address of string to print"));
-        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(5), DIR()), Arg(Register::RDX, DIR()), "Length of string to print"));
-        code.push(Instruction(Op::SYSCALL));
-        code.push(Instruction(Op::RET));
-
-        code.push(Instruction(Op::LABEL, Arg(Label("print_object"), DIR())));
-        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RAX, DIR()), "System call number for write"));
-        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RDI, DIR()), "File descriptor for stdout"));
-        code.push(Instruction(Op::LEAQ, Arg(Register::RIP, IRL("object")), Arg(Register::RSI, DIR()), "Address of string to print"));
-        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(7), DIR()), Arg(Register::RDX, DIR()), "Length of string to print"));
-        code.push(Instruction(Op::SYSCALL));
-        code.push(Instruction(Op::RET));
-
-        code.push(Instruction(Op::LABEL, Arg(Label("end_label"), DIR())));
-        code.push(Instruction(Op::RET));
-    }
-
-    void push_print_object_function(){
-        code.push(Instruction(Op::LABEL, Arg(Label("print_object"), DIR())));
-        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RAX, DIR()), "System call number for write"));
-        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RDI, DIR()), "File descriptor for stdout"));
-        code.push(Instruction(Op::LEAQ, Arg(Register::RIP, IRL("object")), Arg(Register::RSI, DIR()), "Address of string to print"));
-        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(7), DIR()), Arg(Register::RDX, DIR()), "Length of string to print"));
-        code.push(Instruction(Op::SYSCALL));
-        code.push(Instruction(Op::RET));
-    }
-
-    void push_print_compare_function(){
-        code.push(Instruction(Op::LABEL, Arg(Label("compare_util"), DIR())));
-        code.push(Instruction(Op::CMPQ, Arg(ImmediateValue(0), DIR()), Arg(Register::RAX, DIR())));
-        code.push(Instruction(Op::JNE, Arg(Label("print_object"), DIR())));
-        code.push(Instruction(Op::JE, Arg(Label("print_beta"), DIR())));
-    }
-
     void push_standard_functions() {
         push_print_function();
         push_mem_alloc_function();
+        push_print_bool_function();
+        push_print_object_function();
+        push_print_array_function();
         push_print_beta_function();
     }
 

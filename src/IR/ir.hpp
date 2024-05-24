@@ -7,7 +7,6 @@
 #include <optional>
 #include <iostream>
 #include "../error/compiler_error.hpp"
-#include "../semantics/symbol_table.hpp"
 
 
 enum class Op {
@@ -17,8 +16,8 @@ enum class Op {
 struct DIR {};
 struct IND {};
 struct IRL {
-    std::variant<long, std::string> offset;
-    IRL(std::variant<long, std::string> offset);
+    long offset;
+    IRL(long offset);
 };
 
 using MemAccessType = std::variant<DIR, IND, IRL>;
@@ -33,13 +32,9 @@ struct ImmediateData {
     ImmediateData(std::string value);
 };
 
-using GenericRegisterType = std::variant<IntType, BoolType, BetaType, ArraySymbolType, ClassSymbolType, FuncSymbolType>;
-
 struct GenericRegister {
     long local_id; // TODO: should this not be a long long?
-    GenericRegisterType type;
     GenericRegister(long local_id);
-    GenericRegister(long local_id, GenericRegisterType type);
     
     bool operator<(const GenericRegister& other) const {
         return local_id < other.local_id;
@@ -96,4 +91,4 @@ public:
     using CompilerError::CompilerError;
 };
 
-#endif // IR_HPP
+#endif // IR_HPi
