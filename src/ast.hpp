@@ -105,6 +105,7 @@ namespace grammar
         struct ArrayIndex : LocationInfo {
             IdAccess id_access;
             std::vector<Expression> indices; 
+            std::string beta_check_label;
         public: 
             friend std::ostream& operator<<(std::ostream& os, const ArrayIndex &exp);
         };

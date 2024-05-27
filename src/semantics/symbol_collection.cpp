@@ -155,6 +155,7 @@ public:
     }
 
     void post_visit(grammar::ast::ArrayIndex &index) override {
+        index.beta_check_label = generate_unique_label("after_beta_check");
         if (!dynamic_cast<VarSymbol *>(require_id_in_current_scope(index, index.id_access.ids.front()))) {
                 throw SemanticsError("Cannot index a non-variable", index);
         }

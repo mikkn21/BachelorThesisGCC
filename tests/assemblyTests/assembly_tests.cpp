@@ -39,3 +39,8 @@ BOOST_AUTO_TEST_CASE(PrintArrayBeta) {test_assembly_string("int main(){int[3] ar
 BOOST_AUTO_TEST_CASE(PrintArrayBetaNoInit) {test_assembly_string("int main(){int[3] arr; print(arr); return 0;}", "beta");}
 BOOST_AUTO_TEST_CASE(PrintBeta) {test_assembly_string("int main(){print(beta); return 0;}", "beta");}
 
+BOOST_AUTO_TEST_CASE(BetaAccessArray) {test_assembly_string("int main(){int[3] arr; arr[2,4,5]; return 0;}", "Attempted to access a beta value");}
+BOOST_AUTO_TEST_CASE(BetaAccessArrayExplicit) {test_assembly_string("int main(){int[3] arr = beta; arr[2,4,5]; return 0;}", "Attempted to access a beta value");}
+BOOST_AUTO_TEST_CASE(BetaAccessArrayExp) {test_assembly_string("int main(){int[3] arr; int x = arr[2,3,4]; return 0;}", "Attempted to access a beta value");}
+
+

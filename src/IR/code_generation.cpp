@@ -426,9 +426,6 @@ public:
             index_targets.push_back(get_target(pop(intermediary_storage)));
         }
 
-        // TODO: Check valid index
-        // TODO: Make sure arrays are also 0-initialized at the beginning of their scope
-
         // Static link
         SymbolTable *scope = index.id_access.ids.front().scope;
         VarSymbol *target_symbol = get_var_symbols(index.id_access.ids.back().sym);
@@ -443,6 +440,13 @@ public:
             code.push(instruction);
         }
 
+        // Check null
+        code.push(Instruction(Op::CMPQ, Arg(ImmediateValue(0), DIR()), Arg(array_ptr, DIR()), "Start checking for beta"));
+        code.push(Instruction(Op::JNE, Arg(Label(index.beta_check_label), DIR())));
+        code.push(Instruction(Op::JMP, Arg(Label("print_is_beta"), DIR())));
+        code.push(Instruction(Op::LABEL, Arg(Label(index.beta_check_label), DIR())));
+
+        // TODO: Check valid index
 
         // Get a pointer to the correct index
         code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()))); // make space on stack for generic register value
@@ -724,6 +728,19 @@ public:
         code.push(Instruction(Op::RET));
     }
 
+    void push_print_is_beta_function() {
+        code.push(Instruction(Op::LABEL, Arg(Label("print_is_beta"), DIR())));
+        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RAX, DIR()), "System call number for write"));
+        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RDI, DIR()), "File descriptor for stdout"));
+        code.push(Instruction(Op::MOVQ, Arg(ImmediateData("is_beta"), DIR()), Arg(Register::RSI, DIR()), "Address of string"));
+        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(32), DIR()), Arg(Register::RDX, DIR()), "Length of string to print"));
+        code.push(Instruction(Op::SYSCALL));
+        // Close with error code 1
+        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(60), DIR()), Arg(Register::RAX, DIR())));
+        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RDI, DIR())));
+        code.push(Instruction(Op::SYSCALL));
+    }
+
     void push_standard_functions() {
         push_print_function();
         push_mem_alloc_function();
@@ -731,6 +748,7 @@ public:
         push_print_object_function();
         push_print_array_function();
         push_print_beta_function();
+        push_print_is_beta_function();
     }
 
     void post_visit(grammar::ast::Prog &prog) override {
