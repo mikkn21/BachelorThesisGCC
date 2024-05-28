@@ -40,6 +40,9 @@ private:
         if (sym != nullptr) {
             if (auto var_sym = dynamic_cast<VarSymbol *>(sym)) {
                 id.sym = var_sym;
+                if (current_symbol_table->find_local(id.id) != sym) {
+                    var_sym->ir_data.is_local = false;
+                }
             }
             return sym;
         } else {

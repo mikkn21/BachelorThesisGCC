@@ -17,7 +17,7 @@ bool RegisterTypeLess::operator()(const RegisterType& lhs, const RegisterType& r
 }
 
 Block::Block(
-    IR instructions,
+    std::list<Instruction> instructions,
     Live use,
     Live def,
     Live in,
@@ -184,15 +184,12 @@ void add_def_use_to_block(Block* current_block, Instruction instruction) {
     }
 }
 
+std::string get_label_value(Instruction &instruction) {
+    return std::get<Label>(instruction.args[0].target).label;
+}
 
-
-
-
-
-
-
-LivenessAnalysis construct_simple_blocks(IR code) {
-    std::unordered_map<Instruction*, Block*> labels_map;
+LivenessAnalysis construct_simple_blocks(const std::list<Instruction> &code) {
+    std::unordered_map<std::string, Block*> labels_map;
     LivenessAnalysis blocks;
     size_t i = code.size();
     for (auto it = code.rbegin(); it != code.rend(); ++it) {
@@ -201,6 +198,9 @@ LivenessAnalysis construct_simple_blocks(IR code) {
         Block *current_block = new Block();
         current_block->instructions = {instruction};
 
+        if (instruction.operation == Op::LABEL) {
+            labels_map[get_label_value(current_block->instructions.back())] = current_block;
+        }
 
         if (i < code.size()-1 && instruction.operation != Op::JMP) { // JMP does not have the next instruction as successor
             current_block->successors.push_back(blocks.back());
@@ -213,7 +213,9 @@ LivenessAnalysis construct_simple_blocks(IR code) {
     for (auto block : blocks) {
         for (auto instruction : block->instructions) {
             if (instruction.alternative_successor.has_value()) {
-                block->successors.push_back(labels_map[instruction.alternative_successor.value()]);
+                std::string label = get_label_value(*instruction.alternative_successor.value());
+                Block *block = labels_map[label];
+                block->successors.push_back(block);
             }
         }
     }
@@ -221,7 +223,7 @@ LivenessAnalysis construct_simple_blocks(IR code) {
 }
 
 
-LivenessAnalysis liveness_analysis(IR &code) {
+LivenessAnalysis liveness_analysis(const std::list<Instruction> &code) {
 
     LivenessAnalysis blocks = construct_simple_blocks(code);
     bool is_consistent;

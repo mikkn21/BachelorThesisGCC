@@ -69,29 +69,35 @@ namespace grammar::compiler {
             return obj;
         }
         obj->ir = intermediate_code_generation(obj->ast); 
-
-        if (options.print_code_generation){
+        if (options.print_code_generation) {
             std::cout << "CodeGen:\n" << obj->ir << std::endl;
         }
-        if (options.stop_after == StopAfterCodeGen){
+        if (options.stop_after == StopAfterCodeGen) {
             return obj;
         }
-        obj->ir = register_allocation(obj->ir); 
-        register_allocation2(obj->ir); 
+        std::cout << "before RegisterAllocation:\n" << *obj->ir << std::endl;
+        if (options.naive_register_allocation){
+            naive_register_allocation(*obj->ir); 
+        } else {
+            register_allocation(*obj->ir); 
+        }
+        std::cout << "\n\n\n\nafter RegisterAllocation:\n" << *obj->ir << std::endl;
 
 
         if (options.stop_after == StopAfterRegAlloc){
             return obj;
         }
-
+        
         if (options.print_register_allocation){
             std::cout << "RegisterAllocation:\n" << obj->ir << std::endl;
         }
 
-        emit(obj->ir);        
+        emit(*obj->ir);        
 
         return obj;
     }
-
-
+    
+    CompilerReturnObj::~CompilerReturnObj() {
+        delete ir;
+    }
 } // namespace grammar::compiler

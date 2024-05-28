@@ -35,6 +35,7 @@ struct ImmediateData {
 struct GenericRegister {
     long local_id; // TODO: should this not be a long long?
     GenericRegister(long local_id);
+    GenericRegister() : local_id(0) {} // remove this maybe?
     
     bool operator<(const GenericRegister& other) const {
         return local_id < other.local_id;
@@ -48,6 +49,8 @@ struct GenericRegister {
 enum class Register {
     RAX, RBX, RCX, RDX, RSI, RDI, R8, R8B, R9, R10, R10B, R11, R12, R13, R14, R15, RSP, RBP, RIP
 };
+
+
 struct Label {
     std::string label;
     Label(const std::string& label);
@@ -77,13 +80,27 @@ struct Instruction {
     Instruction(Op op, Arg arg1, Arg arg2, std::optional<std::string> comment = std::nullopt, std::optional<Instruction*> alternative = std::nullopt);
 };
 
-using IR = std::list<Instruction>;
+class Function {
+    size_t register_counter = 0;
+public:
+    std::list<Instruction> code;
+
+    Function(size_t start_register_counter) : register_counter(start_register_counter) {};
+
+    GenericRegister new_register();
+};
+
+class IR {
+public:
+    std::list<Function*> functions;
+    ~IR();
+};
 
 std::ostream& operator<<(std::ostream& os, const Instruction &instruction);
 std::ostream& operator<<(std::ostream& os, const Op op);
 std::ostream& operator<<(std::ostream& os, const Register op);
 std::ostream& operator<<(std::ostream& os, const Arg arg);
-std::ostream& operator<<(std::ostream& os, const IR ir);
+std::ostream& operator<<(std::ostream& os, const IR &ir);
 std::ostream& operator<<(std::ostream& os, const Procedure procedure);
 
 class IRError: public CompilerError {
