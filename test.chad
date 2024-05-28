@@ -1,4 +1,6 @@
 int main(){
-    print(beta);
+    int x = 4;
+    int y = 5;
+    print(y);
     return 0;
 }

@@ -1,10 +1,12 @@
 #include <fstream>
 #include "compiler.hpp"
+#include "IR/ir.hpp"
 #include "parser/parser.hpp"
 #include "semantics/symbol_collection_phase2.hpp"
 #include "type_checking/typeChecking.hpp"
 #include "semantics/symbol_collection.hpp"
 #include "optimizations/coloring_by_simplification.hpp"
+#include "optimizations/pp.hpp"
 
 
 namespace grammar::compiler {
@@ -75,14 +77,27 @@ namespace grammar::compiler {
         if (options.stop_after == StopAfterCodeGen) {
             return obj;
         }
-        std::cout << "before RegisterAllocation:\n" << *obj->ir << std::endl;
+      
+        std::list<Instruction> temp = {
+            Instruction(Op::MOVQ, Arg(ImmediateValue(5), DIR()), Arg(Register::RAX, DIR())),
+            Instruction(Op::MOVQ, Arg(ImmediateValue(5), DIR()), Arg(Register::RAX, DIR())),
+        };
+
+        std::cout << "IR: " << obj->ir << std::endl;
+        if (!options.disable_peephole) peephole_optimization(obj->ir);
+        // std::cout << obj->ir << std::endl;
+        if (options.stop_after == stopAfterPeepHole){
+            return obj;
+        }
+        std::cout << obj->ir << std::endl;
+
+        
         if (options.naive_register_allocation){
             naive_register_allocation(*obj->ir); 
         } else {
             register_allocation(*obj->ir); 
         }
-        std::cout << "\n\n\n\nafter RegisterAllocation:\n" << *obj->ir << std::endl;
-
+        
 
         if (options.stop_after == StopAfterRegAlloc){
             return obj;
