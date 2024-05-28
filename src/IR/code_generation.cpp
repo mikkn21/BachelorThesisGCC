@@ -46,7 +46,7 @@ public:
     }
 
     GenericRegister new_register() {
-        // (*current_function_stack.top()).code.push_back(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()), "make space on stack for generic register value"));
+
         return (*current_function_stack.top()).new_register();
     }
 
@@ -107,7 +107,7 @@ std::vector<Instruction> binop_instructions(std::string op, GenericRegister resu
         code.push_back(Instruction(Op::SETNE, Arg(Register::R10B, DIR())));
         code.push_back(Instruction(Op::MOVQ, Arg(Register::R10, DIR()), Arg(result, DIR())));
     } else if (op == "<=") {
-        code.push_back(Instruction(Op::XORQ, Arg(Register::R10, DIR()), Arg(Register::R10, DIR())));
+        code.push_back(Instruction(Op::XORQ, Arg(Register::R10, DIR()), Arg(Register::R10, DIR()), "start of less than or equal compare"));
         code.push_back(Instruction(Op::CMPQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR())));
         code.push_back(Instruction(Op::SETLE, Arg(Register::R10B, DIR())));
         code.push_back(Instruction(Op::MOVQ, Arg(Register::R10, DIR()), Arg(result, DIR())));
@@ -147,60 +147,58 @@ private:
 
     /// Expects there to be space on the stack for the result register taken as input. 
     /// uses register R8 and R9, so should be saved before use
-    std::vector<Instruction> static_link_read(int depth, int target_local_id, GenericRegister read_result) {
-        std::vector<Instruction> instructions;
-        instructions.push_back(Instruction(Op::MOVQ, Arg(Register::RBP, DIR()), Arg(Register::R8, DIR()), "starting static linking read"));
-        // std::cout << "depth: " << depth << std::endl;
-        for (auto i = 0; i < depth; i++) {
-            instructions.push_back(Instruction(Op::MOVQ, Arg(Register::R8, IRL(16)), Arg(Register::R9, DIR())));
-            instructions.push_back(Instruction(Op::MOVQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR())));
+    GenericRegister static_link_read(SymbolTable &current_scope, VarSymbol &target_var_symbol) {
+        if (target_var_symbol.ir_data.is_local) {
+            return GenericRegister(target_var_symbol.ir_data.local_id);
+        } else {
+            size_t depth = current_scope.depth - target_var_symbol.var_decl->id.scope->depth;
+            code.push(Instruction(Op::MOVQ, Arg(Register::RBP, DIR()), Arg(Register::R8, DIR()), "starting static linking read"));
+            for (auto i = 0; i < depth; i++) {
+                code.push(Instruction(Op::MOVQ, Arg(Register::R8, IRL(16)), Arg(Register::R8, DIR())));
+            }
+            long target_stack_offset = callee_offset + (target_var_symbol.ir_data.stack_offset + 1) * -8;
+            GenericRegister read_result = code.new_register();
+            std::cout << " Generic Register: " << read_result.local_id << std::endl;
+            code.push(Instruction(Op::MOVQ, Arg(Register::R8, IRL(target_stack_offset)), Arg(read_result, DIR()), "temporarely save result"));
+            return read_result;
         }
-        GenericRegister target = GenericRegister(target_local_id);
-        instructions.push_back(Instruction(Op::MOVQ, Arg(Register::RBP, DIR()), Arg(Register::R9, DIR()), "save RBP")); // save RBP
-        instructions.push_back(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(Register::RBP, DIR()))); // set RBP to R8, so generic register points to correct memory location.
-        instructions.push_back(Instruction(Op::MOVQ, Arg(target, DIR()), Arg(Register::R8, DIR()), "temporarely save result"));
-        instructions.push_back(Instruction(Op::MOVQ, Arg(Register::R9, DIR()), Arg(Register::RBP, DIR()), "restore RBP")); // restore RBP
-        instructions.push_back(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(read_result, DIR()), "move result to result register"));
-        return instructions;
     }
-
-    //     /// Expects there to be space on the stack for the result register taken as input. 
-    // /// uses register R8 and R9, so should be saved before use
-    // GenericRegister static_link_read(SymbolTable &current_scope, VarSymbol &target_var_symbol) {
-    //     size_t depth = current_scope.depth - target_var_symbol.var_decl->id.scope->depth;
-    //     code.push(Instruction(Op::MOVQ, Arg(Register::RBP, DIR()), Arg(Register::R8, DIR()), "starting static linking read"));
-    //     // std::cout << "depth: " << depth << std::endl;
-    //     for (auto i = 0; i < depth; i++) {
-    //         code.push(Instruction(Op::MOVQ, Arg(Register::R8, IRL(16)), Arg(Register::R8, DIR())));
-    //     }
-    //     // code.push(Instruction(Op::MOVQ, Arg(Register::RBP, DIR()), Arg(Register::R9, DIR()), "save RBP")); // save RBP
-    //     // code.push(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(Register::RBP, DIR()))); // set RBP to R8, so generic register points to correct memory location.
-    //     size_t target_stack_offset = target_var_symbol.ir_data.stack_offset;
-    //     GenericRegister read_result = code.new_register();
-    //     code.push(Instruction(Op::MOVQ, Arg(Register::R8, IRL(target_stack_offset)), Arg(read_result, DIR()), "temporarely save result"));
-    //     // code.push(Instruction(Op::MOVQ, Arg(Register::R9, DIR()), Arg(Register::RBP, DIR()), "restore RBP")); // restore RBP
-    //     // code.push(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(read_result, DIR()), "move result to result register"));
-    //     return read_result;
-    // }
 
     /// uses register R8, R9 and R10, so should be saved before use
-    std::vector<Instruction> static_link_write(int depth, int stack_offset, TargetType write_value) {
-        std::vector<Instruction> instructions;
-        instructions.push_back(Instruction(Op::MOVQ, Arg(Register::RBP, DIR()), Arg(Register::R8, DIR()), "starting static linking write"));
-        // std::cout << "depth: " << depth << std::endl;
-        for (auto i = 0; i < depth; i++) {
-            instructions.push_back(Instruction(Op::MOVQ, Arg(Register::R8, IRL(16)), Arg(Register::R9, DIR())));
-            instructions.push_back(Instruction(Op::MOVQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR())));
+    void static_link_write(SymbolTable &current_scope, VarSymbol &target_var_symbol, TargetType write_value) {
+        if (target_var_symbol.ir_data.is_local) {
+            code.push(Instruction(Op::MOVQ, Arg(write_value, DIR()), Arg(GenericRegister(target_var_symbol.ir_data.local_id), DIR()), "temporarely save result"));
+        } else {
+            size_t depth = current_scope.depth - target_var_symbol.var_decl->id.scope->depth;
+            code.push(Instruction(Op::MOVQ, Arg(Register::RBP, DIR()), Arg(Register::R8, DIR()), "starting static linking write"));
+            for (auto i = 0; i < depth; i++) {
+                code.push(Instruction(Op::MOVQ, Arg(Register::R8, IRL(16)), Arg(Register::R8, DIR())));
+            }
+            long target_stack_offset = callee_offset + (target_var_symbol.ir_data.stack_offset + 1) * -8;
+            code.push(Instruction(Op::MOVQ, Arg(write_value, DIR()), Arg(Register::R8, IRL(target_stack_offset)), "temporarely save result"));
         }
-        GenericRegister target = GenericRegister(stack_offset);
-
-        instructions.push_back(Instruction(Op::MOVQ, Arg(write_value, DIR()), Arg(Register::R10, DIR()), "put write value in temp storage")); // save RBP
-        instructions.push_back(Instruction(Op::MOVQ, Arg(Register::RBP, DIR()), Arg(Register::R9, DIR()), "save RBP")); // save RBP
-        instructions.push_back(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(Register::RBP, DIR()))); // set RBP to R8, so generic register points to correct memory location.
-        instructions.push_back(Instruction(Op::MOVQ, Arg(Register::R10, DIR()), Arg(target, DIR()), "assign value to target"));
-        instructions.push_back(Instruction(Op::MOVQ, Arg(Register::R9, DIR()), Arg(Register::RBP, DIR()), "restore RBP")); // restore RBP
-        return instructions;
     }
+
+
+    // /// uses register R8, R9 and R10, so should be saved before use
+    // std::vector<Instruction> static_link_write(int depth, int stack_offset, TargetType write_value) {
+    //     std::vector<Instruction> instructions;
+    //     instructions.push_back(Instruction(Op::MOVQ, Arg(Register::RBP, DIR()), Arg(Register::R8, DIR()), "starting static linking write"));
+    //     // std::cout << "depth: " << depth << std::endl;
+    //     for (auto i = 0; i < depth; i++) {
+    //         instructions.push_back(Instruction(Op::MOVQ, Arg(Register::R8, IRL(16)), Arg(Register::R9, DIR())));
+    //         instructions.push_back(Instruction(Op::MOVQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR())));
+    //     }
+    //     GenericRegister target = GenericRegister(stack_offset);
+
+    //     instructions.push_back(Instruction(Op::MOVQ, Arg(write_value, DIR()), Arg(Register::R10, DIR()), "put write value in temp storage")); // save RBP
+    //     instructions.push_back(Instruction(Op::MOVQ, Arg(Register::RBP, DIR()), Arg(Register::R9, DIR()), "save RBP")); // save RBP
+    //     instructions.push_back(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(Register::RBP, DIR()))); // set RBP to R8, so generic register points to correct memory location.
+    //     instructions.push_back(Instruction(Op::MOVQ, Arg(Register::R10, DIR()), Arg(target, DIR()), "assign value to target"));
+    //     instructions.push_back(Instruction(Op::MOVQ, Arg(Register::R9, DIR()), Arg(Register::RBP, DIR()), "restore RBP")); // restore RBP
+    //     return instructions;
+    // }
+
 
 public: 
 
@@ -228,7 +226,9 @@ public:
         code.push(Instruction(Op::MOVQ, Arg(Register::RSP, DIR()), Arg(Register::RBP, DIR()), "set rbp for function scope"));
         code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_SAVE, DIR())));
         std::vector<VarSymbol*> var_decls = func_decl.sym->sym_tab->get_var_symbols();
-        size_t stack_size = 0;
+
+        long stack_size = 0;
+
         for (size_t i = 0; i < var_decls.size(); i++) {
             auto &data = var_decls[i]->ir_data;
             if (!data.is_local) {
@@ -274,7 +274,7 @@ public:
         intermediary_storage.push(result); // pushing the result of the function
     }
 
-    VarSymbol *get_var_symbols(Symbol *symbol) {
+    VarSymbol *get_var_symbol(Symbol *symbol) {
         if (auto var_symbol = dynamic_cast<VarSymbol *>(symbol)) {
             return var_symbol;
         } else {
@@ -287,22 +287,16 @@ public:
         auto target = get_target(pop(intermediary_storage));
         std::vector<VarSymbol*> var_symbols;
         for (auto id : var_assign.id_access.ids) {
-            var_symbols.push_back(get_var_symbols(id.sym));
+            var_symbols.push_back(get_var_symbol(id.sym));
         }
 
         if (var_assign.id_access.ids.size() > 1) {
-            GenericRegister result = code.new_register();
-            int target_depth = var_symbols.front()->var_decl->id.scope->depth;
-            int current_depth = var_assign.id_access.ids.front().scope->depth;
-            int difference = current_depth - target_depth;
+            SymbolTable &current_scope = *var_assign.id_access.ids.front().scope;
+            VarSymbol &target_var_symbol = *var_symbols.front();
+            GenericRegister result = static_link_read(current_scope, target_var_symbol);
 
-            auto static_linkCode = static_link_read(difference, var_symbols.front()->ir_data.local_id, result);
-            // read is used here because the static link needed here is to read the var containing pointer to the class
-            for (auto instruction : static_linkCode) {
-                code.push(instruction);
-            }
+            code.push(Instruction(Op::MOVQ, Arg(result, DIR()), Arg(Register::R8, DIR()), "Initialise static link"));
 
-            code.push(Instruction(Op::MOVQ, Arg(Register::RBP, IRL(callee_offset+var_symbols[0]->ir_data.local_id * -8)), Arg(Register::R8, DIR()), "copy rbp to r8 to avoid destroying rbp, varAssign"));
             // The above line equates to -40 + -8/-16... Which is correct because the first id will always be accessed on the stack, and therefore IRL access needs to be negative
             for (size_t i = 1; i < var_symbols.size()-1; i++) {
                 code.push(Instruction(Op::MOVQ, Arg(Register::R8, IRL(var_symbols[i]->ir_data.local_id * 8)), Arg(Register::R9, DIR()), "accessing member relative to it's scope")); /// for the first access this is relative to current scope
@@ -310,25 +304,21 @@ public:
             } // by the end of this loop the scope / block of data where varAssign.idAccess.back() is located should be in R8
             
             code.push(Instruction(Op::MOVQ, Arg(target, DIR()), Arg(Register::R8, IRL(var_symbols.back()->ir_data.local_id * 8)), "inserting value into found member"));
-        
         } else {
             //AstValue value = pop(intermediary_storage);
-            VarSymbol *var_symbol = get_var_symbols(var_assign.id_access.ids.back().sym);
-            int current_depth = var_assign.id_access.ids.back().scope->depth;
-            int target_depth = var_symbol->var_decl->id.scope->depth;
-            int difference = current_depth - target_depth;
-            int local_id = var_symbol->ir_data.local_id;
-            auto static_linking_code = static_link_write(difference, local_id, target);
-            for (auto instruction : static_linking_code) {
-                code.push(instruction);
-            }
+            VarSymbol *var_symbol = get_var_symbol(var_assign.id_access.ids.back().sym);
+            auto current_scope = var_assign.id_access.ids.back().scope;
+            static_link_write(*current_scope, *var_symbol, target);
+
         }        
     }
 
     void post_visit(grammar::ast::VarDeclAssign &var_decl_assign) override {
         auto target = get_target(pop(intermediary_storage));
-        code.push(Instruction(Op::MOVQ, Arg(target, DIR()), Arg(Register::R8, DIR())));
-        code.push(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(GenericRegister(var_decl_assign.decl.sym->ir_data.local_id), DIR())));
+        SymbolTable *current_scope = var_decl_assign.decl.id.scope;
+        auto target_var_symbol = var_decl_assign.decl.sym;
+        static_link_write(*current_scope, *target_var_symbol, target);
+
     }
 
 
@@ -347,36 +337,26 @@ public:
     void post_visit(grammar::ast::VarExpression &var_expr) override {
         if (var_expr.id_access.ids.size() > 1){
             auto frontId = var_expr.id_access.ids.front();
-            auto frontSym = get_var_symbols(frontId.sym); // auto frontLocalId = frontSym->local_id;
-            auto target_depth = frontSym->var_decl->id.scope->depth;
-            int current_depth = var_expr.id_access.ids.back().scope->depth;
-            int difference = current_depth - target_depth;
+            auto &read_var_symbol = *get_var_symbol(frontId.sym); // auto frontLocalId = frontSym->local_id;
+            auto &current_scope = *var_expr.id_access.ids.back().scope;
+            GenericRegister read_register = static_link_read(current_scope, read_var_symbol);
 
-            code.push(Instruction(Op::MOVQ, Arg(Register::RBP, IRL(callee_offset+frontSym->ir_data.local_id * -8)), Arg(Register::R8, DIR()), "copy rbp to r8 to avoid destroying rbp, var_exp"));
+            code.push(Instruction(Op::MOVQ, Arg(read_register, DIR()), Arg(Register::R8, DIR()), "Save static link"));
             // The above line equates to -40 + -8/-16... Which is correct because the first id will always be accessed on the stack, and therefore IRL access needs to be negative
             for (size_t i = 1; i < var_expr.id_access.ids.size()-1; i++) {
-                code.push(Instruction(Op::MOVQ, Arg(Register::R8, IRL(get_var_symbols(var_expr.id_access.ids[i].sym)->ir_data.local_id * 8)), Arg(Register::R9, DIR()), "accessing member relative to it's scope")); // for the first access this is relative to current scope
+                code.push(Instruction(Op::MOVQ, Arg(Register::R8, IRL(get_var_symbol(var_expr.id_access.ids[i].sym)->ir_data.local_id * 8)), Arg(Register::R9, DIR()), "accessing member relative to it's scope")); // for the first access this is relative to current scope
+
                 code.push(Instruction(Op::MOVQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR()), "moving pointer to r8 to set up for future IRL access")); // this line is needed for structs of structs
             }
 
             GenericRegister result_register = code.new_register();
-            auto staticLinkingCode = static_link_read(difference, frontSym->ir_data.local_id, result_register);
-            for (auto instruction : staticLinkingCode) {
-                code.push(instruction);
-            }
-            code.push(Instruction(Op::MOVQ, Arg(Register::R8, IRL(get_var_symbols(var_expr.id_access.ids.back().sym)->ir_data.local_id * 8)), Arg(result_register, DIR()), "get value from member of class and save to temporary register")); 
+            code.push(Instruction(Op::MOVQ, Arg(Register::R8, IRL(get_var_symbol(var_expr.id_access.ids.back().sym)->ir_data.local_id * 8)), Arg(result_register, DIR()), "get value from member of class and save to temporary register")); 
             intermediary_storage.push(result_register);
         } else {
-            VarSymbol *var_symbol = dynamic_cast<VarSymbol*>(var_expr.id_access.ids.back().sym);
-            auto target_depth = var_symbol->var_decl->id.scope->depth;
-            int current_depth = var_expr.id_access.ids.back().scope->depth;
-            int difference = current_depth - target_depth;
-
-            GenericRegister result_register = code.new_register();
-            auto static_linking_code = static_link_read(difference, var_symbol->ir_data.local_id, result_register);
-            for (auto instruction : static_linking_code) {
-                code.push(instruction);
-            }
+            auto frontId = var_expr.id_access.ids.front();
+            auto &target_var_symbol = *get_var_symbol(frontId.sym); // auto frontLocalId = frontSym->local_id;
+            auto &current_scope = *var_expr.id_access.ids.back().scope;
+            GenericRegister result_register = static_link_read(current_scope, target_var_symbol);
             intermediary_storage.push(result_register);
         }
     }
@@ -457,22 +437,18 @@ public:
         }
 
         // Static link
-        SymbolTable *scope = index.id_access.ids.front().scope;
-        VarSymbol *target_symbol = get_var_symbols(index.id_access.ids.back().sym);
-        int target_depth = target_symbol->var_decl->id.scope->depth;
-        int current_depth = scope->depth;
-        int difference = current_depth - target_depth;
-        GenericRegister array_ptr = code.new_register();
-        auto static_linking_code = static_link_read(difference, target_symbol->ir_data.local_id, array_ptr);
-        for (auto instruction : static_linking_code) {
-            code.push(instruction);
-        }
+        SymbolTable &current_scope = *index.id_access.ids.front().scope;
+        VarSymbol *target_symbol = get_var_symbol(index.id_access.ids.back().sym);
+        GenericRegister array_ptr = static_link_read(current_scope, *target_symbol);
 
         // Check null
         code.push(Instruction(Op::CMPQ, Arg(ImmediateValue(0), DIR()), Arg(array_ptr, DIR()), "Start checking for beta"));
         code.push(Instruction(Op::JNE, Arg(Label(index.beta_check_label), DIR())));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(index.line), DIR()), Arg(Register::RDI, DIR()), "Line number"));
+        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLER_SAVE, DIR())));
         code.push(Instruction(Op::CALL, Arg(Label("print_is_beta"), DIR())));
+        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLER_RESTORE, DIR())));
+        
         code.push(Instruction(Op::LABEL, Arg(Label(index.beta_check_label), DIR())));
 
         // TODO: Check valid index
@@ -520,11 +496,14 @@ public:
     void post_visit(grammar::ast::PrintStatement &print) override {
         auto target = get_target(pop(intermediary_storage));
         SymbolType type = *print.input_type.get();
+
+        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLER_SAVE, DIR())));
         if (type == BoolType()) {
             code.push(Instruction(Op::MOVQ, Arg(target, DIR()), Arg(Register::RDI, DIR()), "Move value to rdi for print"));
             code.push(Instruction(Op::CALL, Arg(Label("print_bool"), DIR())));
         } else if (type == IntType()) {
-            code.push(Instruction(Op::PROCEDURE, Arg(Procedure::PRINT, DIR()), Arg(target, DIR())));
+            code.push(Instruction(Op::MOVQ, Arg(target, DIR()), Arg(Register::RDI, DIR()), "Move value to rdi for print"));
+            code.push(Instruction(Op::CALL, Arg(Label("printNum"), DIR())));
         } else if (boost::get<ClassSymbolType>(&type) != nullptr) {
             code.push(Instruction(Op::MOVQ, Arg(target, DIR()), Arg(Register::RDI, DIR()), "Move value to rdi for print"));
             code.push(Instruction(Op::CALL, Arg(Label("print_object"), DIR())));
@@ -536,6 +515,7 @@ public:
         } else { // Should not happen since it has been type checked
             throw std::runtime_error("Unsupported type for printing");
         }
+        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLER_RESTORE, DIR())));
     }
 
     void post_visit(grammar::ast::BreakStatement &break_statement) override {
@@ -610,9 +590,15 @@ public:
         code.push(Instruction(Op::PUSHQ, Arg(Register::RBP, DIR()), "save old rbp"));
         code.push(Instruction(Op::MOVQ, Arg(Register::RSP, DIR()), Arg(Register::RBP, DIR()), "set rbp for global scope")); // set rbp
         code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_SAVE, DIR())));
-        size_t var_count = global_scope->get_var_symbols().size();
-        for (size_t i = 0; i < var_count; i++) {
-            code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()), "initialize global variable to 0"));
+        auto var_decls = global_scope->get_var_symbols();
+
+        long stack_size = 0;
+        for (size_t i = 0; i < var_decls.size(); i++) {
+            var_decls[i]->ir_data.is_local = false;
+            auto &data = var_decls[i]->ir_data;
+            data.stack_offset = stack_size;
+            ++stack_size;
+            code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()), "initialize variable referenced from other scopes to 0"));
         }
     }
 
@@ -622,6 +608,8 @@ public:
         std::string print_loop_label = ".LprintNum_printLoop";
         std::string print_new_line_label = ".print_newline";
         code.push(Instruction(Op::LABEL, Arg(Label("printNum"), DIR())));
+        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_SAVE, DIR())));
+
         code.push(Instruction(Op::MOVQ, Arg(Register::RDI, DIR()), Arg(Register::RAX, DIR()), "The number"));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(0), DIR()), Arg(Register::R9, DIR()), "Counter for chars to write"));
         code.push(Instruction(Op::LABEL, Arg(Label(convert_loop_label), DIR())));
@@ -650,6 +638,8 @@ public:
         code.push(Instruction(Op::MOVQ, Arg(ImmediateData("newline"), DIR()), Arg(Register::RSI, DIR()), "buf"));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RDX, DIR()), "len"));
         code.push(Instruction(Op::SYSCALL));
+
+        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_RESTORE, DIR())));
         code.push(Instruction(Op::RET));
         code.end_scope();
     }
@@ -658,7 +648,8 @@ public:
         code.new_empty_scope();
         std::string print_false_label = ".print_bool_false";
         code.push(Instruction(Op::LABEL, Arg(Label("print_bool"), DIR())));
-
+        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_SAVE, DIR())));
+        
         code.push(Instruction(Op::CMPQ, Arg(ImmediateValue(0), DIR()), Arg(Register::RDI, DIR())));
         code.push(Instruction(Op::JE, Arg(Label(print_false_label), DIR())));
 
@@ -668,6 +659,7 @@ public:
         code.push(Instruction(Op::MOVQ, Arg(ImmediateData("true"), DIR()), Arg(Register::RSI, DIR()), "Address of 'true'"));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(5), DIR()), Arg(Register::RDX, DIR()), "Length of string to print"));
         code.push(Instruction(Op::SYSCALL));
+        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_RESTORE, DIR())));
         code.push(Instruction(Op::RET));
 
         // Print false
@@ -677,6 +669,7 @@ public:
         code.push(Instruction(Op::MOVQ, Arg(ImmediateData("false"), DIR()), Arg(Register::RSI, DIR()), "Address of 'false'"));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(6), DIR()), Arg(Register::RDX, DIR()), "Length of string to print"));
         code.push(Instruction(Op::SYSCALL));
+        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_RESTORE, DIR())));
         code.push(Instruction(Op::RET));
         code.end_scope();
     }
@@ -685,6 +678,7 @@ public:
         code.new_empty_scope();
         std::string print_null_label = ".print_object_null";
         code.push(Instruction(Op::LABEL, Arg(Label("print_object"), DIR())));
+        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_SAVE, DIR())));
 
         code.push(Instruction(Op::CMPQ, Arg(ImmediateValue(0), DIR()), Arg(Register::RDI, DIR())));
         code.push(Instruction(Op::JE, Arg(Label(print_null_label), DIR())));
@@ -695,6 +689,7 @@ public:
         code.push(Instruction(Op::MOVQ, Arg(ImmediateData("object"), DIR()), Arg(Register::RSI, DIR()), "Address of 'object'"));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(6), DIR()), Arg(Register::RDX, DIR()), "Length of string to print"));
         code.push(Instruction(Op::SYSCALL));
+        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_RESTORE, DIR())));
         code.push(Instruction(Op::RET));
 
         // Print beta
@@ -704,6 +699,7 @@ public:
         code.push(Instruction(Op::MOVQ, Arg(ImmediateData("beta"), DIR()), Arg(Register::RSI, DIR()), "Address of 'beta'"));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(4), DIR()), Arg(Register::RDX, DIR()), "Length of string to print"));
         code.push(Instruction(Op::SYSCALL));
+        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_RESTORE, DIR())));
         code.push(Instruction(Op::RET));
         code.end_scope();
     }
@@ -712,6 +708,7 @@ public:
         code.new_empty_scope();
         std::string print_null_label = ".print_array_null";
         code.push(Instruction(Op::LABEL, Arg(Label("print_array"), DIR())));
+        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_SAVE, DIR())));
 
         code.push(Instruction(Op::CMPQ, Arg(ImmediateValue(0), DIR()), Arg(Register::RDI, DIR())));
         code.push(Instruction(Op::JE, Arg(Label(print_null_label), DIR())));
@@ -722,6 +719,7 @@ public:
         code.push(Instruction(Op::MOVQ, Arg(ImmediateData("array"), DIR()), Arg(Register::RSI, DIR()), "Address of 'array'"));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(5), DIR()), Arg(Register::RDX, DIR()), "Length of string to print"));
         code.push(Instruction(Op::SYSCALL));
+        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_RESTORE, DIR())));
         code.push(Instruction(Op::RET));
 
         // Print beta
@@ -731,6 +729,7 @@ public:
         code.push(Instruction(Op::MOVQ, Arg(ImmediateData("beta"), DIR()), Arg(Register::RSI, DIR()), "Address of 'beta'"));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(4), DIR()), Arg(Register::RDX, DIR()), "Length of string to print"));
         code.push(Instruction(Op::SYSCALL));
+        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_RESTORE, DIR())));
         code.push(Instruction(Op::RET));
         code.end_scope();
     }
@@ -738,11 +737,13 @@ public:
     void push_print_beta_function() {
         code.new_empty_scope();
         code.push(Instruction(Op::LABEL, Arg(Label("print_beta"), DIR())));
+
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RAX, DIR()), "System call number for write"));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RDI, DIR()), "File descriptor for stdout"));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateData("beta"), DIR()), Arg(Register::RSI, DIR()), "Address of 'beta'"));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(4), DIR()), Arg(Register::RDX, DIR()), "Length of string to print"));
         code.push(Instruction(Op::SYSCALL));
+
         code.push(Instruction(Op::RET));
         code.end_scope();
     }
@@ -750,6 +751,7 @@ public:
     void push_mem_alloc_function() {
         code.new_empty_scope();
         code.push(Instruction(Op::LABEL, Arg(Label("allocate"), DIR())));
+
         code.push(Instruction(Op::PUSHQ, Arg(Register::RDI, DIR())));
         code.push(Instruction(Op::NOTHING, "1. Find the current end of the data segment."));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(12), DIR()), Arg(Register::RAX, DIR()), "brk"));
@@ -762,6 +764,7 @@ public:
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(12), DIR()), Arg(Register::RAX, DIR()), "brk"));
         code.push(Instruction(Op::SYSCALL));
         code.push(Instruction(Op::POPQ, Arg(Register::RAX, DIR()), "the old end, which is the address of our allocated memory"));
+
         code.push(Instruction(Op::RET));
         code.end_scope();
     }
@@ -769,6 +772,7 @@ public:
     void push_print_is_beta_function() {
         code.new_empty_scope();
         code.push(Instruction(Op::LABEL, Arg(Label("print_is_beta"), DIR())));
+        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_SAVE, DIR())));
         code.push(Instruction(Op::PUSHQ, Arg(Register::RDI, DIR()), "Push line number"));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RAX, DIR()), "System call number for write"));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RDI, DIR()), "File descriptor for stdout"));
@@ -777,12 +781,16 @@ public:
         code.push(Instruction(Op::SYSCALL));
         // Print line number
         code.push(Instruction(Op::POPQ, Arg(Register::RDI, DIR()), "Pop line number"));
+        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLER_SAVE, DIR())));
         code.push(Instruction(Op::CALL, Arg(Label("printNum"), DIR())));
+        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLER_RESTORE, DIR())));
 
         // Close with error code 1
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(60), DIR()), Arg(Register::RAX, DIR())));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RDI, DIR())));
         code.push(Instruction(Op::SYSCALL));
+        // Don't need CALLEE_RESTORE since we are exiting
+
         code.end_scope();
     }
 
@@ -800,6 +808,8 @@ public:
     void post_visit(grammar::ast::Prog &prog) override {
         code.push(Instruction(Op::PUSHQ, Arg(Register::RBP, DIR()), "setting static link")); // Settting static link.
         code.push(Instruction(Op::CALL, Arg(Label("main"), DIR())));
+        code.push(Instruction(Op::POPQ, Arg(Register::RBP, DIR()), "remove static link from stack"));
+        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_RESTORE, DIR())));
         code.push(Instruction(Op::POPQ, Arg(Register::RBP, DIR()), "restore old rbp"));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(60), DIR()), Arg(Register::RAX, DIR())));
         code.push(Instruction(Op::XORQ, Arg(Register::RDI, DIR()), Arg(Register::RDI, DIR())));

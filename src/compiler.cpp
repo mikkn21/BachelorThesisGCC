@@ -96,13 +96,13 @@ namespace grammar::compiler {
             return obj;
         }
         
-        
+    
         if (options.naive_register_allocation){
             naive_register_allocation(*obj->ir); 
         } else {
             register_allocation(*obj->ir); 
         }
-        
+
 
         if (options.stop_after == StopAfterRegAlloc){
             return obj;

@@ -19,7 +19,11 @@ BOOST_AUTO_TEST_CASE(StaticLinkingRead) {test_assembly_file("static_linking_read
 BOOST_AUTO_TEST_CASE(StaticLinkingWrite) {test_assembly_file("static_linking_write.chad","0\n10\n20\n50\n11");}
 BOOST_AUTO_TEST_CASE(Arrays) {test_assembly_file("test_arrays.chad","42\n17\n29\n8");}
 BOOST_AUTO_TEST_CASE(ArraysInit) {test_assembly_file("test_array_init.chad","0\n0\n0\n0");}
+
 BOOST_AUTO_TEST_CASE(BasicStructs) {test_assembly_file("basic_structs.chad","0\n3\n0\n0\n3\n0\n5");}
+BOOST_AUTO_TEST_CASE(AdvancedStructs) {test_assembly_file("advanced_structs.chad","1\n2\n3\n4\n5");} 
+// BOOST_AUTO_TEST_CASE(ReturnStructs) {test_assembly_file("return_structs.chad","1\n2\n3\n4\n5");} //TODO: Fix this test
+BOOST_AUTO_TEST_CASE(StructOutsideScope) {test_assembly_string("class T{int x;} int main(){ T t = new T(); t.x = 2; int f(){print(t.x); return 0;} f(); return 0; }", "2");}
 
 BOOST_AUTO_TEST_CASE(BetaArray) {test_assembly_string("int main(){ int[1] arr; if arr == beta {print(0);} return 0; }", "0");}
 BOOST_AUTO_TEST_CASE(BetaArrayRev) {test_assembly_string("int main(){ int[1] arr; if beta == arr {print(0);} return 0; }", "0");}
