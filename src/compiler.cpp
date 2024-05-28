@@ -1,5 +1,6 @@
 #include <fstream>
 #include "compiler.hpp"
+#include "IR/ir.hpp"
 #include "parser/parser.hpp"
 #include "semantics/symbol_collection_phase2.hpp"
 #include "type_checking/typeChecking.hpp"
@@ -71,15 +72,12 @@ namespace grammar::compiler {
         }
         obj->ir = intermediate_code_generation(obj->ast); 
 
-        std::list<Instruction> temp_example = {
-            Instruction(Op::MOVQ, Arg(ImmediateValue(10), DIR()), Arg(Register::RAX, DIR())),
-            Instruction(Op::PUSHQ, Arg(Register::RBP, DIR())),
-            Instruction(Op::PUSHQ, Arg(Register::RAX, DIR())),
-            Instruction(Op::POPQ, Arg(Register::RAX, DIR())),
-            Instruction(Op::POPQ, Arg(Register::RBP, DIR()))
-        };
-        peephole_optimization(temp_example);  
-        std::cout << temp_example << std::endl;      
+        if (!options.disable_peephole) peephole_optimization(obj->ir);
+          
+        if (options.stop_after == stopAfterPeepHole){
+            return obj;
+        }
+        
 
         if (options.print_code_generation){
             std::cout << "CodeGen:\n" << obj->ir << std::endl;

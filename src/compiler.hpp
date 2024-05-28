@@ -27,7 +27,8 @@ enum StopAfter {
     StopAfterTypeCheck,
     StopAfterSymbolCollection,
     StopAfterCodeGen,
-    StopAfterRegAlloc
+    StopAfterRegAlloc,
+    stopAfterPeepHole
 };
 
 class CompilerOptions {
@@ -37,6 +38,7 @@ public:
     bool print_input = false;
     bool print_code_generation = false;
     bool print_register_allocation = false;
+    bool disable_peephole = false;
 };
 
 std::string get_file_content(std::string_view input);

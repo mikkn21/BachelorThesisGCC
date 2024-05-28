@@ -12,6 +12,8 @@ int main(int argc, char* argv[]) {
             ("help,h", "Print this help message") // help is triggered by --help or -h 
             ("parse-only,P", po::bool_switch(), "Stop after parsing") 
             ("symbol-collection-only,S", po::bool_switch(), "Stop after symbol collection") 
+            ("peephole-only,pp", po::bool_switch(), "Stop after peephole optimization")
+            ("disable-peephole,DPP", po::bool_switch(), "disable peephole optimization") 
             ("type-check-only,T", po::bool_switch(), "Stop after type checking") 
             ("code-generation-only,C", po::bool_switch(), "Stop after code generation")
             ("register-allocation-only,R", po::bool_switch(), "Stop after register allocation")
@@ -49,11 +51,17 @@ int main(int argc, char* argv[]) {
         if (vm["register-allocation-only"].as<bool>()) { 
             options.stop_after = grammar::compiler::StopAfterRegAlloc;
         }
+        if (vm["peephole-only"].as<bool>()) { 
+            options.stop_after = grammar::compiler::stopAfterPeepHole;
+        }
         if (vm["print-ast"].as<bool>()) {
             options.print_ast = true;
         }
         if (vm["print-input"].as<bool>()) {
             options.print_input = true;
+        }
+        if (vm["disable-peephole"].as<bool>()) {
+            options.disable_peephole = true;
         }
         if (vm["print-code-generation"].as<bool>()) {
             options.print_code_generation = true;
