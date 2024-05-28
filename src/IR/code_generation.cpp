@@ -158,6 +158,7 @@ private:
             }
             long target_stack_offset = callee_offset + (target_var_symbol.ir_data.stack_offset + 1) * -8;
             GenericRegister read_result = code.new_register();
+            std::cout << " Generic Register: " << read_result.local_id << std::endl;
             code.push(Instruction(Op::MOVQ, Arg(Register::R8, IRL(target_stack_offset)), Arg(read_result, DIR()), "temporarely save result"));
             return read_result;
         }
@@ -291,7 +292,7 @@ public:
             VarSymbol &target_var_symbol = *var_symbols.front();
             GenericRegister result = static_link_read(current_scope, target_var_symbol);
 
-            code.push(Instruction(Op::MOVQ, Arg(Register::RBP, IRL(callee_offset+var_symbols[0]->ir_data.local_id * -8)), Arg(Register::R8, DIR()), "copy rbp to r8 to avoid destroying rbp, varAssign"));
+            code.push(Instruction(Op::MOVQ, Arg(result, DIR()), Arg(Register::R8, DIR()), "copy rbp to r8 to avoid destroying rbp, varAssign"));
             // The above line equates to -40 + -8/-16... Which is correct because the first id will always be accessed on the stack, and therefore IRL access needs to be negative
             for (size_t i = 1; i < var_symbols.size()-1; i++) {
                 code.push(Instruction(Op::MOVQ, Arg(Register::R8, IRL(var_symbols[i]->ir_data.local_id * 8)), Arg(Register::R9, DIR()), "accessing member relative to it's scope")); /// for the first access this is relative to current scope
@@ -330,18 +331,18 @@ public:
     void post_visit(grammar::ast::VarExpression &var_expr) override {
         if (var_expr.id_access.ids.size() > 1){
             auto frontId = var_expr.id_access.ids.front();
-            auto &target_var_symbol = *get_var_symbol(frontId.sym); // auto frontLocalId = frontSym->local_id;
+            auto &read_var_symbol = *get_var_symbol(frontId.sym); // auto frontLocalId = frontSym->local_id;
             auto &current_scope = *var_expr.id_access.ids.back().scope;
+            GenericRegister read_register = static_link_read(current_scope, read_var_symbol);
 
-            code.push(Instruction(Op::MOVQ, Arg(Register::RBP, IRL(callee_offset+target_var_symbol.ir_data.local_id * -8)), Arg(Register::R8, DIR()), "copy rbp to r8 to avoid destroying rbp, var_exp"));
+            code.push(Instruction(Op::MOVQ, Arg(read_register, DIR()), Arg(Register::R8, DIR()), "copy rbp to r8 to avoid destroying rbp, var_exp"));
             // The above line equates to -40 + -8/-16... Which is correct because the first id will always be accessed on the stack, and therefore IRL access needs to be negative
             for (size_t i = 1; i < var_expr.id_access.ids.size()-1; i++) {
                 code.push(Instruction(Op::MOVQ, Arg(Register::R8, IRL(get_var_symbol(var_expr.id_access.ids[i].sym)->ir_data.local_id * 8)), Arg(Register::R9, DIR()), "accessing member relative to it's scope")); // for the first access this is relative to current scope
                 code.push(Instruction(Op::MOVQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR()), "moving pointer to r8 to set up for future IRL access")); // this line is needed for structs of structs
             }
 
-            GenericRegister result_register = static_link_read(current_scope, target_var_symbol);
-
+            GenericRegister result_register = code.new_register();
             code.push(Instruction(Op::MOVQ, Arg(Register::R8, IRL(get_var_symbol(var_expr.id_access.ids.back().sym)->ir_data.local_id * 8)), Arg(result_register, DIR()), "get value from member of class and save to temporary register")); 
             intermediary_storage.push(result_register);
         } else {
