@@ -1,12 +1,14 @@
-class A{
-    int x;
-    int y;
-    int z;
+class test1 {
+    test2 two;
+    int num;
 }
 
-int main(){
-    A a = new A();
-    a.x;
-    a.x;
+class test2 {
+    int num;
+}
+
+int main() {
+    test1 one = new test1();
+    one.two = new test2();
     return 0;
 }

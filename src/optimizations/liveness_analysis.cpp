@@ -172,7 +172,7 @@ void add_def_use_to_block(Block* current_block, Instruction instruction) {
             current_block->use.insert(Register::RDX);
             current_block->def.insert(Register::RAX); // Result is always written to RAX
             current_block->def.insert(Register::RDX); // Mod of result is always written to RDX
-            break;            
+            break;
         default:
             if (!instruction.args.empty() && holds_any_of<GenericRegister, Register>(instruction.args[0].target)) {
                 current_block->use.insert(get_register_type(instruction.args[0].target));

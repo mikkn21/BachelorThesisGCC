@@ -106,7 +106,7 @@ std::vector<Instruction> binop_instructions(std::string op, GenericRegister resu
         code.push_back(Instruction(Op::SETNE, Arg(Register::R10B, DIR())));
         code.push_back(Instruction(Op::MOVQ, Arg(Register::R10, DIR()), Arg(result, DIR())));
     } else if (op == "<=") {
-        code.push_back(Instruction(Op::XORQ, Arg(Register::R10, DIR()), Arg(Register::R10, DIR())));
+        code.push_back(Instruction(Op::XORQ, Arg(Register::R10, DIR()), Arg(Register::R10, DIR()), "start of less than or equal compare"));
         code.push_back(Instruction(Op::CMPQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR())));
         code.push_back(Instruction(Op::SETLE, Arg(Register::R10B, DIR())));
         code.push_back(Instruction(Op::MOVQ, Arg(Register::R10, DIR()), Arg(result, DIR())));
@@ -292,7 +292,7 @@ public:
             VarSymbol &target_var_symbol = *var_symbols.front();
             GenericRegister result = static_link_read(current_scope, target_var_symbol);
 
-            code.push(Instruction(Op::MOVQ, Arg(result, DIR()), Arg(Register::R8, DIR()), "copy rbp to r8 to avoid destroying rbp, varAssign"));
+            code.push(Instruction(Op::MOVQ, Arg(result, DIR()), Arg(Register::R8, DIR()), "Initialise static link"));
             // The above line equates to -40 + -8/-16... Which is correct because the first id will always be accessed on the stack, and therefore IRL access needs to be negative
             for (size_t i = 1; i < var_symbols.size()-1; i++) {
                 code.push(Instruction(Op::MOVQ, Arg(Register::R8, IRL(var_symbols[i]->ir_data.local_id * 8)), Arg(Register::R9, DIR()), "accessing member relative to it's scope")); /// for the first access this is relative to current scope
@@ -335,7 +335,7 @@ public:
             auto &current_scope = *var_expr.id_access.ids.back().scope;
             GenericRegister read_register = static_link_read(current_scope, read_var_symbol);
 
-            code.push(Instruction(Op::MOVQ, Arg(read_register, DIR()), Arg(Register::R8, DIR()), "copy rbp to r8 to avoid destroying rbp, var_exp"));
+            code.push(Instruction(Op::MOVQ, Arg(read_register, DIR()), Arg(Register::R8, DIR()), "Save static link"));
             // The above line equates to -40 + -8/-16... Which is correct because the first id will always be accessed on the stack, and therefore IRL access needs to be negative
             for (size_t i = 1; i < var_expr.id_access.ids.size()-1; i++) {
                 code.push(Instruction(Op::MOVQ, Arg(Register::R8, IRL(get_var_symbol(var_expr.id_access.ids[i].sym)->ir_data.local_id * 8)), Arg(Register::R9, DIR()), "accessing member relative to it's scope")); // for the first access this is relative to current scope
@@ -438,7 +438,10 @@ public:
         code.push(Instruction(Op::CMPQ, Arg(ImmediateValue(0), DIR()), Arg(array_ptr, DIR()), "Start checking for beta"));
         code.push(Instruction(Op::JNE, Arg(Label(index.beta_check_label), DIR())));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(index.line), DIR()), Arg(Register::RDI, DIR()), "Line number"));
+        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLER_SAVE, DIR())));
         code.push(Instruction(Op::CALL, Arg(Label("print_is_beta"), DIR())));
+        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLER_RESTORE, DIR())));
+        
         code.push(Instruction(Op::LABEL, Arg(Label(index.beta_check_label), DIR())));
 
         // TODO: Check valid index
@@ -486,11 +489,14 @@ public:
     void post_visit(grammar::ast::PrintStatement &print) override {
         auto target = get_target(pop(intermediary_storage));
         SymbolType type = *print.input_type.get();
+
+        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLER_SAVE, DIR())));
         if (type == BoolType()) {
             code.push(Instruction(Op::MOVQ, Arg(target, DIR()), Arg(Register::RDI, DIR()), "Move value to rdi for print"));
             code.push(Instruction(Op::CALL, Arg(Label("print_bool"), DIR())));
         } else if (type == IntType()) {
-            code.push(Instruction(Op::PROCEDURE, Arg(Procedure::PRINT, DIR()), Arg(target, DIR())));
+            code.push(Instruction(Op::MOVQ, Arg(target, DIR()), Arg(Register::RDI, DIR()), "Move value to rdi for print"));
+            code.push(Instruction(Op::CALL, Arg(Label("printNum"), DIR())));
         } else if (boost::get<ClassSymbolType>(&type) != nullptr) {
             code.push(Instruction(Op::MOVQ, Arg(target, DIR()), Arg(Register::RDI, DIR()), "Move value to rdi for print"));
             code.push(Instruction(Op::CALL, Arg(Label("print_object"), DIR())));
@@ -502,6 +508,7 @@ public:
         } else { // Should not happen since it has been type checked
             throw std::runtime_error("Unsupported type for printing");
         }
+        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLER_RESTORE, DIR())));
     }
 
     void post_visit(grammar::ast::BreakStatement &break_statement) override {
@@ -594,6 +601,8 @@ public:
         std::string print_loop_label = ".LprintNum_printLoop";
         std::string print_new_line_label = ".print_newline";
         code.push(Instruction(Op::LABEL, Arg(Label("printNum"), DIR())));
+        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_SAVE, DIR())));
+
         code.push(Instruction(Op::MOVQ, Arg(Register::RDI, DIR()), Arg(Register::RAX, DIR()), "The number"));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(0), DIR()), Arg(Register::R9, DIR()), "Counter for chars to write"));
         code.push(Instruction(Op::LABEL, Arg(Label(convert_loop_label), DIR())));
@@ -622,6 +631,8 @@ public:
         code.push(Instruction(Op::MOVQ, Arg(ImmediateData("newline"), DIR()), Arg(Register::RSI, DIR()), "buf"));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RDX, DIR()), "len"));
         code.push(Instruction(Op::SYSCALL));
+
+        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_RESTORE, DIR())));
         code.push(Instruction(Op::RET));
         code.end_scope();
     }
@@ -630,7 +641,8 @@ public:
         code.new_empty_scope();
         std::string print_false_label = ".print_bool_false";
         code.push(Instruction(Op::LABEL, Arg(Label("print_bool"), DIR())));
-
+        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_SAVE, DIR())));
+        
         code.push(Instruction(Op::CMPQ, Arg(ImmediateValue(0), DIR()), Arg(Register::RDI, DIR())));
         code.push(Instruction(Op::JE, Arg(Label(print_false_label), DIR())));
 
@@ -640,6 +652,7 @@ public:
         code.push(Instruction(Op::MOVQ, Arg(ImmediateData("true"), DIR()), Arg(Register::RSI, DIR()), "Address of 'true'"));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(5), DIR()), Arg(Register::RDX, DIR()), "Length of string to print"));
         code.push(Instruction(Op::SYSCALL));
+        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_RESTORE, DIR())));
         code.push(Instruction(Op::RET));
 
         // Print false
@@ -649,6 +662,7 @@ public:
         code.push(Instruction(Op::MOVQ, Arg(ImmediateData("false"), DIR()), Arg(Register::RSI, DIR()), "Address of 'false'"));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(6), DIR()), Arg(Register::RDX, DIR()), "Length of string to print"));
         code.push(Instruction(Op::SYSCALL));
+        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_RESTORE, DIR())));
         code.push(Instruction(Op::RET));
         code.end_scope();
     }
@@ -657,6 +671,7 @@ public:
         code.new_empty_scope();
         std::string print_null_label = ".print_object_null";
         code.push(Instruction(Op::LABEL, Arg(Label("print_object"), DIR())));
+        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_SAVE, DIR())));
 
         code.push(Instruction(Op::CMPQ, Arg(ImmediateValue(0), DIR()), Arg(Register::RDI, DIR())));
         code.push(Instruction(Op::JE, Arg(Label(print_null_label), DIR())));
@@ -667,6 +682,7 @@ public:
         code.push(Instruction(Op::MOVQ, Arg(ImmediateData("object"), DIR()), Arg(Register::RSI, DIR()), "Address of 'object'"));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(6), DIR()), Arg(Register::RDX, DIR()), "Length of string to print"));
         code.push(Instruction(Op::SYSCALL));
+        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_RESTORE, DIR())));
         code.push(Instruction(Op::RET));
 
         // Print beta
@@ -676,6 +692,7 @@ public:
         code.push(Instruction(Op::MOVQ, Arg(ImmediateData("beta"), DIR()), Arg(Register::RSI, DIR()), "Address of 'beta'"));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(4), DIR()), Arg(Register::RDX, DIR()), "Length of string to print"));
         code.push(Instruction(Op::SYSCALL));
+        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_RESTORE, DIR())));
         code.push(Instruction(Op::RET));
         code.end_scope();
     }
@@ -684,6 +701,7 @@ public:
         code.new_empty_scope();
         std::string print_null_label = ".print_array_null";
         code.push(Instruction(Op::LABEL, Arg(Label("print_array"), DIR())));
+        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_SAVE, DIR())));
 
         code.push(Instruction(Op::CMPQ, Arg(ImmediateValue(0), DIR()), Arg(Register::RDI, DIR())));
         code.push(Instruction(Op::JE, Arg(Label(print_null_label), DIR())));
@@ -694,6 +712,7 @@ public:
         code.push(Instruction(Op::MOVQ, Arg(ImmediateData("array"), DIR()), Arg(Register::RSI, DIR()), "Address of 'array'"));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(5), DIR()), Arg(Register::RDX, DIR()), "Length of string to print"));
         code.push(Instruction(Op::SYSCALL));
+        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_RESTORE, DIR())));
         code.push(Instruction(Op::RET));
 
         // Print beta
@@ -703,6 +722,7 @@ public:
         code.push(Instruction(Op::MOVQ, Arg(ImmediateData("beta"), DIR()), Arg(Register::RSI, DIR()), "Address of 'beta'"));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(4), DIR()), Arg(Register::RDX, DIR()), "Length of string to print"));
         code.push(Instruction(Op::SYSCALL));
+        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_RESTORE, DIR())));
         code.push(Instruction(Op::RET));
         code.end_scope();
     }
@@ -710,11 +730,13 @@ public:
     void push_print_beta_function() {
         code.new_empty_scope();
         code.push(Instruction(Op::LABEL, Arg(Label("print_beta"), DIR())));
+
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RAX, DIR()), "System call number for write"));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RDI, DIR()), "File descriptor for stdout"));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateData("beta"), DIR()), Arg(Register::RSI, DIR()), "Address of 'beta'"));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(4), DIR()), Arg(Register::RDX, DIR()), "Length of string to print"));
         code.push(Instruction(Op::SYSCALL));
+
         code.push(Instruction(Op::RET));
         code.end_scope();
     }
@@ -722,6 +744,7 @@ public:
     void push_mem_alloc_function() {
         code.new_empty_scope();
         code.push(Instruction(Op::LABEL, Arg(Label("allocate"), DIR())));
+
         code.push(Instruction(Op::PUSHQ, Arg(Register::RDI, DIR())));
         code.push(Instruction(Op::NOTHING, "1. Find the current end of the data segment."));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(12), DIR()), Arg(Register::RAX, DIR()), "brk"));
@@ -734,6 +757,7 @@ public:
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(12), DIR()), Arg(Register::RAX, DIR()), "brk"));
         code.push(Instruction(Op::SYSCALL));
         code.push(Instruction(Op::POPQ, Arg(Register::RAX, DIR()), "the old end, which is the address of our allocated memory"));
+
         code.push(Instruction(Op::RET));
         code.end_scope();
     }
@@ -741,6 +765,8 @@ public:
     void push_print_is_beta_function() {
         code.new_empty_scope();
         code.push(Instruction(Op::LABEL, Arg(Label("print_is_beta"), DIR())));
+        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_SAVE, DIR())));
+
         code.push(Instruction(Op::PUSHQ, Arg(Register::RDI, DIR()), "Push line number"));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RAX, DIR()), "System call number for write"));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RDI, DIR()), "File descriptor for stdout"));
@@ -749,12 +775,16 @@ public:
         code.push(Instruction(Op::SYSCALL));
         // Print line number
         code.push(Instruction(Op::POPQ, Arg(Register::RDI, DIR()), "Pop line number"));
+        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLER_SAVE, DIR())));
         code.push(Instruction(Op::CALL, Arg(Label("printNum"), DIR())));
+        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLER_RESTORE, DIR())));
+
 
         // Close with error code 1
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(60), DIR()), Arg(Register::RAX, DIR())));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RDI, DIR())));
         code.push(Instruction(Op::SYSCALL));
+        // Don't need CALLEE_RESTORE since we are exiting
         code.end_scope();
     }
 
@@ -772,6 +802,7 @@ public:
     void post_visit(grammar::ast::Prog &prog) override {
         code.push(Instruction(Op::PUSHQ, Arg(Register::RBP, DIR()), "setting static link")); // Settting static link.
         code.push(Instruction(Op::CALL, Arg(Label("main"), DIR())));
+        code.push(Instruction(Op::POPQ, Arg(Register::RBP, DIR()), "remove static link from stack"));
         code.push(Instruction(Op::POPQ, Arg(Register::RBP, DIR()), "restore old rbp"));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(60), DIR()), Arg(Register::RAX, DIR())));
         code.push(Instruction(Op::XORQ, Arg(Register::RDI, DIR()), Arg(Register::RDI, DIR())));
