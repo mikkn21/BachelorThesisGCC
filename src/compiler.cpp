@@ -5,6 +5,7 @@
 #include "type_checking/typeChecking.hpp"
 #include "semantics/symbol_collection.hpp"
 #include "optimizations/coloring_by_simplification.hpp"
+#include "optimizations/pp.hpp"
 
 
 namespace grammar::compiler {
@@ -70,12 +71,23 @@ namespace grammar::compiler {
         }
         obj->ir = intermediate_code_generation(obj->ast); 
 
+        std::list<Instruction> temp_example = {
+            Instruction(Op::MOVQ, Arg(ImmediateValue(10), DIR()), Arg(Register::RAX, DIR())),
+            Instruction(Op::PUSHQ, Arg(Register::RBP, DIR())),
+            Instruction(Op::PUSHQ, Arg(Register::RAX, DIR())),
+            Instruction(Op::POPQ, Arg(Register::RAX, DIR())),
+            Instruction(Op::POPQ, Arg(Register::RBP, DIR()))
+        };
+        peephole_optimization(temp_example);  
+        std::cout << temp_example << std::endl;      
+
         if (options.print_code_generation){
             std::cout << "CodeGen:\n" << obj->ir << std::endl;
         }
         if (options.stop_after == StopAfterCodeGen){
             return obj;
         }
+
         obj->ir = register_allocation(obj->ir); 
         register_allocation2(obj->ir); 
 

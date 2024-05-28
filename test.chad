@@ -1,4 +1,9 @@
+int f(){
+    return 0;
+}
+
 int main(){
-    print(beta);
+    f();
+    f();
     return 0;
 }
