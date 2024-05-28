@@ -6,6 +6,7 @@
 #include <iostream>
 
 const int callee_offset = -48; // TODO: this should be referenced from a shared file so all occurences of this has a common variable. Or it should be removed
+const int arg_offset = 16;
 const std::array<Register, 9> REGISTERS = {Register::RBX, Register::RCX, Register::RDX, Register::RSI, Register::R11, Register::R12, Register::R13, Register::R14, Register::R15};
 
 // const std::array<Register, 14> REGISTERS = {Register::RAX, Register::RBX, Register::RCX, Register::RDX, Register::RDI, Register::RSI, Register::R8, Register::R9, Register::R10, Register::R11, Register::R12, Register::R13, Register::R14, Register::R15};
@@ -118,6 +119,10 @@ void assign_colors(Graph<RegisterType> &graph, std::stack<GenericRegister> &sele
             color_mapping[node] = *ok_colors.begin();
         }
     }
+}
+
+bool func_has_procedure(Instruction &instruction, Procedure proc) {
+    return instruction.operation == Op::PROCEDURE && std::get<Procedure>(instruction.args[0].target) == proc;
 }
 
 bool block_has_procedure(Block &block, Procedure proc) {
@@ -248,9 +253,58 @@ void register_allocation_recursive(IR &ir) {
 
 }
 
+auto skip_activation_record_instructions(std::list<Instruction> &code) {
+    auto it = code.begin();
+    while (it != code.end() && !func_has_procedure(*it, Procedure::CALLEE_SAVE)) {
+        ++it;
+    }
+    ++it;
+    return it;
+}
+
+void convert_arguments(IR &ir) {
+    std::map<GenericRegister, GenericRegister> argument_mapping;
+    
+    // Find argument mapping
+    for (auto func : ir.functions) {
+        for (auto &instruction : func->code) {
+            for (auto &arg : instruction.args) {
+                if (std::holds_alternative<GenericRegister>(arg.target) && std::get<GenericRegister>(arg.target).local_id < 0) {
+                    if (argument_mapping.find(std::get<GenericRegister>(arg.target)) == argument_mapping.end()) {
+                        auto reg = func->new_register();
+                        argument_mapping[std::get<GenericRegister>(arg.target)] = reg;
+                    }
+                }
+            }
+        }
+    }
+
+    for (auto func : ir.functions) {
+        auto it = skip_activation_record_instructions(func->code);
+        for (auto mapping : argument_mapping) {
+            long offset = mapping.first.local_id*(-8) + arg_offset;
+
+            auto new_instruction = Instruction(Op::MOVQ, Arg(Register::RBP, IRL(offset)), Arg(mapping.second, DIR()));
+            func->code.insert(it, new_instruction);
+        }
+    }
+    
+    // Apply argument mapping
+    for (auto func : ir.functions) {
+        for (auto &instruction : func->code) {
+            for (auto &arg : instruction.args) {
+                if (std::holds_alternative<GenericRegister>(arg.target) && argument_mapping.find(std::get<GenericRegister>(arg.target)) != argument_mapping.end()) {
+                    auto generic_arg = std::get<GenericRegister>(arg.target);
+                    arg.target = argument_mapping[generic_arg];
+                }
+            }
+        }
+    }
+}
+
 void register_allocation(IR &ir) {
     // TODO: Handle arguments by replacing generic registers with negative ids to be on the stack.
-    std::cout << "Register allocation begin:\n";
+    convert_arguments(ir);
     register_allocation_recursive(ir);// remove later
 
 }
