@@ -75,13 +75,11 @@ namespace grammar::compiler {
         if (options.stop_after == StopAfterCodeGen) {
             return obj;
         }
-        std::cout << "before RegisterAllocation:\n" << *obj->ir << std::endl;
         if (options.naive_register_allocation){
             naive_register_allocation(*obj->ir); 
         } else {
             register_allocation(*obj->ir); 
         }
-        std::cout << "\n\n\n\nafter RegisterAllocation:\n" << *obj->ir << std::endl;
 
 
         if (options.stop_after == StopAfterRegAlloc){

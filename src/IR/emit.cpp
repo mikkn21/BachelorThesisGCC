@@ -57,8 +57,7 @@ string callee_restore() {
 /// @return The assembly code for allocating memory.
 
 string allocate_memory_immediate_value(int size) {
-    string s = ""
-    "\tmovq $" + std::to_string(size) + ", %rdi\n"
+    string s = "\tmovq $" + std::to_string(size) + ", %rdi\n"
     "\tcall allocate\n";
     return s;
 }
@@ -67,8 +66,7 @@ string allocate_memory_immediate_value(int size) {
 /// @param offset The offset of the memory to allocate.
 /// @return The assembly code for allocating memory.
 string allocate_memory_stack_value(long offset) {
-    string s = ""
-    "\tmovq " + std::to_string(offset) + "(%rbp), %rdi\n"
+    string s = "\tmovq " + std::to_string(offset) + "(%rbp), %rdi\n"
     "\tcall allocate\n";
     return s;
 }
@@ -92,7 +90,6 @@ string print_immediate_value(int number) {
 }
 
 string print_stack_value(long offset) {
-    std::cout << "in print_stack_value\n" << std::endl;
     string s = caller_save() + ""
     "\tmovq " + std::to_string(offset) + "(%rbp), %rdi\n"
     "\tcall printNum\n"
