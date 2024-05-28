@@ -12,8 +12,8 @@ int main(int argc, char* argv[]) {
             ("help,h", "Print this help message") // help is triggered by --help or -h 
             ("parse-only,P", po::bool_switch(), "Stop after parsing") 
             ("symbol-collection-only,S", po::bool_switch(), "Stop after symbol collection") 
-            ("peephole-only,pp", po::bool_switch(), "Stop after peephole optimization")
-            ("disable-peephole,DPP", po::bool_switch(), "disable peephole optimization") 
+            ("peephole-only,e", po::bool_switch(), "Stop after peephole optimization")
+            ("disable-peephole,E", po::bool_switch(), "disable peephole optimization") 
             ("type-check-only,T", po::bool_switch(), "Stop after type checking") 
             ("code-generation-only,C", po::bool_switch(), "Stop after code generation")
             ("register-allocation-only,R", po::bool_switch(), "Stop after register allocation")
