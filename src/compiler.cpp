@@ -72,13 +72,6 @@ namespace grammar::compiler {
         }
         obj->ir = intermediate_code_generation(obj->ast); 
 
-        if (!options.disable_peephole) peephole_optimization(obj->ir);
-          
-        if (options.stop_after == stopAfterPeepHole){
-            return obj;
-        }
-        
-
         if (options.print_code_generation){
             std::cout << "CodeGen:\n" << obj->ir << std::endl;
         }
@@ -86,7 +79,21 @@ namespace grammar::compiler {
             return obj;
         }
 
+        std::list<Instruction> temp = {
+            Instruction(Op::MOVQ, Arg(ImmediateValue(5), DIR()), Arg(Register::RAX, DIR())),
+            Instruction(Op::MOVQ, Arg(ImmediateValue(5), DIR()), Arg(Register::RAX, DIR())),
+        };
+
+        std::cout << "IR: " << obj->ir << std::endl;
+        if (!options.disable_peephole) peephole_optimization(obj->ir);
+        // std::cout << obj->ir << std::endl;
+        if (options.stop_after == stopAfterPeepHole){
+            return obj;
+        }
+        std::cout << obj->ir << std::endl;
+
         obj->ir = register_allocation(obj->ir); 
+
         register_allocation2(obj->ir); 
 
 

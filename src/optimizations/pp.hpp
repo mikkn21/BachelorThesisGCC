@@ -4,13 +4,16 @@
 #include "liveness_analysis.hpp"
 #include "../IR/ir.hpp"
 
+struct WildCard{
+    // empty
+};
 
 struct Pattern {
-    std::list<Op> components;
+    std::list<std::variant<Op,WildCard>> components;
     std::list<std::function<bool(std::vector<Block*>, Pattern&)>> rules;
     std::list<Instruction> replacement;
 
-    Pattern(std::list<Op> components, std::list<std::function<bool(std::vector<Block*>, Pattern&)>> rules, std::list<Instruction> replacement) 
+    Pattern(std::list<std::variant<Op, WildCard>> components, std::list<std::function<bool(std::vector<Block*>, Pattern&)>> rules, std::list<Instruction> replacement) 
     : components(components), rules(rules), replacement(replacement) {}
 };
 

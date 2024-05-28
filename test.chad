@@ -1,9 +1,6 @@
-int f(){
-    return 0;
-}
-
 int main(){
-    f();
-    f();
+    int x = 4;
+    int y = 5;
+    print(y);
     return 0;
 }

@@ -1,5 +1,6 @@
 #include "pp.hpp"
 #include "liveness_analysis.hpp"
+#include <iostream>
 #include <variant>
 
 
@@ -21,8 +22,8 @@ bool has_immediate_value(TargetType target, int value) {
 std::list<Pattern> patterns = {
     // Pattern for A->B, B->C => A->C(transitive move) optimization
     Pattern({
-        Op::MOVQ, 
         Op::MOVQ,
+        Op::MOVQ
     }, {
         [](std::vector<Block*> blocks, Pattern& pattern) {
             if (blocks.size() != 2) {
@@ -59,6 +60,23 @@ std::list<Pattern> patterns = {
             return b1.use == b2.def;
         }
     }, {/* replacement */}),
+    // Pattern to remove dead code
+    // Pattern ({
+    //     WildCard()
+    // }, {
+    //     [](std::vector<Block*> blocks, Pattern& pattern) {
+    //         if (blocks.size() != 1) {
+    //             throw std::invalid_argument("Invalid block size");
+    //         }  
+    //         Block b1 = *blocks.front();
+    //         if (b1.out.find(*b1.def.begin()) != b1.out.end()) { //b1.def not in b1.out == dead code
+    //             return true; // replace with nothing
+    //         }
+    //         return false;
+
+    //     }
+    // }, {/* replacement */}),
+
     // pattern optimization for setting a register to 0 
     Pattern ({
         Op::MOVQ,
@@ -112,27 +130,35 @@ void apply_replacement(IR &ir, Pattern& pattern, int match_start, int i) {
 }
 
 
-void peephole_optimization(IR &ir) {    
+void peephole_optimization(IR &ir) {
+    std::cout << "Just entered peephole_optimization" << std::endl;
     bool cringe_bool = false; // indicates whether IR is stable
     while(!cringe_bool) {
+        std::cout << "whileloop\n";
         
         cringe_bool = true;
         for (auto pattern: patterns) {
+            std::cout << "foreach loop" << std::endl;
             LivenessAnalysis blocks = liveness_analysis(ir);
+            std::cout << "HAHAHAHHAHAHA" << std::endl;
+            if(blocks.empty()) std::cout << "not blocks" << std::endl;
             int match_start = 0;
             auto pattern_op = pattern.components.begin();
-
-
+            
             for (size_t i = 0; i < blocks.size(); i++) {
-                if ((*blocks[i]).instructions.front().operation != *pattern_op) {
-
-                    if (pattern_op != pattern.components.begin()) {
-                        i--; // look at current block again with start of pattern
-                    }
-                    pattern_op = pattern.components.begin();
-                    match_start = i+1;
-                    continue; // pattern and block did not match look at next pattern
-                }
+                std::cout << "for loop" << std::endl;
+                if (std::holds_alternative<Op>(*pattern_op)) {
+                    std::cout << "holds op" << std::endl;
+                    if (std::get<Op>(*pattern_op) != blocks[i]->instructions.front().operation) {
+                        std::cout << "not a match" << std::endl;
+                        if (pattern_op != pattern.components.begin()) {
+                            i--; // look at current block again with start of pattern
+                        }
+                        pattern_op = pattern.components.begin();
+                        match_start = i+1;
+                        continue; // pattern and block did not match look at next pattern
+                        }
+                    } 
                 if (pattern_op == std::prev(pattern.components.end())) {
                     if(check_lambda(std::vector<Block*>(blocks.begin() + match_start, blocks.begin() + i + 1), pattern)){
                         cringe_bool = false;
