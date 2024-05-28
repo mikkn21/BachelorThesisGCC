@@ -803,6 +803,7 @@ public:
         code.push(Instruction(Op::PUSHQ, Arg(Register::RBP, DIR()), "setting static link")); // Settting static link.
         code.push(Instruction(Op::CALL, Arg(Label("main"), DIR())));
         code.push(Instruction(Op::POPQ, Arg(Register::RBP, DIR()), "remove static link from stack"));
+        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_RESTORE, DIR())));
         code.push(Instruction(Op::POPQ, Arg(Register::RBP, DIR()), "restore old rbp"));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(60), DIR()), Arg(Register::RAX, DIR())));
         code.push(Instruction(Op::XORQ, Arg(Register::RDI, DIR()), Arg(Register::RDI, DIR())));
