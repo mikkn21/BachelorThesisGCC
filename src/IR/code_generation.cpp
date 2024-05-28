@@ -443,7 +443,8 @@ public:
         // Check null
         code.push(Instruction(Op::CMPQ, Arg(ImmediateValue(0), DIR()), Arg(array_ptr, DIR()), "Start checking for beta"));
         code.push(Instruction(Op::JNE, Arg(Label(index.beta_check_label), DIR())));
-        code.push(Instruction(Op::JMP, Arg(Label("print_is_beta"), DIR())));
+        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(index.line), DIR()), Arg(Register::RDI, DIR()), "Line number"));
+        code.push(Instruction(Op::CALL, Arg(Label("print_is_beta"), DIR())));
         code.push(Instruction(Op::LABEL, Arg(Label(index.beta_check_label), DIR())));
 
         // TODO: Check valid index
@@ -730,11 +731,16 @@ public:
 
     void push_print_is_beta_function() {
         code.push(Instruction(Op::LABEL, Arg(Label("print_is_beta"), DIR())));
+        code.push(Instruction(Op::PUSHQ, Arg(Register::RDI, DIR()), "Push line number"));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RAX, DIR()), "System call number for write"));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RDI, DIR()), "File descriptor for stdout"));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateData("is_beta"), DIR()), Arg(Register::RSI, DIR()), "Address of string"));
-        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(32), DIR()), Arg(Register::RDX, DIR()), "Length of string to print"));
+        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(41), DIR()), Arg(Register::RDX, DIR()), "Length of string to print"));
         code.push(Instruction(Op::SYSCALL));
+        // Print line number
+        code.push(Instruction(Op::POPQ, Arg(Register::RDI, DIR()), "Pop line number"));
+        code.push(Instruction(Op::CALL, Arg(Label("printNum"), DIR())));
+
         // Close with error code 1
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(60), DIR()), Arg(Register::RAX, DIR())));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RDI, DIR())));

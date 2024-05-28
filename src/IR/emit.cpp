@@ -158,7 +158,7 @@ void emit_to_file(IR ir) {
         output_file << "beta: .ascii \"beta\\n\"\n";
         output_file << "object: .ascii \"object\\n\"\n";
         output_file << "array: .ascii \"array\\n\"\n";
-        output_file << "is_beta: .ascii \"Attempted to access a beta value\\n\"\n";
+        output_file << "is_beta: .ascii \"Attempted to access a beta value on line \\n\"\n";
         output_file << "newline: .ascii \"\\n\"\n\n";
         output_file << ".text\n";
         output_file << ".globl _start\n";
