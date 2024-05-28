@@ -83,14 +83,19 @@ namespace grammar::compiler {
             Instruction(Op::MOVQ, Arg(ImmediateValue(5), DIR()), Arg(Register::RAX, DIR())),
         };
 
-        std::cout << "IR: " << obj->ir << std::endl;
-        if (!options.disable_peephole) peephole_optimization(obj->ir);
+        for (auto &function : obj->ir->functions) {
+            std::cout << function->code << std::endl;
+        }
+        if (!options.disable_peephole) peephole_optimization(*obj->ir);
+        std::cout << "---------------------------------------" << std::endl;
+        // for (auto &function : obj->ir->functions) {
+        //     std::cout << function->code << std::endl;
+        // }
         // std::cout << obj->ir << std::endl;
         if (options.stop_after == stopAfterPeepHole){
             return obj;
         }
-        std::cout << obj->ir << std::endl;
-
+        
         
         if (options.naive_register_allocation){
             naive_register_allocation(*obj->ir); 

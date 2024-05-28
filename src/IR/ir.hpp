@@ -10,7 +10,7 @@
 
 
 enum class Op {
-   MOVQ, CALL, RET, CMPQ, JMP, JE, JNE, JL, JLE, JG, JGE, ADDQ, SUBQ, IMULQ, IDIVQ, LABEL, PROCEDURE, ANDQ, ORQ, XORQ, PUSHQ, POPQ, SETL, SETG, SETLE, SETGE, SETE, SETNE, SYSCALL, NOTHING, LEAQ
+   MOVQ, CALL, RET, CMPQ, JMP, JE, JNE, JL, JLE, JG, JGE, ADDQ, SUBQ, IMULQ, IDIVQ, LABEL, PROCEDURE, ANDQ, ORQ, XORQ, PUSHQ, POPQ, SETL, SETG, SETLE, SETGE, SETE, SETNE, SYSCALL, NOTHING, LEAQ, DUMMY
 };
 
 struct DIR {};
@@ -102,6 +102,7 @@ std::ostream& operator<<(std::ostream& os, const Register op);
 std::ostream& operator<<(std::ostream& os, const Arg arg);
 std::ostream& operator<<(std::ostream& os, const IR &ir);
 std::ostream& operator<<(std::ostream& os, const Procedure procedure);
+std::ostream& operator<<(std::ostream& os, const std::list<Instruction> &code);
 
 class IRError: public CompilerError {
 public: 
