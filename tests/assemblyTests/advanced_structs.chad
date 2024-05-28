@@ -1,0 +1,39 @@
+class test1 {
+    test2 two;
+    int num;
+}
+
+class test2 {
+    int num;
+    test3 three;
+}
+
+class test3 {
+    int num1;
+    int num2;
+    int num3;
+}
+
+int main() {
+    f();
+
+    return 0;
+}
+
+int f() {
+    test1 one = new test1();
+    one.two = new test2();
+    one.num = 1;
+    one.two.num = 2;
+    one.two.three = new test3();
+    one.two.three.num1 = 3;
+    one.two.three.num2 = 4;
+    one.two.three.num3 = 5;
+
+    print(one.num);
+    print(one.two.num);
+    print(one.two.three.num1);
+    print(one.two.three.num2);
+    print(one.two.three.num3);
+    return 0;
+}

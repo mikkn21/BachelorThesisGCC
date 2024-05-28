@@ -1,4 +1,30 @@
-int main(){
-    print(beta);
+int x = 1;
+
+int f() {
+    print(x);
+    int y = 2;
+    int g() {
+        return y;
+    }
+    return g();
+}
+
+int main() {
+    print(x);
+    int x = 3;
+    print(f());
+    g1();
+    g2();
+    return 0;
+}
+
+int i = 4;
+int g1() {
+    return 0;
+}
+
+int k = 6;
+int g2() {
+    print(k);
     return 0;
 }
