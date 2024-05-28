@@ -21,6 +21,7 @@ int main(int argc, char* argv[]) {
             ("print-input,i", po::bool_switch(), "Print the input before parsing")
             ("print-code-generation,c", po::bool_switch(), "Print the Intermediate code after the code generation phase")
             ("print-register-allocation,r", po::bool_switch(), "Print the Intermediate code after the register allocation phase")
+            ("naive-register-allocation,n", po::bool_switch(), "Use the naive register allocation")
             ("input-file", po::value<std::string>(), "Input file to compile"); // this is to necessary
         po::positional_options_description p;
         // Here we say that we expect 1 non-posestional argument namely the file
@@ -68,6 +69,9 @@ int main(int argc, char* argv[]) {
         }
         if (vm["print-register-allocation"].as<bool>()) {
             options.print_register_allocation = true;
+        }
+        if (vm["naive-register-allocation"].as<bool>()) {
+            options.naive_register_allocation = true;
         }
         if (vm.count("input-file")) {
             std::string_view filename = vm["input-file"].as<std::string>();

@@ -71,14 +71,13 @@ namespace grammar::compiler {
             return obj;
         }
         obj->ir = intermediate_code_generation(obj->ast); 
-
-        if (options.print_code_generation){
+        if (options.print_code_generation) {
             std::cout << "CodeGen:\n" << obj->ir << std::endl;
         }
-        if (options.stop_after == StopAfterCodeGen){
+        if (options.stop_after == StopAfterCodeGen) {
             return obj;
         }
-
+      
         std::list<Instruction> temp = {
             Instruction(Op::MOVQ, Arg(ImmediateValue(5), DIR()), Arg(Register::RAX, DIR())),
             Instruction(Op::MOVQ, Arg(ImmediateValue(5), DIR()), Arg(Register::RAX, DIR())),
@@ -92,23 +91,28 @@ namespace grammar::compiler {
         }
         std::cout << obj->ir << std::endl;
 
-        obj->ir = register_allocation(obj->ir); 
-
-        register_allocation2(obj->ir); 
-
+        
+        if (options.naive_register_allocation){
+            naive_register_allocation(*obj->ir); 
+        } else {
+            register_allocation(*obj->ir); 
+        }
+        
 
         if (options.stop_after == StopAfterRegAlloc){
             return obj;
         }
-
+        
         if (options.print_register_allocation){
             std::cout << "RegisterAllocation:\n" << obj->ir << std::endl;
         }
 
-        emit(obj->ir);        
+        emit(*obj->ir);        
 
         return obj;
     }
-
-
+    
+    CompilerReturnObj::~CompilerReturnObj() {
+        delete ir;
+    }
 } // namespace grammar::compiler

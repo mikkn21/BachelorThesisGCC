@@ -40,6 +40,9 @@ private:
         if (sym != nullptr) {
             if (auto var_sym = dynamic_cast<VarSymbol *>(sym)) {
                 id.sym = var_sym;
+                if (current_symbol_table->find_local(id.id) != sym) {
+                    var_sym->ir_data.is_local = false;
+                }
             }
             return sym;
         } else {
@@ -155,6 +158,7 @@ public:
     }
 
     void post_visit(grammar::ast::ArrayIndex &index) override {
+        index.beta_check_label = generate_unique_label("after_beta_check");
         if (!dynamic_cast<VarSymbol *>(require_id_in_current_scope(index, index.id_access.ids.front()))) {
                 throw SemanticsError("Cannot index a non-variable", index);
         }
