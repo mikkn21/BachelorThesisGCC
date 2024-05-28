@@ -1,4 +1,4 @@
 #include "ir.hpp"
 
 
-IR register_allocation(IR old_ir);
+void naive_register_allocation(IR &old_ir);

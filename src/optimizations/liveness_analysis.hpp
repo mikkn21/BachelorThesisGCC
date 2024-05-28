@@ -8,6 +8,7 @@
 
 using RegisterType = std::variant<Register, GenericRegister>;
 
+
 struct RegisterTypeLess {
     bool operator()(const RegisterType& lhs, const RegisterType& rhs) const;
 };
@@ -15,7 +16,7 @@ struct RegisterTypeLess {
 using Live = std::set<RegisterType, RegisterTypeLess>;
 
 struct Block {
-    IR instructions;
+    std::list<Instruction> instructions;
     Live in;
     Live out;
     Live def;
@@ -23,7 +24,7 @@ struct Block {
     std::vector<Block*> successors;
 
     Block(
-        IR instructions = {},
+        std::list<Instruction> instructions = {},
         Live use = {},
         Live def = {},
         Live in = {},
@@ -32,9 +33,10 @@ struct Block {
     );
 };
 
+
 using LivenessAnalysis = std::vector<Block*>;
 
-LivenessAnalysis liveness_analysis(IR &code);
+LivenessAnalysis liveness_analysis(const std::list<Instruction> &code);
 
 std::ostream& operator<<(std::ostream& os, const RegisterType& registerType);
 std::ostream& operator<<(std::ostream& os, const Block block);

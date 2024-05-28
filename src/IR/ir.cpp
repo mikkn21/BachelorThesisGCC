@@ -1,5 +1,15 @@
 #include "ir.hpp"
 
+IR::~IR() {
+    for (auto func : functions) {
+        delete func;
+    }
+}
+
+GenericRegister Function::new_register() {
+    return GenericRegister(++register_counter);
+}
+
 IRL::IRL(long offset) : offset(offset) {}
 ImmediateValue::ImmediateValue(int v) : value(v) {}
 ImmediateData::ImmediateData(std::string v) : value(v) {}
@@ -132,15 +142,18 @@ std::ostream& operator<<(std::ostream& os, const Procedure procedure){
         case Procedure::CALLER_RESTORE:     os << "CALLER_RESTORE";     break;
         case Procedure::CALLER_SAVE:        os << "CALLER_SAVE";        break;
         case Procedure::PRINT:              os << "PRINT";              break;
+        case Procedure::MEM_ALLOC:          os << "MEM_ALLOC";          break;
         default:                            throw IRError("Invalid Procedure");            break;
     }
     return os;
 }
 
 
-std::ostream& operator<<(std::ostream& os, const IR ir) {
-    for (auto instruction : ir) {
-        os << instruction << std::endl;
+std::ostream& operator<<(std::ostream& os, const IR &ir) {
+    for (const auto scope : ir.functions) {
+        for (const auto &instruction : (*scope).code) {
+            os << instruction << std::endl;
+        }
     }
     return os;
 }

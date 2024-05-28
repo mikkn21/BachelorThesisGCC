@@ -255,12 +255,12 @@ void SymbolTable::insert(std::string key, VarSymbol *symbol) {
         }
 
         if (is_parameter) {
-            symbol->local_id = --parameter_counter;
+            symbol->ir_data.local_id = --parameter_counter;
         } else { // Is a local variable
-            symbol->local_id = ++register_counter;
+            symbol->ir_data.local_id = ++register_counter;
         }
     } else {
-            symbol->local_id = ++register_counter; // is not a parameter, but a local variable
+            symbol->ir_data.local_id = ++register_counter; // is not a parameter, but a local variable
     }
 
     entries.emplace(key, symbol); 

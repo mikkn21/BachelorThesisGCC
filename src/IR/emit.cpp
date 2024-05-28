@@ -92,6 +92,7 @@ string print_immediate_value(int number) {
 }
 
 string print_stack_value(long offset) {
+    std::cout << "in print_stack_value\n" << std::endl;
     string s = caller_save() + ""
     "\tmovq " + std::to_string(offset) + "(%rbp), %rdi\n"
     "\tcall printNum\n"
@@ -99,13 +100,15 @@ string print_stack_value(long offset) {
     return s;
 }
 
-string print_class_string(string data){
-    string s = caller_save() + ""
-    "\tcall print_beta\n"
-    "" + callee_restore();
-    return s;
+std::string print_register_value(Register reg) {
+    std::stringstream ss;
+    ss << reg; 
+    std::string assemblyCode = caller_save() +
+        "\tmovq " + ss.str() + ", %rdi\n"
+        "\tcall printNum\n" +
+        caller_restore();
+    return assemblyCode;
 }
-
 string procedure(Instruction instruction) {
     if (holds_alternative<Procedure>(instruction.args[0].target)) {
         switch (get<Procedure>(instruction.args[0].target)) {
@@ -113,14 +116,13 @@ string procedure(Instruction instruction) {
                 if (holds_alternative<ImmediateValue>(instruction.args[1].target)) {
                     return print_immediate_value(get<ImmediateValue>(instruction.args[1].target).value);
                 } else if (holds_alternative<Register>(instruction.args[1].target)) {
-                    // 
-                    long offset = get<IRL>(instruction.args[1].access_type).offset;
-                    return print_stack_value(offset);
-                    // else if (holds_alternative<string>(offset)) { 
-                    //     std::cout << "In string on emit" << std::endl; 
-                    //     return print_data_string(get<string>(offset));
-                    // } 
-                    // The above code is for in case we ever wish to generalize printing .data segments
+                    if (holds_alternative<DIR>(instruction.args[1].access_type)) {
+                        return print_register_value(get<Register>(instruction.args[1].target));
+                    } else  if (holds_alternative<IRL>(instruction.args[1].access_type)) {
+                        return print_stack_value(get<IRL>(instruction.args[1].access_type).offset);
+                    } else {
+                        throw IRError("Not implemented yet");
+                    }
                 } else {
                     throw IRError("Not implemented yet");
                 }
@@ -148,7 +150,7 @@ string procedure(Instruction instruction) {
     }
 }
 
-void emit_to_file(IR ir) {
+void emit_to_file(IR &ir) {
 
     ofstream output_file("chad.s");
     if (output_file.is_open()) {
@@ -162,26 +164,27 @@ void emit_to_file(IR ir) {
         output_file << "newline: .ascii \"\\n\"\n\n";
         output_file << ".text\n";
         output_file << ".globl _start\n";
-        output_file << "\n_start:\n";
+        // output_file << "\n_start:\n";
         //output_file << "\tpushq %rbp\n";
         // output_file << "\tcall main\n";
         // output_file << "\tmovq $60, %rax\n";
         // output_file << "\txorq %rdi, %rdi\n";
         // output_file << "\tsyscall\n";
-        for (const Instruction& instruction : ir) {
-            // cout << instruction.operation << endl;
-            switch (instruction.operation) {
-                case Op::PROCEDURE:
-                    output_file << procedure(instruction);
-                    break;
-                case Op::LABEL:
-                    output_file << "\n" << instruction << ":\n";
-                    break;
-                case Op::NOTHING:
-                    output_file << instruction << "\n";
-                    break;
-                default: 
-                    output_file << "\t" << instruction << "\n";
+        for (const auto func : ir.functions) {
+            for (const Instruction& instruction : (*func).code) {
+                switch (instruction.operation) {
+                    case Op::PROCEDURE:
+                        output_file << procedure(instruction);
+                        break;
+                    case Op::LABEL:
+                        output_file << "\n" << instruction << ":\n";
+                        break;
+                    case Op::NOTHING:
+                        output_file << instruction << "\n";
+                        break;
+                    default: 
+                        output_file << "\t" << instruction << "\n";
+                }
             }
         }
 
@@ -194,6 +197,6 @@ void emit_to_file(IR ir) {
 
 
 
-void emit(IR ir) {
-    emit_to_file(std::move(ir));
+void emit(IR &ir) {
+    emit_to_file(ir);
 }

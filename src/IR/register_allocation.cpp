@@ -1,10 +1,11 @@
 #include "register_allocation.hpp"
+#include <set>
 
 const int callee_offset = -40;
 const int arg_offset = 16;
 
-std::vector<Instruction> generic_translate(Instruction instruction) { // Does not work with procedures.
-    std::vector<Instruction> instructions;
+std::list<Instruction> generic_translate(Instruction instruction) { // Does not work with procedures.
+    std::list<Instruction> instructions;
     Instruction translated_instruction = Instruction(instruction.operation, instruction.comment);
     std::vector<Register> registers = {Register::R11, Register::R12, Register::R13};
     // Translates generic registers to concrete registers.
@@ -57,7 +58,7 @@ Instruction procedureTranslateOneArgument(Instruction instruction, std::string e
     }
 }
 
-/// @brief translate a generic instruction to a IRL instruction
+
 Instruction procedure_translate(Instruction instruction) {
     switch (std::get<Procedure>(instruction.args[0].target)) {
         case Procedure::PRINT:    
@@ -71,25 +72,39 @@ Instruction procedure_translate(Instruction instruction) {
     }
 }
 
-IR register_allocation(IR old_ir) {
-    IR ir;
-    for (auto &instruction : old_ir) {
-        switch (instruction.operation)
-        {
-        // case Op::MOVQ:
-        //     ir.push_back(generic_translate(instruction));
-        //     break;
-        case Op::PROCEDURE:
-            ir.push_back(procedure_translate(instruction));
-            break;
-        default:
-            {
-                std::vector<Instruction> translated_instructions = generic_translate(instruction);
-                ir.insert(ir.end(), translated_instructions.begin(), translated_instructions.end());
-            }
-            break;
-        }
-    }
 
-    return ir; // is not copied. The compiler will optimize it by using copy elision
+void naive_register_allocation(IR &ir) {
+    for (auto func : ir.functions) {
+        std::list<Instruction> code;
+        std::set<GenericRegister> generic_registers;
+        for (auto &instruction : (*func).code) {
+            for (auto &arg : instruction.args) {
+                if (std::holds_alternative<GenericRegister>(arg.target)) {
+                    generic_registers.insert(std::get<GenericRegister>(arg.target));
+                }
+            }
+        }
+
+        for (auto &instruction : (*func).code) {
+            switch (instruction.operation)
+            {
+                // case Op::MOVQ:
+                //     ir.push_back(generic_translate(instruction));
+                //     break;
+                case Op::PROCEDURE:
+                    code.push_back(procedure_translate(instruction));
+                    if (std::get<Procedure>(instruction.args[0].target) == Procedure::CALLEE_SAVE) {
+                        for (size_t i = 0; i < generic_registers.size(); i++) {
+                            code.push_back(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()), "Setting temporary variable to 0"));
+                        }
+                    }
+                    break;
+                default:
+                    std::list<Instruction> translated_instructions = generic_translate(instruction);
+                    code.insert(code.end(), translated_instructions.begin(), translated_instructions.end());
+                    break;
+            }
+        }
+        func->code = code;
+    }
 }

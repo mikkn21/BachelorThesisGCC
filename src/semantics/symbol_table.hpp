@@ -7,6 +7,12 @@
 
 struct SymbolType;
 
+struct IRData {
+    long stack_offset;
+    bool is_local = true;
+    long local_id;
+};
+
 struct IntType {
     bool operator==(const IntType &other) const;
     std::string to_string() const;
@@ -77,7 +83,7 @@ public:
     ~VarSymbol() override { }
     SymbolType type;
     grammar::ast::VarDecl *var_decl;
-    long local_id;
+    IRData ir_data;
     SymbolType to_type() override;
 };
 
@@ -120,6 +126,8 @@ public:
     Symbol *find(std::string key) const;
     std::vector<VarSymbol*> get_var_symbols();
 };
+
+
 
 
 #endif

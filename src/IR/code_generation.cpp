@@ -8,61 +8,55 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+#include <list>
 #include <stack>
 
 const int callee_offset = -40; // TODO: this should be referenced from a shared file so all occurences of this has a common variable. Or it should be removed
 
 using AstValue = std::variant<int, bool, GenericRegister>;
 
-class FunctionOrderManager {
+class FunctionManager {
 private:
-    std::stack<size_t> current_function_index;
-    std::vector<std::vector<Instruction>> list_of_funcs;
+    std::stack<Function*> current_function_stack;
+    IR *ir;
 public:
-    FunctionOrderManager();
-    void new_scope();
-    void end_scope();
-    void push(Instruction Instruction);
-    IR get_instructions();
+    FunctionManager() : current_function_stack(), ir(new IR()) {}
+
+    /// adds a new list of instructions to the current scope
+    void new_scope(SymbolTable *scope) {
+        auto *func = new Function(scope->register_counter);
+        ir->functions.push_back(func);
+        current_function_stack.push(func);
+    }
+
+    void new_empty_scope() {
+        auto *func = new Function(0);
+        ir->functions.push_back(func);
+        current_function_stack.push(func);
+    }
+    
+    /// pops the current scope
+    void end_scope() {
+        current_function_stack.pop();
+    }
+
+    /// pushes an instruction to the current scope
+    void push(Instruction instruction) {
+        current_function_stack.top()->code.push_back(instruction);
+    }
+
+    GenericRegister new_register() {
+        // (*current_function_stack.top()).code.push_back(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()), "make space on stack for generic register value"));
+        return (*current_function_stack.top()).new_register();
+    }
+
+    /// get the intermediate code representations.
+    IR *get_instructions() {
+        return ir;
+    }
 };
 
-/// Expects there to be space on the stack for the result register taken as input. 
-/// uses register R8 and R9, so should be saved before use
-std::vector<Instruction> static_link_read(int depth, int target_local_id, GenericRegister read_result) {
-    std::vector<Instruction> instructions;
-    instructions.push_back(Instruction(Op::MOVQ, Arg(Register::RBP, DIR()), Arg(Register::R8, DIR()), "starting static linking read"));
-    // std::cout << "depth: " << depth << std::endl;
-    for (auto i = 0; i < depth; i++) {
-        instructions.push_back(Instruction(Op::MOVQ, Arg(Register::R8, IRL(16)), Arg(Register::R9, DIR())));
-        instructions.push_back(Instruction(Op::MOVQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR())));
-    }
-    GenericRegister target = GenericRegister(target_local_id);
-    instructions.push_back(Instruction(Op::MOVQ, Arg(Register::RBP, DIR()), Arg(Register::R9, DIR()), "save RBP")); // save RBP
-    instructions.push_back(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(Register::RBP, DIR()))); // set RBP to R8, so generic register points to correct memory location.
-    instructions.push_back(Instruction(Op::MOVQ, Arg(target, DIR()), Arg(Register::R8, DIR()), "temporarely save result"));
-    instructions.push_back(Instruction(Op::MOVQ, Arg(Register::R9, DIR()), Arg(Register::RBP, DIR()), "restore RBP")); // restore RBP
-    instructions.push_back(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(read_result, DIR()), "move result to result register"));
-    return instructions;
-}
 
-/// uses register R8, R9 and R10, so should be saved before use
-std::vector<Instruction> static_link_write(int depth, int target_local_id, TargetType write_value) {
-    std::vector<Instruction> instructions;
-    instructions.push_back(Instruction(Op::MOVQ, Arg(Register::RBP, DIR()), Arg(Register::R8, DIR()), "starting static linking write"));
-    // std::cout << "depth: " << depth << std::endl;
-    for (auto i = 0; i < depth; i++) {
-        instructions.push_back(Instruction(Op::MOVQ, Arg(Register::R8, IRL(16)), Arg(Register::R9, DIR())));
-        instructions.push_back(Instruction(Op::MOVQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR())));
-    }
-    GenericRegister target = GenericRegister(target_local_id);
-
-    instructions.push_back(Instruction(Op::MOVQ, Arg(write_value, DIR()), Arg(Register::R10, DIR()), "put write value in temp storage")); // save RBP
-    instructions.push_back(Instruction(Op::MOVQ, Arg(Register::RBP, DIR()), Arg(Register::R9, DIR()), "save RBP")); // save RBP
-    instructions.push_back(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(Register::RBP, DIR()), "set RBP to R8, so generic register points to correct memory location")); // set RBP to R8, so generic register points to correct memory location.
-    instructions.push_back(Instruction(Op::MOVQ, Arg(Register::R10, DIR()), Arg(target, DIR()), "assign value to target"));
-    instructions.push_back(Instruction(Op::MOVQ, Arg(Register::R9, DIR()), Arg(Register::RBP, DIR()), "restore RBP")); // restore RBP
-    return instructions;
-}
 
 std::vector<Instruction> binop_instructions(std::string op, GenericRegister result){
     std::vector<Instruction> code;
@@ -140,7 +134,7 @@ TargetType get_target(AstValue value) {
 
 class IRVisitor : public Visitor {
 public:
-    FunctionOrderManager code;
+    FunctionManager code;
 
     SymbolTable* global_scope;
     std::stack<grammar::ast::WhileStatement*> while_stack;
@@ -150,6 +144,64 @@ public:
 private:
     std::vector<std::string> function_container;
     std::stack<AstValue> intermediary_storage;
+
+    /// Expects there to be space on the stack for the result register taken as input. 
+    /// uses register R8 and R9, so should be saved before use
+    std::vector<Instruction> static_link_read(int depth, int target_local_id, GenericRegister read_result) {
+        std::vector<Instruction> instructions;
+        instructions.push_back(Instruction(Op::MOVQ, Arg(Register::RBP, DIR()), Arg(Register::R8, DIR()), "starting static linking read"));
+        // std::cout << "depth: " << depth << std::endl;
+        for (auto i = 0; i < depth; i++) {
+            instructions.push_back(Instruction(Op::MOVQ, Arg(Register::R8, IRL(16)), Arg(Register::R9, DIR())));
+            instructions.push_back(Instruction(Op::MOVQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR())));
+        }
+        GenericRegister target = GenericRegister(target_local_id);
+        instructions.push_back(Instruction(Op::MOVQ, Arg(Register::RBP, DIR()), Arg(Register::R9, DIR()), "save RBP")); // save RBP
+        instructions.push_back(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(Register::RBP, DIR()))); // set RBP to R8, so generic register points to correct memory location.
+        instructions.push_back(Instruction(Op::MOVQ, Arg(target, DIR()), Arg(Register::R8, DIR()), "temporarely save result"));
+        instructions.push_back(Instruction(Op::MOVQ, Arg(Register::R9, DIR()), Arg(Register::RBP, DIR()), "restore RBP")); // restore RBP
+        instructions.push_back(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(read_result, DIR()), "move result to result register"));
+        return instructions;
+    }
+
+    //     /// Expects there to be space on the stack for the result register taken as input. 
+    // /// uses register R8 and R9, so should be saved before use
+    // GenericRegister static_link_read(SymbolTable &current_scope, VarSymbol &target_var_symbol) {
+    //     size_t depth = current_scope.depth - target_var_symbol.var_decl->id.scope->depth;
+    //     code.push(Instruction(Op::MOVQ, Arg(Register::RBP, DIR()), Arg(Register::R8, DIR()), "starting static linking read"));
+    //     // std::cout << "depth: " << depth << std::endl;
+    //     for (auto i = 0; i < depth; i++) {
+    //         code.push(Instruction(Op::MOVQ, Arg(Register::R8, IRL(16)), Arg(Register::R8, DIR())));
+    //     }
+    //     // code.push(Instruction(Op::MOVQ, Arg(Register::RBP, DIR()), Arg(Register::R9, DIR()), "save RBP")); // save RBP
+    //     // code.push(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(Register::RBP, DIR()))); // set RBP to R8, so generic register points to correct memory location.
+    //     size_t target_stack_offset = target_var_symbol.ir_data.stack_offset;
+    //     GenericRegister read_result = code.new_register();
+    //     code.push(Instruction(Op::MOVQ, Arg(Register::R8, IRL(target_stack_offset)), Arg(read_result, DIR()), "temporarely save result"));
+    //     // code.push(Instruction(Op::MOVQ, Arg(Register::R9, DIR()), Arg(Register::RBP, DIR()), "restore RBP")); // restore RBP
+    //     // code.push(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(read_result, DIR()), "move result to result register"));
+    //     return read_result;
+    // }
+
+    /// uses register R8, R9 and R10, so should be saved before use
+    std::vector<Instruction> static_link_write(int depth, int stack_offset, TargetType write_value) {
+        std::vector<Instruction> instructions;
+        instructions.push_back(Instruction(Op::MOVQ, Arg(Register::RBP, DIR()), Arg(Register::R8, DIR()), "starting static linking write"));
+        // std::cout << "depth: " << depth << std::endl;
+        for (auto i = 0; i < depth; i++) {
+            instructions.push_back(Instruction(Op::MOVQ, Arg(Register::R8, IRL(16)), Arg(Register::R9, DIR())));
+            instructions.push_back(Instruction(Op::MOVQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR())));
+        }
+        GenericRegister target = GenericRegister(stack_offset);
+
+        instructions.push_back(Instruction(Op::MOVQ, Arg(write_value, DIR()), Arg(Register::R10, DIR()), "put write value in temp storage")); // save RBP
+        instructions.push_back(Instruction(Op::MOVQ, Arg(Register::RBP, DIR()), Arg(Register::R9, DIR()), "save RBP")); // save RBP
+        instructions.push_back(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(Register::RBP, DIR()))); // set RBP to R8, so generic register points to correct memory location.
+        instructions.push_back(Instruction(Op::MOVQ, Arg(Register::R10, DIR()), Arg(target, DIR()), "assign value to target"));
+        instructions.push_back(Instruction(Op::MOVQ, Arg(Register::R9, DIR()), Arg(Register::RBP, DIR()), "restore RBP")); // restore RBP
+        return instructions;
+    }
+
 public: 
 
     void post_visit(grammar::ast::ReturnStatement &return_statement) override {
@@ -170,14 +222,20 @@ public:
     }
 
     void pre_visit(grammar::ast::FuncDecl &func_decl) override {
-        code.new_scope();
+        code.new_scope(func_decl.sym->sym_tab);
         code.push(Instruction(Op::LABEL, Arg(Label(func_decl.label), DIR())));
         code.push(Instruction(Op::PUSHQ, Arg(Register::RBP, DIR()), "save old rbp"));
         code.push(Instruction(Op::MOVQ, Arg(Register::RSP, DIR()), Arg(Register::RBP, DIR()), "set rbp for function scope"));
         code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_SAVE, DIR())));
         std::vector<VarSymbol*> var_decls = func_decl.sym->sym_tab->get_var_symbols();
+        size_t stack_size = 0;
         for (size_t i = 0; i < var_decls.size(); i++) {
-            code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()), "initialize local variable to 0"));
+            auto &data = var_decls[i]->ir_data;
+            if (!data.is_local) {
+                data.stack_offset = stack_size;
+                ++stack_size;
+                code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()), "initialize variable referenced from other scopes to 0"));
+            }
         }
     }
 
@@ -186,13 +244,12 @@ public:
     }
 
     void post_visit(grammar::ast::FunctionCall &func_call) override {
-        code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()), "make space on stack")); // make space on stack for generic register value
-        GenericRegister result = GenericRegister(++func_call.id.scope->register_counter); // register for the function result to be stored in
+        GenericRegister result = code.new_register(); // register for the function result to be stored in
 
         code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLER_SAVE, DIR())));
 
         // add arguments to stack in reverse order
-        for (long unsigned int i = 0; i < func_call.argument_list.arguments.size(); i++) {
+        for (size_t i = 0; i < func_call.argument_list.arguments.size(); i++) {
             //AstValue value = pop(intermediary_storage);
             auto target = get_target(pop(intermediary_storage));
             code.push(Instruction(Op::PUSHQ, Arg(target, DIR()), "pushing register argument"));
@@ -225,6 +282,7 @@ public:
         }
     }
 
+
     void post_visit(grammar::ast::VarAssign &var_assign) override {
         auto target = get_target(pop(intermediary_storage));
         std::vector<VarSymbol*> var_symbols;
@@ -233,26 +291,25 @@ public:
         }
 
         if (var_assign.id_access.ids.size() > 1) {
-            code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()), "make space on stack"));
-            GenericRegister result = GenericRegister(++var_assign.id_access.ids.front().scope->register_counter);
+            GenericRegister result = code.new_register();
             int target_depth = var_symbols.front()->var_decl->id.scope->depth;
             int current_depth = var_assign.id_access.ids.front().scope->depth;
             int difference = current_depth - target_depth;
 
-            auto static_linkCode = static_link_read(difference, var_symbols.front()->local_id, result);
+            auto static_linkCode = static_link_read(difference, var_symbols.front()->ir_data.local_id, result);
             // read is used here because the static link needed here is to read the var containing pointer to the class
             for (auto instruction : static_linkCode) {
                 code.push(instruction);
             }
 
-            code.push(Instruction(Op::MOVQ, Arg(Register::RBP, IRL(callee_offset+var_symbols[0]->local_id * -8)), Arg(Register::R8, DIR()), "copy rbp to r8 to avoid destroying rbp, varAssign"));
+            code.push(Instruction(Op::MOVQ, Arg(Register::RBP, IRL(callee_offset+var_symbols[0]->ir_data.local_id * -8)), Arg(Register::R8, DIR()), "copy rbp to r8 to avoid destroying rbp, varAssign"));
             // The above line equates to -40 + -8/-16... Which is correct because the first id will always be accessed on the stack, and therefore IRL access needs to be negative
             for (size_t i = 1; i < var_symbols.size()-1; i++) {
-                code.push(Instruction(Op::MOVQ, Arg(Register::R8, IRL(var_symbols[i]->local_id * 8)), Arg(Register::R9, DIR()), "accessing member relative to it's scope")); /// for the first access this is relative to current scope
+                code.push(Instruction(Op::MOVQ, Arg(Register::R8, IRL(var_symbols[i]->ir_data.local_id * 8)), Arg(Register::R9, DIR()), "accessing member relative to it's scope")); /// for the first access this is relative to current scope
                 code.push(Instruction(Op::MOVQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR()), "moving pointer to r8 to set up for future IRL access")); // this line is needed for structs of structs
             } // by the end of this loop the scope / block of data where varAssign.idAccess.back() is located should be in R8
             
-            code.push(Instruction(Op::MOVQ, Arg(target, DIR()), Arg(Register::R8, IRL(var_symbols.back()->local_id * 8)), "inserting value into found member"));
+            code.push(Instruction(Op::MOVQ, Arg(target, DIR()), Arg(Register::R8, IRL(var_symbols.back()->ir_data.local_id * 8)), "inserting value into found member"));
         
         } else {
             //AstValue value = pop(intermediary_storage);
@@ -260,7 +317,7 @@ public:
             int current_depth = var_assign.id_access.ids.back().scope->depth;
             int target_depth = var_symbol->var_decl->id.scope->depth;
             int difference = current_depth - target_depth;
-            int local_id = var_symbol->local_id;
+            int local_id = var_symbol->ir_data.local_id;
             auto static_linking_code = static_link_write(difference, local_id, target);
             for (auto instruction : static_linking_code) {
                 code.push(instruction);
@@ -271,7 +328,7 @@ public:
     void post_visit(grammar::ast::VarDeclAssign &var_decl_assign) override {
         auto target = get_target(pop(intermediary_storage));
         code.push(Instruction(Op::MOVQ, Arg(target, DIR()), Arg(Register::R8, DIR())));
-        code.push(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(GenericRegister(var_decl_assign.decl.sym->local_id), DIR())));
+        code.push(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(GenericRegister(var_decl_assign.decl.sym->ir_data.local_id), DIR())));
     }
 
 
@@ -295,62 +352,38 @@ public:
             int current_depth = var_expr.id_access.ids.back().scope->depth;
             int difference = current_depth - target_depth;
 
-            code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()))); // make space on stack for generic register value
-
-            code.push(Instruction(Op::MOVQ, Arg(Register::RBP, IRL(callee_offset+frontSym->local_id * -8)), Arg(Register::R8, DIR()), "copy rbp to r8 to avoid destroying rbp, var_exp"));
+            code.push(Instruction(Op::MOVQ, Arg(Register::RBP, IRL(callee_offset+frontSym->ir_data.local_id * -8)), Arg(Register::R8, DIR()), "copy rbp to r8 to avoid destroying rbp, var_exp"));
             // The above line equates to -40 + -8/-16... Which is correct because the first id will always be accessed on the stack, and therefore IRL access needs to be negative
             for (size_t i = 1; i < var_expr.id_access.ids.size()-1; i++) {
-                code.push(Instruction(Op::MOVQ, Arg(Register::R8, IRL(get_var_symbols(var_expr.id_access.ids[i].sym)->local_id * 8)), Arg(Register::R9, DIR()), "accessing member relative to it's scope")); // for the first access this is relative to current scope
+                code.push(Instruction(Op::MOVQ, Arg(Register::R8, IRL(get_var_symbols(var_expr.id_access.ids[i].sym)->ir_data.local_id * 8)), Arg(Register::R9, DIR()), "accessing member relative to it's scope")); // for the first access this is relative to current scope
                 code.push(Instruction(Op::MOVQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR()), "moving pointer to r8 to set up for future IRL access")); // this line is needed for structs of structs
             }
-            if (get_var_symbols(var_expr.id_access.ids.front().sym)->type.which() == 4){ // this breaks if we change the ordering of the different types in SymbolType
-                GenericRegister result_register = GenericRegister(++frontId.scope->register_counter);
-                auto staticLinkingCode = static_link_read(difference, frontSym->local_id, result_register);
-                for (auto instruction : staticLinkingCode) {
-                    code.push(instruction);
-                }
-                code.push(Instruction(Op::MOVQ, Arg(Register::R8, IRL(get_var_symbols(var_expr.id_access.ids.back().sym)->local_id * 8)), Arg(result_register, DIR()), "get value from member of class and save to temporary register")); 
-                intermediary_storage.push(result_register);
-            } else {
-                GenericRegister result_register = GenericRegister(++frontId.scope->register_counter);
-                auto staticLinkingCode = static_link_read(difference, frontSym->local_id, result_register);
-                for (auto instruction : staticLinkingCode) {
-                    code.push(instruction);
-                }
-                code.push(Instruction(Op::MOVQ, Arg(Register::R8, IRL(get_var_symbols(var_expr.id_access.ids.back().sym)->local_id * 8)), Arg(result_register, DIR()), "get value from member of class and save to temporary register")); 
-                intermediary_storage.push(result_register);
+
+            GenericRegister result_register = code.new_register();
+            auto staticLinkingCode = static_link_read(difference, frontSym->ir_data.local_id, result_register);
+            for (auto instruction : staticLinkingCode) {
+                code.push(instruction);
             }
-            
+            code.push(Instruction(Op::MOVQ, Arg(Register::R8, IRL(get_var_symbols(var_expr.id_access.ids.back().sym)->ir_data.local_id * 8)), Arg(result_register, DIR()), "get value from member of class and save to temporary register")); 
+            intermediary_storage.push(result_register);
         } else {
             VarSymbol *var_symbol = dynamic_cast<VarSymbol*>(var_expr.id_access.ids.back().sym);
             auto target_depth = var_symbol->var_decl->id.scope->depth;
             int current_depth = var_expr.id_access.ids.back().scope->depth;
             int difference = current_depth - target_depth;
-            code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()))); // make space on stack for generic register value
-            auto id = ++var_expr.id_access.ids.back().scope->register_counter;
-            if (var_symbol->type.which() == 4) { // this breaks if we change the ordering of the different types in SymbolType
-                GenericRegister result_register = GenericRegister(id);
-                auto static_linking_code = static_link_read(difference, var_symbol->local_id, result_register);
-                for (auto instruction : static_linking_code) {
-                    code.push(instruction);
-                }
-                intermediary_storage.push(result_register);
-            } else {
-                GenericRegister result_register = GenericRegister(id);
-                auto static_linking_code = static_link_read(difference, var_symbol->local_id, result_register);
-                for (auto instruction : static_linking_code) {
-                    code.push(instruction);
-                }
-                intermediary_storage.push(result_register);
+
+            GenericRegister result_register = code.new_register();
+            auto static_linking_code = static_link_read(difference, var_symbol->ir_data.local_id, result_register);
+            for (auto instruction : static_linking_code) {
+                code.push(instruction);
             }
+            intermediary_storage.push(result_register);
         }
     }
 
     void post_visit(grammar::ast::Rhs &op_exp) override {
         // future optimization: calculate immediate values immediately to optimize program.
-        code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()))); // make space on stack for generic register
-        GenericRegister result = GenericRegister(++op_exp.scope->register_counter);
-
+        GenericRegister result = code.new_register(); 
         auto r_target = get_target(pop(intermediary_storage));
         auto l_target = get_target(pop(intermediary_storage));
 
@@ -371,8 +404,8 @@ public:
             sizes.push_back(pop(intermediary_storage));
         }
 
-        code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()))); // make space on stack for generic register value
-        TargetType memSize = GenericRegister(++arr.scope->register_counter);
+        TargetType memSize = code.new_register(); 
+
 
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(8), DIR()), Arg(memSize, DIR()), "initialize memory size" ));
         for (auto value : sizes) {
@@ -385,8 +418,7 @@ public:
         code.push(Instruction(Op::MOVQ, Arg(memSize, DIR()), Arg(Register::RDI, DIR()), "set memory size for allocation" ));
         code.push(Instruction(Op::PROCEDURE, Arg(Procedure::MEM_ALLOC, DIR()), Arg(Register::RDI, DIR()), "allocate memory of found memory size"));
         
-        code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()))); // make space on stack for generic register value
-        GenericRegister arrayStart = GenericRegister(++arr.scope->register_counter);
+        GenericRegister arrayStart = code.new_register();
         code.push(Instruction(Op::MOVQ, Arg(Register::RAX, DIR()), Arg(arrayStart, DIR()), "Save array pointer in generic register" ));
 
         // Set the size of each dimension of  the array
@@ -395,9 +427,7 @@ public:
         }
 
         // setup zero initialization loop
-        code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()))); // counter for initialization loop
-        GenericRegister counter = GenericRegister(++arr.scope->register_counter);
-
+        GenericRegister counter = code.new_register();
 
         code.push(Instruction(Op::MOVQ, Arg(arrayStart, DIR()), Arg(counter, DIR()), "initialize counter for initialization loop"));
         code.push(Instruction(Op::ADDQ, Arg(memSize, DIR()), Arg(arrayStart, DIR()), "Store end of array"));
@@ -432,10 +462,8 @@ public:
         int target_depth = target_symbol->var_decl->id.scope->depth;
         int current_depth = scope->depth;
         int difference = current_depth - target_depth;
-        // std::cout << "current depth: " << current_depth << "target depth: " << target_depth << "difference: " << difference << std::endl;
-        code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()))); // make space on stack for generic register value
-        GenericRegister array_ptr = GenericRegister(++scope->register_counter);
-        auto static_linking_code = static_link_read(difference, target_symbol->local_id, array_ptr);
+        GenericRegister array_ptr = code.new_register();
+        auto static_linking_code = static_link_read(difference, target_symbol->ir_data.local_id, array_ptr);
         for (auto instruction : static_linking_code) {
             code.push(instruction);
         }
@@ -450,12 +478,9 @@ public:
         // TODO: Check valid index
 
         // Get a pointer to the correct index
-        code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()))); // make space on stack for generic register value
-        code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()))); // make space on stack for generic register value
-        code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()))); // make space on stack for generic register value
-        GenericRegister index_address = GenericRegister(++scope->register_counter);
-        GenericRegister intermediate_product = GenericRegister(++scope->register_counter);
-        GenericRegister intermediate_value = GenericRegister(++scope->register_counter);
+        GenericRegister index_address = code.new_register();
+        GenericRegister intermediate_product = code.new_register();
+        GenericRegister intermediate_value = code.new_register();
         // NOTE: indexTargets are in reverse order such that the last index is first
         code.push(Instruction(Op::MOVQ, Arg(array_ptr, DIR()), Arg(index_address, DIR()), "Initialize the index address"));
         code.push(Instruction(Op::MOVQ, Arg(index_targets.front(), DIR()), Arg(intermediate_value, DIR()), "Initialize the intermediate value"));
@@ -481,8 +506,7 @@ public:
 
     void post_visit(grammar::ast::ArrayIndexExp &index_exp) override {
         TargetType index_ptr = get_target(pop(intermediary_storage));
-        code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()))); // make space on stack for generic register value
-        GenericRegister result = GenericRegister(++index_exp.index.id_access.ids.front().scope->register_counter);
+        GenericRegister result = code.new_register();
         code.push(Instruction(Op::MOVQ, Arg(index_ptr, IND()), Arg(result, DIR()), "Unwrap the index pointer"));
         intermediary_storage.push(result);
     }
@@ -571,8 +595,7 @@ public:
         auto temp = dynamic_cast<ClassSymbol*>(obj.id.sym)->symbol_table;
         auto attrs = temp->get_var_symbols();
 
-        code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()), "make space on stack for generic register value"));
-        GenericRegister result_register = GenericRegister(++obj.id.scope->register_counter);
+        GenericRegister result_register = code.new_register();
 
         code.push(Instruction(Op::PROCEDURE, Arg(Procedure::MEM_ALLOC, DIR()), Arg(ImmediateValue(attrs.size() * 8), DIR()), "allocating space for variables"));
         code.push(Instruction(Op::MOVQ, Arg(Register::RAX, DIR()), Arg(result_register, DIR()), "returning address to resultRegister")); 
@@ -583,6 +606,8 @@ public:
     }
 
     void pre_visit(grammar::ast::Prog &prog) override {
+        code.push(Instruction(Op::LABEL, Arg(Label("_start"), DIR())));
+        code.push(Instruction(Op::PUSHQ, Arg(Register::RBP, DIR()), "save old rbp"));
         code.push(Instruction(Op::MOVQ, Arg(Register::RSP, DIR()), Arg(Register::RBP, DIR()), "set rbp for global scope")); // set rbp
         code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_SAVE, DIR())));
         size_t var_count = global_scope->get_var_symbols().size();
@@ -592,6 +617,7 @@ public:
     }
 
     void push_print_function() {
+        code.new_empty_scope();
         std::string convert_loop_label = ".LprintNum_convertLoop";
         std::string print_loop_label = ".LprintNum_printLoop";
         std::string print_new_line_label = ".print_newline";
@@ -625,9 +651,11 @@ public:
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RDX, DIR()), "len"));
         code.push(Instruction(Op::SYSCALL));
         code.push(Instruction(Op::RET));
+        code.end_scope();
     }
 
     void push_print_bool_function() {
+        code.new_empty_scope();
         std::string print_false_label = ".print_bool_false";
         code.push(Instruction(Op::LABEL, Arg(Label("print_bool"), DIR())));
 
@@ -650,9 +678,11 @@ public:
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(6), DIR()), Arg(Register::RDX, DIR()), "Length of string to print"));
         code.push(Instruction(Op::SYSCALL));
         code.push(Instruction(Op::RET));
+        code.end_scope();
     }
 
     void push_print_object_function() {
+        code.new_empty_scope();
         std::string print_null_label = ".print_object_null";
         code.push(Instruction(Op::LABEL, Arg(Label("print_object"), DIR())));
 
@@ -675,9 +705,11 @@ public:
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(4), DIR()), Arg(Register::RDX, DIR()), "Length of string to print"));
         code.push(Instruction(Op::SYSCALL));
         code.push(Instruction(Op::RET));
+        code.end_scope();
     }
 
     void push_print_array_function() {
+        code.new_empty_scope();
         std::string print_null_label = ".print_array_null";
         code.push(Instruction(Op::LABEL, Arg(Label("print_array"), DIR())));
 
@@ -700,9 +732,11 @@ public:
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(4), DIR()), Arg(Register::RDX, DIR()), "Length of string to print"));
         code.push(Instruction(Op::SYSCALL));
         code.push(Instruction(Op::RET));
+        code.end_scope();
     }
 
     void push_print_beta_function() {
+        code.new_empty_scope();
         code.push(Instruction(Op::LABEL, Arg(Label("print_beta"), DIR())));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RAX, DIR()), "System call number for write"));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RDI, DIR()), "File descriptor for stdout"));
@@ -710,9 +744,11 @@ public:
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(4), DIR()), Arg(Register::RDX, DIR()), "Length of string to print"));
         code.push(Instruction(Op::SYSCALL));
         code.push(Instruction(Op::RET));
+        code.end_scope();
     }
 
     void push_mem_alloc_function() {
+        code.new_empty_scope();
         code.push(Instruction(Op::LABEL, Arg(Label("allocate"), DIR())));
         code.push(Instruction(Op::PUSHQ, Arg(Register::RDI, DIR())));
         code.push(Instruction(Op::NOTHING, "1. Find the current end of the data segment."));
@@ -727,9 +763,11 @@ public:
         code.push(Instruction(Op::SYSCALL));
         code.push(Instruction(Op::POPQ, Arg(Register::RAX, DIR()), "the old end, which is the address of our allocated memory"));
         code.push(Instruction(Op::RET));
+        code.end_scope();
     }
 
     void push_print_is_beta_function() {
+        code.new_empty_scope();
         code.push(Instruction(Op::LABEL, Arg(Label("print_is_beta"), DIR())));
         code.push(Instruction(Op::PUSHQ, Arg(Register::RDI, DIR()), "Push line number"));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RAX, DIR()), "System call number for write"));
@@ -745,7 +783,9 @@ public:
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(60), DIR()), Arg(Register::RAX, DIR())));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RDI, DIR())));
         code.push(Instruction(Op::SYSCALL));
+        code.end_scope();
     }
+
 
     void push_standard_functions() {
         push_print_function();
@@ -760,6 +800,7 @@ public:
     void post_visit(grammar::ast::Prog &prog) override {
         code.push(Instruction(Op::PUSHQ, Arg(Register::RBP, DIR()), "setting static link")); // Settting static link.
         code.push(Instruction(Op::CALL, Arg(Label("main"), DIR())));
+        code.push(Instruction(Op::POPQ, Arg(Register::RBP, DIR()), "restore old rbp"));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(60), DIR()), Arg(Register::RAX, DIR())));
         code.push(Instruction(Op::XORQ, Arg(Register::RDI, DIR()), Arg(Register::RDI, DIR())));
         code.push(Instruction(Op::SYSCALL));
@@ -779,41 +820,16 @@ public:
 
 };
 
-IR intermediate_code_generation(grammar::ast::Prog &prog) {
+IR *intermediate_code_generation(grammar::ast::Prog &prog) {
     auto visitor = IRVisitor(prog);
-    visitor.code.new_scope(); // add global scope
+    visitor.code.new_scope(prog.global_scope); // add global scope
     auto traveler = TreeTraveler(visitor);
     traveler(prog);
     visitor.code.end_scope(); // end global scope
-    IR instructions = visitor.code.get_instructions();
-    link_instructions(instructions);
-    return instructions;
+    IR *funcs = visitor.code.get_instructions();
+    link_instructions(*funcs);
+    return funcs;
 }
 
-FunctionOrderManager::FunctionOrderManager() : current_function_index(), list_of_funcs() {}
 
-/// adds a new list of instructions to the current scope
-void FunctionOrderManager::new_scope() {
-    list_of_funcs.push_back(std::vector<Instruction>());
-    current_function_index.push(list_of_funcs.size()-1);
-}
-
-/// pushes an instruction to the current scope
-void FunctionOrderManager::push(Instruction instruction) {
-    list_of_funcs[current_function_index.top()].push_back(instruction);
-}
-
-/// pops the current scope
-void FunctionOrderManager::end_scope() {
-    current_function_index.pop();
-}
-
-/// get all the instructions in preorder.
-IR FunctionOrderManager::get_instructions() {
-    IR instructions;
-    for (auto &func : list_of_funcs) {
-        instructions.insert(instructions.end(), func.begin(), func.end());
-    }
-    return instructions;
-}
 

@@ -1,8 +1,8 @@
-int x = 2;
+int x = 1;
 
 int f() {
     print(x);
-    int y = 0;
+    int y = 2;
     int g() {
         return y;
     }
@@ -11,16 +11,16 @@ int f() {
 
 int main() {
     print(x);
-    int x = 5;
+    int x = 3;
     print(f());
     g1();
     g2();
     return 0;
 }
 
-int i = 1;
+int i = 4;
 int g1() {
-    int i = 9;
+    int i = 5;
     int h1() {
         int c1() {
             int l1() {
@@ -37,16 +37,16 @@ int g1() {
     return 0;
 }
 
-int k = 1;
+int k = 6;
 int g2() {
     print(k);
-    int k = 2;
+    int k = 7;
     int h2() {
         print(k);
-        int k = 3;
+        int k = 8;
         int c2() {
             print(k);
-            int k = 4;
+            int k = 9;
             int l2() {
                 print(k);
                 return 0;
