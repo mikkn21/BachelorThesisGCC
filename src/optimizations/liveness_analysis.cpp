@@ -174,7 +174,6 @@ void add_def_use_to_block(Block* current_block, Instruction instruction) {
             current_block->use.insert(Register::RDX);
             current_block->def.insert(Register::RAX); // Result is always written to RAX
             current_block->def.insert(Register::RDX); // Mod of result is always written to RDX
-
             break; 
         case Op::SYSCALL:
             current_block->use.insert(Register::RAX);
@@ -234,8 +233,8 @@ LivenessAnalysis construct_simple_blocks(const std::list<Instruction> &code) {
         for (auto instruction : block->instructions) {
             if (instruction.alternative_successor.has_value()) {
                 std::string label = get_label_value(*instruction.alternative_successor.value());
-                Block *block = labels_map[label];
-                block->successors.push_back(block);
+                Block *label_block = labels_map[label];
+                block->successors.push_back(label_block);
             }
         }
     }

@@ -72,6 +72,9 @@ Instruction procedure_translate(Instruction instruction) {
     }
 }
 
+bool is_end_of_callee_save(Instruction &instruction) {
+    return instruction.comment.value_or("") == "END OF CALLEE SAVE";
+}
 
 void naive_register_allocation(IR &ir) {
     for (auto func : ir.functions) {
@@ -93,15 +96,15 @@ void naive_register_allocation(IR &ir) {
                 //     break;
                 case Op::PROCEDURE:
                     code.push_back(procedure_translate(instruction));
-                    if (std::get<Procedure>(instruction.args[0].target) == Procedure::CALLEE_SAVE) {
-                        for (size_t i = 0; i < generic_registers.size(); i++) {
-                            code.push_back(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()), "Setting temporary variable to 0"));
-                        }
-                    }
                     break;
                 default:
                     std::list<Instruction> translated_instructions = generic_translate(instruction);
                     code.insert(code.end(), translated_instructions.begin(), translated_instructions.end());
+                    if (is_end_of_callee_save(instruction)) {
+                        for (size_t i = 0; i < generic_registers.size(); i++) {
+                            code.push_back(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()), "Setting temporary variable to 0"));
+                        }
+                    }
                     break;
             }
         }

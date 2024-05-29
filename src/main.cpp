@@ -62,7 +62,7 @@ int main(int argc, char* argv[]) {
             options.print_input = true;
         }
         if (vm["disable-peephole"].as<bool>()) {
-            options.disable_peephole = true;
+            options.use_peephole = true;
         }
         if (vm["print-code-generation"].as<bool>()) {
             options.print_code_generation = true;

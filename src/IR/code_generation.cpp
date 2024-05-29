@@ -199,6 +199,52 @@ private:
     //     return instructions;
     // }
 
+    void push_caller_save() {
+        code.push(Instruction(Op::PUSHQ, Arg(Register::RAX, DIR()), "save rax"));
+        code.push(Instruction(Op::PUSHQ, Arg(Register::RCX, DIR()), "save rcx"));
+        code.push(Instruction(Op::PUSHQ, Arg(Register::RDX, DIR()), "save rdx"));
+        code.push(Instruction(Op::PUSHQ, Arg(Register::RSI, DIR()), "save rsi"));
+        code.push(Instruction(Op::PUSHQ, Arg(Register::RDI, DIR()), "save rdi"));
+        code.push(Instruction(Op::PUSHQ, Arg(Register::R8, DIR()), "save r8"));
+        code.push(Instruction(Op::PUSHQ, Arg(Register::R9, DIR()), "save r9"));
+        code.push(Instruction(Op::PUSHQ, Arg(Register::R10, DIR()), "save r10"));
+        code.push(Instruction(Op::PUSHQ, Arg(Register::R11, DIR()), "save r11"));
+        code.push(Instruction(Op::PUSHQ, Arg(Register::RSP, DIR()), "save rsp"));
+    }
+
+    void push_caller_restore() {
+        code.push(Instruction(Op::POPQ, Arg(Register::RSP, DIR()), "restore rsp"));
+        code.push(Instruction(Op::POPQ, Arg(Register::R11, DIR()), "restore r11"));
+        code.push(Instruction(Op::POPQ, Arg(Register::R10, DIR()), "restore r10"));
+        code.push(Instruction(Op::POPQ, Arg(Register::R9, DIR()), "restore r9"));
+        code.push(Instruction(Op::POPQ, Arg(Register::R8, DIR()), "restore r8"));
+        code.push(Instruction(Op::POPQ, Arg(Register::RDI, DIR()), "restore rdi"));
+        code.push(Instruction(Op::POPQ, Arg(Register::RSI, DIR()), "restore rsi"));
+        code.push(Instruction(Op::POPQ, Arg(Register::RDX, DIR()), "restore rdx"));
+        code.push(Instruction(Op::POPQ, Arg(Register::RCX, DIR()), "restore rcx"));
+        code.push(Instruction(Op::POPQ, Arg(Register::RAX, DIR()), "restore rax"));
+    }
+
+    void push_callee_save() {
+        code.push(Instruction(Op::PUSHQ, Arg(Register::RBX, DIR()), "save RBX"));
+        code.push(Instruction(Op::PUSHQ, Arg(Register::R12, DIR()), "save R12"));
+        code.push(Instruction(Op::PUSHQ, Arg(Register::R13, DIR()), "save R13"));
+        code.push(Instruction(Op::PUSHQ, Arg(Register::R14, DIR()), "save R14"));
+        code.push(Instruction(Op::PUSHQ, Arg(Register::R15, DIR()), "save R15"));
+        code.push(Instruction(Op::NOTHING , "END OF CALLEE SAVE"));
+
+    }
+
+    void push_callee_restore() {
+        code.push(Instruction(Op::POPQ, Arg(Register::R15, DIR()), "restore R15"));
+        code.push(Instruction(Op::POPQ, Arg(Register::R14, DIR()), "restore R14"));
+        code.push(Instruction(Op::POPQ, Arg(Register::R13, DIR()), "restore R13"));
+        code.push(Instruction(Op::POPQ, Arg(Register::R12, DIR()), "restore R12"));
+        code.push(Instruction(Op::POPQ, Arg(Register::RBX, DIR()), "restore RBX"));
+        code.push(Instruction(Op::NOTHING , "END OF CALLEE restore"));
+        
+    }
+
 
 public: 
 
@@ -213,7 +259,8 @@ public:
         // The intention of these three instructions is to move the stack pointer up to right after the calle saves.
         code.push(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(Register::RSP, DIR())));
 
-        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_RESTORE, DIR())));
+        // code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_RESTORE, DIR())));
+        push_callee_restore();
         code.push(Instruction(Op::MOVQ, Arg(Register::RBP, DIR()), Arg(Register::RSP, DIR())));
         code.push(Instruction(Op::POPQ, Arg(Register::RBP, DIR())));
         code.push(Instruction(Op::RET));
@@ -224,7 +271,10 @@ public:
         code.push(Instruction(Op::LABEL, Arg(Label(func_decl.label), DIR())));
         code.push(Instruction(Op::PUSHQ, Arg(Register::RBP, DIR()), "save old rbp"));
         code.push(Instruction(Op::MOVQ, Arg(Register::RSP, DIR()), Arg(Register::RBP, DIR()), "set rbp for function scope"));
-        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_SAVE, DIR())));
+        // code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_SAVE, DIR())));
+        push_callee_save();
+        
+
         std::vector<VarSymbol*> var_decls = func_decl.sym->sym_tab->get_var_symbols();
 
         long stack_size = 0;
@@ -245,8 +295,8 @@ public:
     void post_visit(grammar::ast::FunctionCall &func_call) override {
         GenericRegister result = code.new_register(); // register for the function result to be stored in
 
-        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLER_SAVE, DIR())));
-
+        // code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLER_SAVE, DIR())));
+        push_caller_save();
         // add arguments to stack in reverse order
         for (size_t i = 0; i < func_call.argument_list.arguments.size(); i++) {
             //AstValue value = pop(intermediary_storage);
@@ -269,7 +319,8 @@ public:
         code.push(Instruction(Op::CALL, Arg(Label(label), DIR())));
         code.push(Instruction(Op::ADDQ, Arg(ImmediateValue((func_call.argument_list.arguments.size()+1) * 8), DIR()), Arg(Register::RSP, DIR()), "remove arguments and static link from stack")); 
         code.push(Instruction(Op::MOVQ, Arg(Register::RAX, DIR()), Arg(result, DIR()), "save result from function call")); 
-        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLER_RESTORE, DIR())));
+        // code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLER_RESTORE, DIR())));
+        push_caller_restore();
         intermediary_storage.push(result); // pushing the result of the function
     }
 
@@ -441,10 +492,11 @@ public:
         code.push(Instruction(Op::CMPQ, Arg(ImmediateValue(0), DIR()), Arg(array_ptr, DIR()), "Start checking for beta"));
         code.push(Instruction(Op::JNE, Arg(Label(index.beta_check_label), DIR())));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(index.line), DIR()), Arg(Register::RDI, DIR()), "Line number"));
-        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLER_SAVE, DIR())));
+        //code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLER_SAVE, DIR())));
+        push_caller_save();
         code.push(Instruction(Op::CALL, Arg(Label("print_is_beta"), DIR())));
-        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLER_RESTORE, DIR())));
-        
+        //code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLER_RESTORE, DIR())));
+        push_caller_restore();
         code.push(Instruction(Op::LABEL, Arg(Label(index.beta_check_label), DIR())));
 
         // TODO: Check valid index
@@ -493,7 +545,8 @@ public:
         auto target = get_target(pop(intermediary_storage));
         SymbolType type = *print.input_type.get();
 
-        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLER_SAVE, DIR())));
+        //code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLER_SAVE, DIR())));
+        push_caller_save();
         if (type == BoolType()) {
             code.push(Instruction(Op::MOVQ, Arg(target, DIR()), Arg(Register::RDI, DIR()), "Move value to rdi for print"));
             code.push(Instruction(Op::CALL, Arg(Label("print_bool"), DIR())));
@@ -511,7 +564,8 @@ public:
         } else { // Should not happen since it has been type checked
             throw std::runtime_error("Unsupported type for printing");
         }
-        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLER_RESTORE, DIR())));
+        //code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLER_RESTORE, DIR())));
+        push_caller_restore();
     }
 
     void post_visit(grammar::ast::BreakStatement &break_statement) override {
@@ -585,7 +639,8 @@ public:
         code.push(Instruction(Op::LABEL, Arg(Label("_start"), DIR())));
         code.push(Instruction(Op::PUSHQ, Arg(Register::RBP, DIR()), "save old rbp"));
         code.push(Instruction(Op::MOVQ, Arg(Register::RSP, DIR()), Arg(Register::RBP, DIR()), "set rbp for global scope")); // set rbp
-        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_SAVE, DIR())));
+        // code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_SAVE, DIR())));
+        push_callee_save();
         auto var_decls = global_scope->get_var_symbols();
 
         long stack_size = 0;
@@ -604,7 +659,8 @@ public:
         std::string print_loop_label = ".LprintNum_printLoop";
         std::string print_new_line_label = ".print_newline";
         code.push(Instruction(Op::LABEL, Arg(Label("printNum"), DIR())));
-        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_SAVE, DIR())));
+        // code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_SAVE, DIR())));
+        push_callee_save();
 
         code.push(Instruction(Op::MOVQ, Arg(Register::RDI, DIR()), Arg(Register::RAX, DIR()), "The number"));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(0), DIR()), Arg(Register::R9, DIR()), "Counter for chars to write"));
@@ -635,7 +691,8 @@ public:
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RDX, DIR()), "len"));
         code.push(Instruction(Op::SYSCALL));
 
-        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_RESTORE, DIR())));
+        // code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_RESTORE, DIR())));
+        push_callee_restore();
         code.push(Instruction(Op::RET));
         code.end_scope();
     }
@@ -644,7 +701,8 @@ public:
         code.new_empty_scope();
         std::string print_false_label = ".print_bool_false";
         code.push(Instruction(Op::LABEL, Arg(Label("print_bool"), DIR())));
-        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_SAVE, DIR())));
+        // code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_SAVE, DIR())));
+        push_callee_save();
         
         code.push(Instruction(Op::CMPQ, Arg(ImmediateValue(0), DIR()), Arg(Register::RDI, DIR())));
         code.push(Instruction(Op::JE, Arg(Label(print_false_label), DIR())));
@@ -655,7 +713,8 @@ public:
         code.push(Instruction(Op::MOVQ, Arg(ImmediateData("true"), DIR()), Arg(Register::RSI, DIR()), "Address of 'true'"));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(5), DIR()), Arg(Register::RDX, DIR()), "Length of string to print"));
         code.push(Instruction(Op::SYSCALL));
-        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_RESTORE, DIR())));
+        // code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_RESTORE, DIR())));
+        push_callee_restore();
         code.push(Instruction(Op::RET));
 
         // Print false
@@ -665,7 +724,8 @@ public:
         code.push(Instruction(Op::MOVQ, Arg(ImmediateData("false"), DIR()), Arg(Register::RSI, DIR()), "Address of 'false'"));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(6), DIR()), Arg(Register::RDX, DIR()), "Length of string to print"));
         code.push(Instruction(Op::SYSCALL));
-        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_RESTORE, DIR())));
+        // code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_RESTORE, DIR())));
+        push_callee_restore();
         code.push(Instruction(Op::RET));
         code.end_scope();
     }
@@ -674,7 +734,8 @@ public:
         code.new_empty_scope();
         std::string print_null_label = ".print_object_null";
         code.push(Instruction(Op::LABEL, Arg(Label("print_object"), DIR())));
-        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_SAVE, DIR())));
+        // code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_SAVE, DIR())));
+        push_callee_save();
 
         code.push(Instruction(Op::CMPQ, Arg(ImmediateValue(0), DIR()), Arg(Register::RDI, DIR())));
         code.push(Instruction(Op::JE, Arg(Label(print_null_label), DIR())));
@@ -685,7 +746,8 @@ public:
         code.push(Instruction(Op::MOVQ, Arg(ImmediateData("object"), DIR()), Arg(Register::RSI, DIR()), "Address of 'object'"));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(6), DIR()), Arg(Register::RDX, DIR()), "Length of string to print"));
         code.push(Instruction(Op::SYSCALL));
-        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_RESTORE, DIR())));
+        // code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_RESTORE, DIR())));
+        push_callee_restore();
         code.push(Instruction(Op::RET));
 
         // Print beta
@@ -695,7 +757,8 @@ public:
         code.push(Instruction(Op::MOVQ, Arg(ImmediateData("beta"), DIR()), Arg(Register::RSI, DIR()), "Address of 'beta'"));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(4), DIR()), Arg(Register::RDX, DIR()), "Length of string to print"));
         code.push(Instruction(Op::SYSCALL));
-        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_RESTORE, DIR())));
+        // code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_RESTORE, DIR())));
+        push_callee_restore();
         code.push(Instruction(Op::RET));
         code.end_scope();
     }
@@ -704,7 +767,8 @@ public:
         code.new_empty_scope();
         std::string print_null_label = ".print_array_null";
         code.push(Instruction(Op::LABEL, Arg(Label("print_array"), DIR())));
-        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_SAVE, DIR())));
+        // code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_SAVE, DIR())));
+        push_callee_save();
 
         code.push(Instruction(Op::CMPQ, Arg(ImmediateValue(0), DIR()), Arg(Register::RDI, DIR())));
         code.push(Instruction(Op::JE, Arg(Label(print_null_label), DIR())));
@@ -715,7 +779,8 @@ public:
         code.push(Instruction(Op::MOVQ, Arg(ImmediateData("array"), DIR()), Arg(Register::RSI, DIR()), "Address of 'array'"));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(5), DIR()), Arg(Register::RDX, DIR()), "Length of string to print"));
         code.push(Instruction(Op::SYSCALL));
-        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_RESTORE, DIR())));
+        // code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_RESTORE, DIR())));
+        push_callee_restore();
         code.push(Instruction(Op::RET));
 
         // Print beta
@@ -725,7 +790,8 @@ public:
         code.push(Instruction(Op::MOVQ, Arg(ImmediateData("beta"), DIR()), Arg(Register::RSI, DIR()), "Address of 'beta'"));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(4), DIR()), Arg(Register::RDX, DIR()), "Length of string to print"));
         code.push(Instruction(Op::SYSCALL));
-        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_RESTORE, DIR())));
+        // code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_RESTORE, DIR())));
+        push_callee_restore();
         code.push(Instruction(Op::RET));
         code.end_scope();
     }
@@ -768,7 +834,8 @@ public:
     void push_print_is_beta_function() {
         code.new_empty_scope();
         code.push(Instruction(Op::LABEL, Arg(Label("print_is_beta"), DIR())));
-        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_SAVE, DIR())));
+        // code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_SAVE, DIR())));
+        push_callee_save();
 
         code.push(Instruction(Op::PUSHQ, Arg(Register::RDI, DIR()), "Push line number"));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RAX, DIR()), "System call number for write"));
@@ -778,10 +845,11 @@ public:
         code.push(Instruction(Op::SYSCALL));
         // Print line number
         code.push(Instruction(Op::POPQ, Arg(Register::RDI, DIR()), "Pop line number"));
-        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLER_SAVE, DIR())));
+        // code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLER_SAVE, DIR())));
+        push_caller_save();
         code.push(Instruction(Op::CALL, Arg(Label("printNum"), DIR())));
-        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLER_RESTORE, DIR())));
-
+        //code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLER_RESTORE, DIR())));
+        push_caller_restore();
 
         // Close with error code 1
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(60), DIR()), Arg(Register::RAX, DIR())));
@@ -807,7 +875,8 @@ public:
         code.push(Instruction(Op::PUSHQ, Arg(Register::RBP, DIR()), "setting static link")); // Settting static link.
         code.push(Instruction(Op::CALL, Arg(Label("main"), DIR())));
         code.push(Instruction(Op::POPQ, Arg(Register::RBP, DIR()), "remove static link from stack"));
-        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_RESTORE, DIR())));
+        // code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_RESTORE, DIR())));
+        push_callee_restore();
         code.push(Instruction(Op::POPQ, Arg(Register::RBP, DIR()), "restore old rbp"));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(60), DIR()), Arg(Register::RAX, DIR())));
         code.push(Instruction(Op::XORQ, Arg(Register::RDI, DIR()), Arg(Register::RDI, DIR())));
