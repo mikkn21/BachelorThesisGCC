@@ -747,6 +747,7 @@ public:
     void push_mem_alloc_function() {
         code.new_empty_scope();
         code.push(Instruction(Op::LABEL, Arg(Label("allocate"), DIR())));
+        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLER_SAVE, DIR())));
 
         code.push(Instruction(Op::PUSHQ, Arg(Register::RDI, DIR())));
         code.push(Instruction(Op::NOTHING, "1. Find the current end of the data segment."));
@@ -759,8 +760,11 @@ public:
         code.push(Instruction(Op::ADDQ, Arg(Register::RAX, DIR()), Arg(Register::RDI, DIR()), "compute the new end"));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(12), DIR()), Arg(Register::RAX, DIR()), "brk"));
         code.push(Instruction(Op::SYSCALL));
-        code.push(Instruction(Op::POPQ, Arg(Register::RAX, DIR()), "the old end, which is the address of our allocated memory"));
+        GenericRegister result = code.new_register();
+        code.push(Instruction(Op::POPQ, Arg(result, DIR()), "the old end, which is the address of our allocated memory"));
 
+        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLER_RESTORE, DIR())));
+        code.push(Instruction(Op::MOVQ, Arg(result, DIR()), Arg(Register::RAX, DIR())));
         code.push(Instruction(Op::RET));
         code.end_scope();
     }

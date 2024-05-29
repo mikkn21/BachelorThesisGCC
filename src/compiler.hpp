@@ -41,7 +41,7 @@ public:
     bool print_register_allocation = false;
     bool naive_register_allocation = true;
     bool disable_peephole = true;
-};
+
 
 std::string get_file_content(std::string_view input);
 std::unique_ptr<CompilerReturnObj> compile_from_file(std::string_view input, const CompilerOptions &options);
