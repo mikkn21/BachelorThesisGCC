@@ -494,15 +494,15 @@ public:
         GenericRegister array_ptr = static_link_read(current_scope, *target_symbol);
 
         // Check null
-        // code.push(Instruction(Op::CMPQ, Arg(ImmediateValue(0), DIR()), Arg(array_ptr, DIR()), "Start checking for beta"));
-        // code.push(Instruction(Op::JNE, Arg(Label(index.beta_check_label), DIR())));
-        // code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(index.line), DIR()), Arg(Register::RDI, DIR()), "Line number"));
-        // //code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLER_SAVE, DIR())));
-        // push_caller_save();
-        // code.push(Instruction(Op::CALL, Arg(Label("print_is_beta"), DIR())));
-        // //code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLER_RESTORE, DIR())));
-        // push_caller_restore();
-        // code.push(Instruction(Op::LABEL, Arg(Label(index.beta_check_label), DIR())));
+        code.push(Instruction(Op::CMPQ, Arg(ImmediateValue(0), DIR()), Arg(array_ptr, DIR()), "Start checking for beta"));
+        code.push(Instruction(Op::JNE, Arg(Label(index.beta_check_label), DIR())));
+        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(index.line), DIR()), Arg(Register::RDI, DIR()), "Line number"));
+        //code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLER_SAVE, DIR())));
+        push_caller_save();
+        code.push(Instruction(Op::CALL, Arg(Label("print_is_beta"), DIR())));
+        //code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLER_RESTORE, DIR())));
+        push_caller_restore();
+        code.push(Instruction(Op::LABEL, Arg(Label(index.beta_check_label), DIR())));
 
         // TODO: Check valid index
 
