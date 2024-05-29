@@ -64,69 +64,6 @@ public:
 };
 
 
-
-std::vector<Instruction> binop_instructions(std::string op, GenericRegister result){
-    std::vector<Instruction> code;
-    if (op == "+") {
-        code.push_back(Instruction(Op::ADDQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR())));
-        code.push_back(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(result, DIR())));
-    } else if (op == "-") {
-        code.push_back(Instruction(Op::SUBQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR())));
-        code.push_back(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(result, DIR())));
-    } else if (op == "*") {
-        code.push_back(Instruction(Op::XORQ, Arg(Register::RDX, DIR()), Arg(Register::RDX, DIR())));
-        code.push_back(Instruction(Op::IMULQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR())));
-        code.push_back(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(result, DIR())));
-    } else if (op == "/") {
-        code.push_back(Instruction(Op::XORQ, Arg(Register::RDX, DIR()), Arg(Register::RDX, DIR())));
-        code.push_back(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(Register::RAX, DIR())));
-        code.push_back(Instruction(Op::IDIVQ, Arg(Register::R9, DIR())));
-        code.push_back(Instruction(Op::MOVQ, Arg(Register::RAX, DIR()), Arg(result, DIR())));
-    } else if (op == "%") {
-        code.push_back(Instruction(Op::XORQ, Arg(Register::RDX, DIR()), Arg(Register::RDX, DIR())));
-        code.push_back(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(Register::RAX, DIR())));
-        code.push_back(Instruction(Op::IDIVQ, Arg(Register::R9, DIR())));
-        code.push_back(Instruction(Op::MOVQ, Arg(Register::RDX, DIR()), Arg(result, DIR())));
-    } else if (op == "&") {
-        code.push_back(Instruction(Op::ANDQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR())));
-        code.push_back(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(result, DIR())));
-    } else if (op == "|") {
-        code.push_back(Instruction(Op::ORQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR())));
-        code.push_back(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(result, DIR())));
-    } else if (op == "<") {
-        code.push_back(Instruction(Op::XORQ, Arg(Register::R10, DIR()), Arg(Register::R10, DIR())));
-        code.push_back(Instruction(Op::CMPQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR())));
-        code.push_back(Instruction(Op::SETL, Arg(Register::R10B, DIR())));
-        code.push_back(Instruction(Op::MOVQ, Arg(Register::R10, DIR()), Arg(result, DIR())));
-    } else if (op == ">") {
-        code.push_back(Instruction(Op::XORQ, Arg(Register::R10, DIR()), Arg(Register::R10, DIR())));
-        code.push_back(Instruction(Op::CMPQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR())));
-        code.push_back(Instruction(Op::SETG, Arg(Register::R10B, DIR())));
-        code.push_back(Instruction(Op::MOVQ, Arg(Register::R10, DIR()), Arg(result, DIR())));
-    } else if (op == "==") {
-        code.push_back(Instruction(Op::XORQ, Arg(Register::R10, DIR()), Arg(Register::R10, DIR()), "start of equal compare"));
-        code.push_back(Instruction(Op::CMPQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR())));
-        code.push_back(Instruction(Op::SETE, Arg(Register::R10B, DIR())));
-        code.push_back(Instruction(Op::MOVQ, Arg(Register::R10, DIR()), Arg(result, DIR()), "end of equal compare"));
-    } else if (op == "!=") {
-        code.push_back(Instruction(Op::XORQ, Arg(Register::R10, DIR()), Arg(Register::R10, DIR())));
-        code.push_back(Instruction(Op::CMPQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR())));
-        code.push_back(Instruction(Op::SETNE, Arg(Register::R10B, DIR())));
-        code.push_back(Instruction(Op::MOVQ, Arg(Register::R10, DIR()), Arg(result, DIR())));
-    } else if (op == "<=") {
-        code.push_back(Instruction(Op::XORQ, Arg(Register::R10, DIR()), Arg(Register::R10, DIR()), "start of less than or equal compare"));
-        code.push_back(Instruction(Op::CMPQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR())));
-        code.push_back(Instruction(Op::SETLE, Arg(Register::R10B, DIR())));
-        code.push_back(Instruction(Op::MOVQ, Arg(Register::R10, DIR()), Arg(result, DIR())));
-    } else if (op == ">=") {
-        code.push_back(Instruction(Op::XORQ, Arg(Register::R10, DIR()), Arg(Register::R10, DIR())));
-        code.push_back(Instruction(Op::CMPQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR())));
-        code.push_back(Instruction(Op::SETGE, Arg(Register::R10B, DIR())));
-        code.push_back(Instruction(Op::MOVQ, Arg(Register::R10, DIR()), Arg(result, DIR())));
-    }
-    return code;
-}
-
 TargetType get_target(AstValue value) {
     if (std::holds_alternative<int>(value)) {
         return ImmediateValue(std::get<int>(value));
@@ -159,52 +96,32 @@ private:
             return GenericRegister(target_var_symbol.ir_data.local_id);
         } else {
             size_t depth = current_scope.depth - target_var_symbol.var_decl->id.scope->depth;
-            code.push(Instruction(Op::MOVQ, Arg(Register::RBP, DIR()), Arg(Register::R8, DIR()), "starting static linking read"));
+            GenericRegister static_link_reg = code.new_register();
+            code.push(Instruction(Op::MOVQ, Arg(Register::RBP, DIR()), Arg(static_link_reg, DIR()), "starting static linking read"));
             for (auto i = 0; i < depth; i++) {
-                code.push(Instruction(Op::MOVQ, Arg(Register::R8, IRL(16)), Arg(Register::R8, DIR())));
+                code.push(Instruction(Op::MOVQ, Arg(static_link_reg, IRL(16)), Arg(static_link_reg, DIR())));
             }
             long target_stack_offset = callee_offset + (target_var_symbol.ir_data.stack_offset + 1) * -8;
-            GenericRegister read_result = code.new_register();
-            // std::cout << " Generic Register: " << read_result.local_id << std::endl;
-            code.push(Instruction(Op::MOVQ, Arg(Register::R8, IRL(target_stack_offset)), Arg(read_result, DIR()), "temporarely save result"));
-            return read_result;
+            code.push(Instruction(Op::MOVQ, Arg(static_link_reg, IRL(target_stack_offset)), Arg(static_link_reg, DIR()), "fetch value from outer scope"));
+            return static_link_reg;
         }
     }
 
     /// uses register R8, R9 and R10, so should be saved before use
     void static_link_write(SymbolTable &current_scope, VarSymbol &target_var_symbol, TargetType write_value) {
         if (target_var_symbol.ir_data.is_local) {
-            code.push(Instruction(Op::MOVQ, Arg(write_value, DIR()), Arg(GenericRegister(target_var_symbol.ir_data.local_id), DIR()), "temporarely save result"));
+            code.push(Instruction(Op::MOVQ, Arg(write_value, DIR()), Arg(GenericRegister(target_var_symbol.ir_data.local_id), DIR()), "assign value to local variable"));
         } else {
+            GenericRegister static_link_reg = code.new_register();
             size_t depth = current_scope.depth - target_var_symbol.var_decl->id.scope->depth;
-            code.push(Instruction(Op::MOVQ, Arg(Register::RBP, DIR()), Arg(Register::R8, DIR()), "starting static linking write"));
+            code.push(Instruction(Op::MOVQ, Arg(Register::RBP, DIR()), Arg(static_link_reg, DIR()), "starting static linking write"));
             for (auto i = 0; i < depth; i++) {
-                code.push(Instruction(Op::MOVQ, Arg(Register::R8, IRL(16)), Arg(Register::R8, DIR())));
+                code.push(Instruction(Op::MOVQ, Arg(static_link_reg, IRL(16)), Arg(static_link_reg, DIR())));
             }
             long target_stack_offset = callee_offset + (target_var_symbol.ir_data.stack_offset + 1) * -8;
-            code.push(Instruction(Op::MOVQ, Arg(write_value, DIR()), Arg(Register::R8, IRL(target_stack_offset)), "temporarely save result"));
+            code.push(Instruction(Op::MOVQ, Arg(write_value, DIR()), Arg(static_link_reg, IRL(target_stack_offset)), "assign value to variable in outer scope"));
         }
     }
-
-
-    // /// uses register R8, R9 and R10, so should be saved before use
-    // std::vector<Instruction> static_link_write(int depth, int stack_offset, TargetType write_value) {
-    //     std::vector<Instruction> instructions;
-    //     instructions.push_back(Instruction(Op::MOVQ, Arg(Register::RBP, DIR()), Arg(Register::R8, DIR()), "starting static linking write"));
-    //     // std::cout << "depth: " << depth << std::endl;
-    //     for (auto i = 0; i < depth; i++) {
-    //         instructions.push_back(Instruction(Op::MOVQ, Arg(Register::R8, IRL(16)), Arg(Register::R9, DIR())));
-    //         instructions.push_back(Instruction(Op::MOVQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR())));
-    //     }
-    //     GenericRegister target = GenericRegister(stack_offset);
-
-    //     instructions.push_back(Instruction(Op::MOVQ, Arg(write_value, DIR()), Arg(Register::R10, DIR()), "put write value in temp storage")); // save RBP
-    //     instructions.push_back(Instruction(Op::MOVQ, Arg(Register::RBP, DIR()), Arg(Register::R9, DIR()), "save RBP")); // save RBP
-    //     instructions.push_back(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(Register::RBP, DIR()))); // set RBP to R8, so generic register points to correct memory location.
-    //     instructions.push_back(Instruction(Op::MOVQ, Arg(Register::R10, DIR()), Arg(target, DIR()), "assign value to target"));
-    //     instructions.push_back(Instruction(Op::MOVQ, Arg(Register::R9, DIR()), Arg(Register::RBP, DIR()), "restore RBP")); // restore RBP
-    //     return instructions;
-    // }
 
     void push_caller_save() {
         code.push(Instruction(Op::PUSHQ, Arg(Register::RAX, DIR()), "save rax"));
@@ -260,13 +177,11 @@ public:
         code.push(Instruction(Op::MOVQ, Arg(target, DIR()), Arg(Register::RAX, DIR())));
 
         // Remove local variables from the stack
-        code.push(Instruction(Op::MOVQ, Arg(Register::RBP, DIR()), Arg(Register::R8, DIR())));
-        code.push(Instruction(Op::ADDQ, Arg(ImmediateValue(callee_offset), DIR()), Arg(Register::R8, DIR())));
+        code.push(Instruction(Op::MOVQ, Arg(Register::RBP, DIR()), Arg(Register::RSP, DIR())));
+        code.push(Instruction(Op::ADDQ, Arg(ImmediateValue(callee_offset), DIR()), Arg(Register::RSP, DIR())));
         // The above instruction is actually equal to a subtraction, as 'callee_offset' is a negative value.
-        // The intention of these three instructions is to move the stack pointer up to right after the calle saves.
-        code.push(Instruction(Op::MOVQ, Arg(Register::R8, DIR()), Arg(Register::RSP, DIR())));
+        // The intention of these two instructions is to move the stack pointer up to right after the calle saves.
 
-        // code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_RESTORE, DIR())));
         push_callee_restore();
         code.push(Instruction(Op::MOVQ, Arg(Register::RBP, DIR()), Arg(Register::RSP, DIR())));
         code.push(Instruction(Op::POPQ, Arg(Register::RBP, DIR())));
@@ -312,19 +227,18 @@ public:
         int caller_depth = func_call.id.scope->depth;
         int difference = caller_depth - callee_depth;
         
-        code.push(Instruction(Op::MOVQ, Arg(Register::RBP, DIR()), Arg(Register::R8, DIR()), "calculating static link for function call"));
+        GenericRegister static_link_reg = code.new_register();
+        code.push(Instruction(Op::MOVQ, Arg(Register::RBP, DIR()), Arg(static_link_reg, DIR()), "calculating static link for function call"));
         for (auto i = 0; i < difference; i++) {
-            code.push(Instruction(Op::MOVQ, Arg(Register::R8, IRL(16)), Arg(Register::R9, DIR())));
-            code.push(Instruction(Op::MOVQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR())));
+            code.push(Instruction(Op::MOVQ, Arg(static_link_reg, IRL(16)), Arg(static_link_reg, DIR())));
         } 
 
-        code.push(Instruction(Op::PUSHQ, Arg(Register::R8, DIR()), "setting static link")); // Settting static link.
+        code.push(Instruction(Op::PUSHQ, Arg(static_link_reg, DIR()), "setting static link")); // Settting static link.
         std::string label = dynamic_cast<FuncSymbol*>(func_call.id.sym)->func_decl->label;
-        // std::cout << label << std::endl;
         code.push(Instruction(Op::CALL, Arg(Label(label), DIR())));
         code.push(Instruction(Op::ADDQ, Arg(ImmediateValue((func_call.argument_list.arguments.size()+1) * 8), DIR()), Arg(Register::RSP, DIR()), "remove arguments and static link from stack")); 
         code.push(Instruction(Op::MOVQ, Arg(Register::RAX, DIR()), Arg(result, DIR()), "save result from function call")); 
-        // code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLER_RESTORE, DIR())));
+
         push_caller_restore();
         intermediary_storage.push(result); // pushing the result of the function
     }
@@ -349,15 +263,15 @@ public:
             SymbolTable &current_scope = *var_assign.id_access.ids.front().scope;
             VarSymbol &target_var_symbol = *var_symbols.front();
             GenericRegister result = static_link_read(current_scope, target_var_symbol);
-
-            code.push(Instruction(Op::MOVQ, Arg(result, DIR()), Arg(Register::R8, DIR()), "Initialise static link"));
+            GenericRegister reg1 = code.new_register();
+            
+            code.push(Instruction(Op::MOVQ, Arg(result, DIR()), Arg(reg1, DIR()), "Initialise static link for object access"));
             // The above line equates to -40 + -8/-16... Which is correct because the first id will always be accessed on the stack, and therefore IRL access needs to be negative
             for (size_t i = 1; i < var_symbols.size()-1; i++) {
-                code.push(Instruction(Op::MOVQ, Arg(Register::R8, IRL(var_symbols[i]->ir_data.local_id * 8)), Arg(Register::R9, DIR()), "accessing member relative to it's scope")); /// for the first access this is relative to current scope
-                code.push(Instruction(Op::MOVQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR()), "moving pointer to r8 to set up for future IRL access")); // this line is needed for structs of structs
+                code.push(Instruction(Op::MOVQ, Arg(reg1, IRL(var_symbols[i]->ir_data.local_id * 8)), Arg(reg1, DIR()), "accessing member relative to it's scope")); /// for the first access this is relative to current scope
             } // by the end of this loop the scope / block of data where varAssign.idAccess.back() is located should be in R8
             
-            code.push(Instruction(Op::MOVQ, Arg(target, DIR()), Arg(Register::R8, IRL(var_symbols.back()->ir_data.local_id * 8)), "inserting value into found member"));
+            code.push(Instruction(Op::MOVQ, Arg(target, DIR()), Arg(reg1, IRL(var_symbols.back()->ir_data.local_id * 8)), "inserting value into found member"));
         } else {
             //AstValue value = pop(intermediary_storage);
             VarSymbol *var_symbol = get_var_symbol(var_assign.id_access.ids.back().sym);
@@ -392,18 +306,16 @@ public:
             auto &read_var_symbol = *get_var_symbol(frontId.sym); // auto frontLocalId = frontSym->local_id;
             auto &current_scope = *var_expr.id_access.ids.back().scope;
             GenericRegister read_register = static_link_read(current_scope, read_var_symbol);
+            GenericRegister reg1 = code.new_register();
 
-            code.push(Instruction(Op::MOVQ, Arg(read_register, DIR()), Arg(Register::R8, DIR()), "Save static link"));
+            code.push(Instruction(Op::MOVQ, Arg(read_register, DIR()), Arg(reg1, DIR()), "Store static link for object access"));
             // The above line equates to -40 + -8/-16... Which is correct because the first id will always be accessed on the stack, and therefore IRL access needs to be negative
             for (size_t i = 1; i < var_expr.id_access.ids.size()-1; i++) {
-                code.push(Instruction(Op::MOVQ, Arg(Register::R8, IRL(get_var_symbol(var_expr.id_access.ids[i].sym)->ir_data.local_id * 8)), Arg(Register::R9, DIR()), "accessing member relative to it's scope")); // for the first access this is relative to current scope
-
-                code.push(Instruction(Op::MOVQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR()), "moving pointer to r8 to set up for future IRL access")); // this line is needed for structs of structs
+                code.push(Instruction(Op::MOVQ, Arg(reg1, IRL(get_var_symbol(var_expr.id_access.ids[i].sym)->ir_data.local_id * 8)), Arg(reg1, DIR()), "accessing member relative to it's scope")); // for the first access this is relative to current scope
             }
 
-            GenericRegister result_register = code.new_register();
-            code.push(Instruction(Op::MOVQ, Arg(Register::R8, IRL(get_var_symbol(var_expr.id_access.ids.back().sym)->ir_data.local_id * 8)), Arg(result_register, DIR()), "get value from member of class and save to temporary register")); 
-            intermediary_storage.push(result_register);
+            code.push(Instruction(Op::MOVQ, Arg(reg1, IRL(get_var_symbol(var_expr.id_access.ids.back().sym)->ir_data.local_id * 8)), Arg(reg1, DIR()), "get value from member of class and save to temporary register")); 
+            intermediary_storage.push(reg1);
         } else {
             auto frontId = var_expr.id_access.ids.front();
             auto &target_var_symbol = *get_var_symbol(frontId.sym); // auto frontLocalId = frontSym->local_id;
@@ -419,12 +331,69 @@ public:
         auto r_target = get_target(pop(intermediary_storage));
         auto l_target = get_target(pop(intermediary_storage));
 
-        code.push(Instruction(Op::MOVQ, Arg(l_target, DIR()), Arg(Register::R8, DIR()), "Rhs left hand side"));
-        code.push(Instruction(Op::MOVQ, Arg(r_target, DIR()), Arg(Register::R9, DIR()), "Rhs right hand side"));
+        GenericRegister lefthand = code.new_register();
+        GenericRegister righthand = code.new_register();
 
-        auto binop_result = binop_instructions(op_exp.op, result);
-        for (auto instruction : binop_result) {
-            code.push(instruction);
+        code.push(Instruction(Op::MOVQ, Arg(l_target, DIR()), Arg(lefthand, DIR())));
+        code.push(Instruction(Op::MOVQ, Arg(r_target, DIR()), Arg(righthand, DIR())));
+
+        auto &op = op_exp.op;
+        if (op == "+") {
+            code.push(Instruction(Op::ADDQ, Arg(righthand, DIR()), Arg(lefthand, DIR())));
+            code.push(Instruction(Op::MOVQ, Arg(lefthand, DIR()), Arg(result, DIR())));
+        } else if (op == "-") {
+            code.push(Instruction(Op::SUBQ, Arg(righthand, DIR()), Arg(lefthand, DIR())));
+            code.push(Instruction(Op::MOVQ, Arg(lefthand, DIR()), Arg(result, DIR())));
+        } else if (op == "*") {
+            code.push(Instruction(Op::XORQ, Arg(Register::RDX, DIR()), Arg(Register::RDX, DIR())));
+            code.push(Instruction(Op::IMULQ, Arg(righthand, DIR()), Arg(lefthand, DIR())));
+            code.push(Instruction(Op::MOVQ, Arg(lefthand, DIR()), Arg(result, DIR())));
+        } else if (op == "/") {
+            code.push(Instruction(Op::XORQ, Arg(Register::RDX, DIR()), Arg(Register::RDX, DIR())));
+            code.push(Instruction(Op::MOVQ, Arg(lefthand, DIR()), Arg(Register::RAX, DIR())));
+            code.push(Instruction(Op::IDIVQ, Arg(righthand, DIR())));
+            code.push(Instruction(Op::MOVQ, Arg(Register::RAX, DIR()), Arg(result, DIR())));
+        } else if (op == "%") {
+            code.push(Instruction(Op::XORQ, Arg(Register::RDX, DIR()), Arg(Register::RDX, DIR())));
+            code.push(Instruction(Op::MOVQ, Arg(lefthand, DIR()), Arg(Register::RAX, DIR())));
+            code.push(Instruction(Op::IDIVQ, Arg(righthand, DIR())));
+            code.push(Instruction(Op::MOVQ, Arg(Register::RDX, DIR()), Arg(result, DIR())));
+        } else if (op == "&") {
+            code.push(Instruction(Op::ANDQ, Arg(righthand, DIR()), Arg(lefthand, DIR())));
+            code.push(Instruction(Op::MOVQ, Arg(lefthand, DIR()), Arg(result, DIR())));
+        } else if (op == "|") {
+            code.push(Instruction(Op::ORQ, Arg(righthand, DIR()), Arg(lefthand, DIR())));
+            code.push(Instruction(Op::MOVQ, Arg(lefthand, DIR()), Arg(result, DIR())));
+        } else if (op == "<") {
+            code.push(Instruction(Op::XORQ, Arg(Register::R10, DIR()), Arg(Register::R10, DIR())));
+            code.push(Instruction(Op::CMPQ, Arg(righthand, DIR()), Arg(lefthand, DIR())));
+            code.push(Instruction(Op::SETL, Arg(Register::R10B, DIR())));
+            code.push(Instruction(Op::MOVQ, Arg(Register::R10, DIR()), Arg(result, DIR())));
+        } else if (op == ">") {
+            code.push(Instruction(Op::XORQ, Arg(Register::R10, DIR()), Arg(Register::R10, DIR())));
+            code.push(Instruction(Op::CMPQ, Arg(righthand, DIR()), Arg(lefthand, DIR())));
+            code.push(Instruction(Op::SETG, Arg(Register::R10B, DIR())));
+            code.push(Instruction(Op::MOVQ, Arg(Register::R10, DIR()), Arg(result, DIR())));
+        } else if (op == "==") {
+            code.push(Instruction(Op::XORQ, Arg(Register::R10, DIR()), Arg(Register::R10, DIR()), "start of equal compare"));
+            code.push(Instruction(Op::CMPQ, Arg(righthand, DIR()), Arg(lefthand, DIR())));
+            code.push(Instruction(Op::SETE, Arg(Register::R10B, DIR())));
+            code.push(Instruction(Op::MOVQ, Arg(Register::R10, DIR()), Arg(result, DIR()), "end of equal compare"));
+        } else if (op == "!=") {
+            code.push(Instruction(Op::XORQ, Arg(Register::R10, DIR()), Arg(Register::R10, DIR())));
+            code.push(Instruction(Op::CMPQ, Arg(righthand, DIR()), Arg(lefthand, DIR())));
+            code.push(Instruction(Op::SETNE, Arg(Register::R10B, DIR())));
+            code.push(Instruction(Op::MOVQ, Arg(Register::R10, DIR()), Arg(result, DIR())));
+        } else if (op == "<=") {
+            code.push(Instruction(Op::XORQ, Arg(Register::R10, DIR()), Arg(Register::R10, DIR()), "start of less than or equal compare"));
+            code.push(Instruction(Op::CMPQ, Arg(righthand, DIR()), Arg(lefthand, DIR())));
+            code.push(Instruction(Op::SETLE, Arg(Register::R10B, DIR())));
+            code.push(Instruction(Op::MOVQ, Arg(Register::R10, DIR()), Arg(result, DIR())));
+        } else if (op == ">=") {
+            code.push(Instruction(Op::XORQ, Arg(Register::R10, DIR()), Arg(Register::R10, DIR())));
+            code.push(Instruction(Op::CMPQ, Arg(righthand, DIR()), Arg(lefthand, DIR())));
+            code.push(Instruction(Op::SETGE, Arg(Register::R10B, DIR())));
+            code.push(Instruction(Op::MOVQ, Arg(Register::R10, DIR()), Arg(result, DIR())));
         }
 
         intermediary_storage.push(result);  
@@ -436,19 +405,18 @@ public:
             sizes.push_back(pop(intermediary_storage));
         }
 
-        TargetType memSize = code.new_register(); 
+        TargetType mem_size = code.new_register(); 
 
 
-        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(8), DIR()), Arg(memSize, DIR()), "initialize memory size" ));
+        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(8), DIR()), Arg(mem_size, DIR()), "initialize memory size" ));
         for (auto value : sizes) {
-            code.push(Instruction(Op::IMULQ, Arg(get_target(value), DIR()), Arg(memSize, DIR()), "calculate memory"));
+            code.push(Instruction(Op::IMULQ, Arg(get_target(value), DIR()), Arg(mem_size, DIR()), "calculate memory"));
         }
-        code.push(Instruction(Op::ADDQ, Arg(ImmediateValue(arr.sizes.size() * 8), DIR()), Arg(memSize, DIR()), "found size of memory"));
+        code.push(Instruction(Op::ADDQ, Arg(ImmediateValue(arr.sizes.size() * 8), DIR()), Arg(mem_size, DIR()), "found size of memory"));
 
         // allocate memory
-        // code.push(Instruction(Op::PUSHQ, Arg(, DIR())));
-        code.push(Instruction(Op::MOVQ, Arg(memSize, DIR()), Arg(Register::RDI, DIR()), "set memory size for allocation" ));
-        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::MEM_ALLOC, DIR()), Arg(Register::RDI, DIR()), "allocate memory of found memory size"));
+        code.push(Instruction(Op::MOVQ, Arg(mem_size, DIR()), Arg(Register::RDI, DIR()), "set memory size for allocation" ));
+        code.push(Instruction(Op::CALL, Arg(Label("allocate"), DIR()), "allocate memory of found memory size"));
         
         GenericRegister arrayStart = code.new_register();
         code.push(Instruction(Op::MOVQ, Arg(Register::RAX, DIR()), Arg(arrayStart, DIR()), "Save array pointer in generic register" ));
@@ -462,7 +430,7 @@ public:
         GenericRegister counter = code.new_register();
 
         code.push(Instruction(Op::MOVQ, Arg(arrayStart, DIR()), Arg(counter, DIR()), "initialize counter for initialization loop"));
-        code.push(Instruction(Op::ADDQ, Arg(memSize, DIR()), Arg(arrayStart, DIR()), "Store end of array"));
+        code.push(Instruction(Op::ADDQ, Arg(mem_size, DIR()), Arg(arrayStart, DIR()), "Store end of array"));
         // NOTE: arrayStart is now the end of the array
         code.push(Instruction(Op::LABEL, Arg(Label(arr.loop_label), DIR())));
 
@@ -473,7 +441,7 @@ public:
         code.push(Instruction(Op::CMPQ, Arg(arrayStart, DIR()), Arg(counter, DIR()), "check if we are done initializing"));
         code.push(Instruction(Op::JG, Arg(Label(arr.loop_label), DIR()), "if we are done initializing, jump to end of initialization loop"));
 
-        code.push(Instruction(Op::SUBQ, Arg(memSize, DIR()), Arg(arrayStart, DIR()), "restore end of array to be start of array"));
+        code.push(Instruction(Op::SUBQ, Arg(mem_size, DIR()), Arg(arrayStart, DIR()), "restore end of array to be start of array"));
         // NOTE: arrayStart is now the start of the array again
         // set the array pointer to point to the first element of the array
         code.push(Instruction(Op::ADDQ, Arg(ImmediateValue(sizes.size() * 8), DIR()), Arg(arrayStart, DIR()), "set array pointer to point to first element" ));
@@ -535,15 +503,17 @@ public:
 
     void post_visit(grammar::ast::ArrayIndexExp &index_exp) override {
         TargetType index_ptr = get_target(pop(intermediary_storage));
-        GenericRegister result = code.new_register();
-        code.push(Instruction(Op::MOVQ, Arg(index_ptr, IND()), Arg(result, DIR()), "Unwrap the index pointer"));
-        intermediary_storage.push(result);
+        auto index_ptr_generic = std::get<GenericRegister>(index_ptr); // index_ptr is the production of ArrayIndex and thus will always be a GenericRegister
+
+        code.push(Instruction(Op::MOVQ, Arg(index_ptr_generic, IND()), Arg(index_ptr_generic, DIR()), "Unwrap the index pointer"));
+        intermediary_storage.push(index_ptr_generic);
     }
 
     void post_visit(grammar::ast::ArrayIndexAssign &assign) override {
         TargetType value = get_target(pop(intermediary_storage));
         TargetType index_ptr = get_target(pop(intermediary_storage));
-        code.push(Instruction(Op::MOVQ, Arg(value, DIR()), Arg(index_ptr, IND()), "Assign the value to the array index"));
+        auto index_ptr_generic = std::get<GenericRegister>(index_ptr); // index_ptr is the production of ArrayIndex and thus will always be a GenericRegister
+        code.push(Instruction(Op::MOVQ, Arg(value, DIR()), Arg(index_ptr_generic, IND()), "Assign the value to the array index"));
     }
 
     void post_visit(grammar::ast::PrintStatement &print) override {
@@ -591,8 +561,9 @@ public:
 
     void pre_block_visit(grammar::ast::WhileStatement &while_statement) override {
         auto target = get_target(pop(intermediary_storage));
-        code.push(Instruction(Op::MOVQ, Arg(target, DIR()), Arg(Register::RAX, DIR())));
-        code.push(Instruction(Op::CMPQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RAX, DIR())));
+        GenericRegister reg1 = code.new_register();
+        code.push(Instruction(Op::MOVQ, Arg(target, DIR()), Arg(reg1, DIR())));
+        code.push(Instruction(Op::CMPQ, Arg(ImmediateValue(1), DIR()), Arg(reg1, DIR())));
         while_stack.push(&while_statement); // push current whileloop on loop stack
         code.push(Instruction(Op::JNE, Arg(Label(while_statement.end_label), DIR())));
     }
@@ -609,8 +580,9 @@ public:
 
     void pre_block_visit(grammar::ast::IfStatement &if_statement) override {
         auto target = get_target(pop(intermediary_storage));
-        code.push(Instruction(Op::MOVQ, Arg(target, DIR()), Arg(Register::RAX, DIR())));
-        code.push(Instruction(Op::CMPQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RAX, DIR())));
+        GenericRegister reg1 = code.new_register();
+        code.push(Instruction(Op::MOVQ, Arg(target, DIR()), Arg(reg1, DIR())));
+        code.push(Instruction(Op::CMPQ, Arg(ImmediateValue(1), DIR()), Arg(reg1, DIR())));
         code.push(Instruction(Op::JNE, Arg(Label(if_statement.next_label), DIR())));
     }
 
@@ -632,8 +604,9 @@ public:
 
         GenericRegister result_register = code.new_register();
 
-        code.push(Instruction(Op::PROCEDURE, Arg(Procedure::MEM_ALLOC, DIR()), Arg(ImmediateValue(attrs.size() * 8), DIR()), "allocating space for variables"));
-        code.push(Instruction(Op::MOVQ, Arg(Register::RAX, DIR()), Arg(result_register, DIR()), "returning address to resultRegister")); 
+        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(attrs.size() * 8), DIR()), Arg(Register::RDI, DIR()), "allocate argument"));
+        code.push(Instruction(Op::CALL, Arg(Label("allocate"), DIR()), "allocating space for variables"));
+        code.push(Instruction(Op::MOVQ, Arg(Register::RAX, DIR()), Arg(result_register, DIR()), "returning address to result_register")); 
         for (size_t i = 0 ; i < attrs.size() ; ++i) {
             code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(0), DIR()), Arg(result_register, IRL(long(8*i))), "initializing variable " + attrs[i]->var_decl->id.id));
         }
@@ -644,7 +617,6 @@ public:
         code.push(Instruction(Op::LABEL, Arg(Label("_start"), DIR())));
         code.push(Instruction(Op::PUSHQ, Arg(Register::RBP, DIR()), "save old rbp"));
         code.push(Instruction(Op::MOVQ, Arg(Register::RSP, DIR()), Arg(Register::RBP, DIR()), "set rbp for global scope")); // set rbp
-        // code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_SAVE, DIR())));
         push_callee_save();
         auto var_decls = global_scope->get_var_symbols();
 
@@ -662,7 +634,6 @@ public:
         std::string print_loop_label = ".LprintNum_printLoop";
         std::string print_new_line_label = ".print_newline";
         code.push(Instruction(Op::LABEL, Arg(Label("printNum"), DIR())));
-        // code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_SAVE, DIR())));
         push_callee_save();
 
         code.push(Instruction(Op::MOVQ, Arg(Register::RDI, DIR()), Arg(Register::RAX, DIR()), "The number"));
@@ -694,7 +665,6 @@ public:
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RDX, DIR()), "len"));
         code.push(Instruction(Op::SYSCALL));
 
-        // code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_RESTORE, DIR())));
         push_callee_restore();
         code.push(Instruction(Op::RET));
         code.end_scope();
@@ -704,7 +674,6 @@ public:
         code.new_empty_scope();
         std::string print_false_label = ".print_bool_false";
         code.push(Instruction(Op::LABEL, Arg(Label("print_bool"), DIR())));
-        // code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_SAVE, DIR())));
         push_callee_save();
         
         code.push(Instruction(Op::CMPQ, Arg(ImmediateValue(0), DIR()), Arg(Register::RDI, DIR())));
@@ -716,7 +685,6 @@ public:
         code.push(Instruction(Op::MOVQ, Arg(ImmediateData("true"), DIR()), Arg(Register::RSI, DIR()), "Address of 'true'"));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(5), DIR()), Arg(Register::RDX, DIR()), "Length of string to print"));
         code.push(Instruction(Op::SYSCALL));
-        // code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_RESTORE, DIR())));
         push_callee_restore();
         code.push(Instruction(Op::RET));
 
@@ -727,7 +695,6 @@ public:
         code.push(Instruction(Op::MOVQ, Arg(ImmediateData("false"), DIR()), Arg(Register::RSI, DIR()), "Address of 'false'"));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(6), DIR()), Arg(Register::RDX, DIR()), "Length of string to print"));
         code.push(Instruction(Op::SYSCALL));
-        // code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_RESTORE, DIR())));
         push_callee_restore();
         code.push(Instruction(Op::RET));
         code.end_scope();
@@ -737,7 +704,6 @@ public:
         code.new_empty_scope();
         std::string print_null_label = ".print_object_null";
         code.push(Instruction(Op::LABEL, Arg(Label("print_object"), DIR())));
-        // code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_SAVE, DIR())));
         push_callee_save();
 
         code.push(Instruction(Op::CMPQ, Arg(ImmediateValue(0), DIR()), Arg(Register::RDI, DIR())));
@@ -749,7 +715,6 @@ public:
         code.push(Instruction(Op::MOVQ, Arg(ImmediateData("object"), DIR()), Arg(Register::RSI, DIR()), "Address of 'object'"));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(6), DIR()), Arg(Register::RDX, DIR()), "Length of string to print"));
         code.push(Instruction(Op::SYSCALL));
-        // code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_RESTORE, DIR())));
         push_callee_restore();
         code.push(Instruction(Op::RET));
 
@@ -760,7 +725,6 @@ public:
         code.push(Instruction(Op::MOVQ, Arg(ImmediateData("beta"), DIR()), Arg(Register::RSI, DIR()), "Address of 'beta'"));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(4), DIR()), Arg(Register::RDX, DIR()), "Length of string to print"));
         code.push(Instruction(Op::SYSCALL));
-        // code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_RESTORE, DIR())));
         push_callee_restore();
         code.push(Instruction(Op::RET));
         code.end_scope();
@@ -770,7 +734,6 @@ public:
         code.new_empty_scope();
         std::string print_null_label = ".print_array_null";
         code.push(Instruction(Op::LABEL, Arg(Label("print_array"), DIR())));
-        // code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_SAVE, DIR())));
         push_callee_save();
 
         code.push(Instruction(Op::CMPQ, Arg(ImmediateValue(0), DIR()), Arg(Register::RDI, DIR())));
@@ -782,7 +745,6 @@ public:
         code.push(Instruction(Op::MOVQ, Arg(ImmediateData("array"), DIR()), Arg(Register::RSI, DIR()), "Address of 'array'"));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(5), DIR()), Arg(Register::RDX, DIR()), "Length of string to print"));
         code.push(Instruction(Op::SYSCALL));
-        // code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_RESTORE, DIR())));
         push_callee_restore();
         code.push(Instruction(Op::RET));
 
@@ -793,7 +755,6 @@ public:
         code.push(Instruction(Op::MOVQ, Arg(ImmediateData("beta"), DIR()), Arg(Register::RSI, DIR()), "Address of 'beta'"));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(4), DIR()), Arg(Register::RDX, DIR()), "Length of string to print"));
         code.push(Instruction(Op::SYSCALL));
-        // code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_RESTORE, DIR())));
         push_callee_restore();
         code.push(Instruction(Op::RET));
         code.end_scope();
@@ -856,17 +817,14 @@ public:
         code.push(Instruction(Op::SYSCALL));
         // Print line number
         code.push(Instruction(Op::POPQ, Arg(Register::RDI, DIR()), "Pop line number"));
-        // code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLER_SAVE, DIR())));
         push_caller_save();
         code.push(Instruction(Op::CALL, Arg(Label("printNum"), DIR())));
-        //code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLER_RESTORE, DIR())));
         push_caller_restore();
 
         // Close with error code 1
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(60), DIR()), Arg(Register::RAX, DIR())));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RDI, DIR())));
         code.push(Instruction(Op::SYSCALL));
-        // Don't need CALLEE_RESTORE since we are exiting
 
         code.end_scope();
     }

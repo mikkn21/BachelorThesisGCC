@@ -9,9 +9,7 @@
 
 const int callee_offset = -48; // TODO: this should be referenced from a shared file so all occurences of this has a common variable. Or it should be removed
 const int arg_offset = 16;
-const std::array<Register, 9> REGISTERS = {Register::RBX, Register::RCX, Register::RDX, Register::RSI, Register::R11, Register::R12, Register::R13, Register::R14, Register::R15};
-
-// const std::array<Register, 14> REGISTERS = {Register::RAX, Register::RBX, Register::RCX, Register::RDX, Register::RDI, Register::RSI, Register::R8, Register::R9, Register::R10, Register::R11, Register::R12, Register::R13, Register::R14, Register::R15};
+const std::array<Register, 14> REGISTERS = {Register::RAX, Register::RBX, Register::RCX, Register::RDX, Register::RDI, Register::RSI, Register::R8, Register::R9, Register::R10, Register::R11, Register::R12, Register::R13, Register::R14, Register::R15};
 
 
 template<typename S>

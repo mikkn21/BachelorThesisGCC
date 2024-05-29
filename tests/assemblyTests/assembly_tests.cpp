@@ -51,5 +51,5 @@ BOOST_AUTO_TEST_CASE(BetaAccessArrayExp) {test_assembly_string("int main(){int[3
 BOOST_AUTO_TEST_CASE(BetaAccessArrayLine2) {test_assembly_string("int main(){int[3] arr;\n arr[2,4,5]; return 0;}", "Attempted to access a beta value on line 2");}
 BOOST_AUTO_TEST_CASE(BetaAccessArrayLine4) {test_assembly_string("int main(){int[3] arr;\n\n\n arr[2,4,5]; return 0;}", "Attempted to access a beta value on line 4");}
 
-BOOST_AUTO_TEST_CASE(ManyVariablesTest) {test_assembly_file("test_many_variables.chad", "1\n1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13");}
+BOOST_AUTO_TEST_CASE(ManyVariablesTest) {test_assembly_file("test_many_variables.chad", "1\n1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20");}
 BOOST_AUTO_TEST_CASE(QuickSort) {test_assembly_file("quicksort.chad", "10\n20\n30\n40\n50\n60\n80\n90");}
