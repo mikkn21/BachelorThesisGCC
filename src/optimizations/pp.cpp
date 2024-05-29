@@ -21,31 +21,31 @@ bool has_immediate_value(TargetType target, int value) {
  */
 std::list<Pattern> patterns = {
     // Pattern for A->B, B->C => A->C(transitive move) optimization
-    Pattern({
-        Op::MOVQ,
-        Op::MOVQ
-    }, {
-        [](std::vector<Block*> blocks, Pattern& pattern) {
-            if (blocks.size() != 2) {
-                throw std::invalid_argument("Invalid block size");
-            }  
-            Block b1 = *blocks.front();
-            Block b2 = *blocks.back();
-            if (b1.def == b2.use) {
-                auto &b1_args = b1.instructions.front().args;
-                auto &b2_args = b2.instructions.front().args;
+    // Pattern({
+    //     Op::MOVQ,
+    //     Op::MOVQ
+    // }, {
+    //     [](std::vector<Block*> blocks, Pattern& pattern) {
+    //         if (blocks.size() != 2) {
+    //             throw std::invalid_argument("Invalid block size");
+    //         }  
+    //         Block b1 = *blocks.front();
+    //         Block b2 = *blocks.back();
+    //         if (b1.def == b2.use) {
+    //             auto &b1_args = b1.instructions.front().args;
+    //             auto &b2_args = b2.instructions.front().args;
                 
-                // Only use this optimization if all the registers are accessed directly
-                if (std::holds_alternative<DIR>(b1_args[0].access_type) && std::holds_alternative<DIR>(b2_args[0].access_type) 
-                    && std::holds_alternative<DIR>(b1_args[1].access_type) && std::holds_alternative<DIR>(b2_args[1].access_type)
-                ){
-                    pattern.replacement.push_back(Instruction(Op::MOVQ, b1.instructions.front().args[0], b2.instructions.front().args[1]));
-                    return true;
-                }   
-            }
-            return false;
-        }
-    }, {/* replacement */})
+    //             // Only use this optimization if all the registers are accessed directly
+    //             if (std::holds_alternative<DIR>(b1_args[0].access_type) && std::holds_alternative<DIR>(b2_args[0].access_type) 
+    //                 && std::holds_alternative<DIR>(b1_args[1].access_type) && std::holds_alternative<DIR>(b2_args[1].access_type)
+    //             ){
+    //                 pattern.replacement.push_back(Instruction(Op::MOVQ, b1.instructions.front().args[0], b2.instructions.front().args[1]));
+    //                 return true;
+    //             }   
+    //         }
+    //         return false;
+    //     }
+    // }, {/* replacement */})
     // Pattern for redundant push and pop optimization
     // Pattern ({
     //     Op::PUSHQ, 
@@ -60,33 +60,74 @@ std::list<Pattern> patterns = {
     //         return b1.use == b2.def;
     //     }
     // }, {/* replacement */}),
-    // Pattern to remove dead code
+    // Pattern for redundant pop and push optimization
     // Pattern ({
-    //     WildCard()
+    //     Op::POPQ, 
+    //     Op::PUSHQ   
     // }, {
     //     [](std::vector<Block*> blocks, Pattern& pattern) {
-    //         if (blocks.size() != 1) {
-    //             std::cout << "size: " << blocks.size() << std::endl;
+    //         if (blocks.size() != 2) {
     //             throw std::invalid_argument("Invalid block size");
     //         }  
     //         Block b1 = *blocks.front();
-    //         if(b1.instructions.front().operation == Op::SYSCALL || b1.instructions.front().operation == Op::CALL) return false;
-    //         if (b1.def.size() == 0) {
-    //             return false;
-    //         }
-
-    //         // define something but never use it = dead code
-    //         if (b1.out.size() == 0 && b1.def.size() > 0) {
-    //             return true; // replace with nothing
-    //         }
-
-    //         if (b1.out.find(*b1.def.begin()) == b1.out.end()) { //b1.def not in b1.out == dead code
-    //             return true; // replace with nothing
-    //         }
-    //         return false;
-
+    //         Block b2 = *blocks.back();
+    //         return b1.def == b2.use;
     //     }
     // }, {/* replacement */})
+    // Pattern to remove dead code
+    Pattern ({
+        WildCard()
+    }, {
+        [](std::vector<Block*> blocks, Pattern& pattern) {
+            if (blocks.size() != 1) {
+                std::cout << "size: " << blocks.size() << std::endl;
+                throw std::invalid_argument("Invalid block size");
+            }  
+            Block b1 = *blocks.front();
+
+            if(b1.instructions.front().args.size() == 2) {
+                if (std::holds_alternative<Register>(b1.instructions.front().args[0].target)) {
+                    if (std::get<Register>(b1.instructions.front().args[0].target) == Register::RSP) {
+                        return false;
+                    }
+                    if (std::get<Register>(b1.instructions.front().args[0].target) == Register::RBP) {
+                        return false;
+                    }
+                }
+
+                if (std::holds_alternative<Register>(b1.instructions.front().args[1].target)) {
+                    if (std::get<Register>(b1.instructions.front().args[1].target) == Register::RSP) {
+                        return false;
+                    }
+                    if (std::get<Register>(b1.instructions.front().args[1].target) == Register::RBP) {
+                        return false;
+                    }
+                }
+            }
+
+
+            // Push and Pop might be important for stack management so don't remove them
+            if(b1.instructions.front().operation == Op::PUSHQ || b1.instructions.front().operation == Op::POPQ  ) {
+                return false;;
+            }       
+
+            if(b1.instructions.front().operation == Op::SYSCALL || b1.instructions.front().operation == Op::CALL) return false;
+            if (b1.def.size() == 0) {
+                return false;
+            }
+
+            // define something but never use it = dead code
+            if (b1.out.size() == 0 && b1.def.size() > 0) {
+                return true; // replace with nothing
+            }
+
+            if (b1.out.find(*b1.def.begin()) == b1.out.end()) { //b1.def not in b1.out == dead code
+                return true; // replace with nothing
+            }
+            return false;
+
+        }
+    }, {/* replacement */})
 
     // pattern optimization for setting a register to 0 
     // Pattern ({
@@ -98,8 +139,7 @@ std::list<Pattern> patterns = {
     //         }  
     //         Block b1 = *blocks.front();
     //         auto &b1_args = b1.instructions.front().args;
-            
-    //         if (std::holds_alternative<DIR>(b1_args[0].access_type) && has_immediate_value(b1_args[0].target, 0)) {
+    //         if (has_immediate_value(b1_args[0].target, 0)) {
     //             pattern.replacement.push_back(Instruction(Op::XORQ, b1_args[1], b1_args[1]));
     //             return true;
     //         }
@@ -182,6 +222,8 @@ void apply_replacement(std::list<Instruction> &func, Pattern& pattern, int match
         Instruction dummy = Instruction(Op::DUMMY); // Create a dummy instruction, define it appropriately
         func.insert(end_point, num_erased - num_inserted, dummy);
     }
+
+
 }
 
 void prune_dummy(std::list<Instruction> &func) {
@@ -205,9 +247,9 @@ void peephole_optimization(IR &ir) {
                 auto pattern_op = pattern.components.begin();
 
                 for (size_t i = 0; i < blocks.size(); i++) {
-                    std::cout << "-----------------------------------------" << std::endl;
-                    std::cout << blocks[i]->instructions.front() << std::endl;
-                    print_block(*blocks[i]);
+                    // std::cout << "-----------------------------------------" << std::endl;
+                    // std::cout << blocks[i]->instructions.front() << std::endl;
+                    // print_block(*blocks[i]);
 
                     if (std::holds_alternative<Op>(*pattern_op)) {
                         // std::cout << "in first if" << std::endl;
@@ -229,7 +271,13 @@ void peephole_optimization(IR &ir) {
                             // std::cout << "test " << std::endl;
                             cringe_bool = false;
                             apply_replacement(function->code, pattern, match_start, i);
+                            // std::cout << "-----------------------------------------" << std::endl;
                             // std::cout << "applying replacement" << std::endl;
+                            // std:: cout << "replace: " << blocks[i]->instructions.front() << std::endl;
+                            // if(!pattern.replacement.empty()) std::cout << "with: " << pattern.replacement.front() << std::endl;
+                            pattern.replacement.clear(); // clear replacements to avoid adding duplicate code
+
+                            
                         }
                         pattern_op = pattern.components.begin();
                         match_start = i+1;
