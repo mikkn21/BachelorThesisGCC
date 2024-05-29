@@ -188,9 +188,9 @@ void peephole_optimization(IR &ir) {
                 auto pattern_op = pattern.components.begin();
 
                 for (size_t i = 0; i < blocks.size(); i++) {
-                    // std::cout << "-----------------------------------------" << std::endl;
-                    // std::cout << blocks[i]->instructions.front() << std::endl;
-                    // print_block(*blocks[i]);
+                    std::cout << "-----------------------------------------" << std::endl;
+                    std::cout << blocks[i]->instructions.front() << std::endl;
+                    print_block(*blocks[i]);
 
                     if (std::holds_alternative<Op>(*pattern_op)) {
                         // std::cout << "in first if" << std::endl;
