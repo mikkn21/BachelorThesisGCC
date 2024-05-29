@@ -90,6 +90,7 @@ string print_immediate_value(int number) {
 }
 
 string print_stack_value(long offset) {
+    std::cout << "in print_stack_value\n" << std::endl;
     string s = caller_save() + ""
     "\tmovq " + std::to_string(offset) + "(%rbp), %rdi\n"
     "\tcall printNum\n"

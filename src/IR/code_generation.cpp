@@ -46,6 +46,7 @@ public:
     }
 
     GenericRegister new_register() {
+
         return (*current_function_stack.top()).new_register();
     }
 
@@ -144,7 +145,6 @@ private:
     std::vector<std::string> function_container;
     std::stack<AstValue> intermediary_storage;
 
-
     /// Expects there to be space on the stack for the result register taken as input. 
     /// uses register R8 and R9, so should be saved before use
     GenericRegister static_link_read(SymbolTable &current_scope, VarSymbol &target_var_symbol) {
@@ -199,6 +199,7 @@ private:
     //     return instructions;
     // }
 
+
 public: 
 
     void post_visit(grammar::ast::ReturnStatement &return_statement) override {
@@ -225,6 +226,7 @@ public:
         code.push(Instruction(Op::MOVQ, Arg(Register::RSP, DIR()), Arg(Register::RBP, DIR()), "set rbp for function scope"));
         code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_SAVE, DIR())));
         std::vector<VarSymbol*> var_decls = func_decl.sym->sym_tab->get_var_symbols();
+
         long stack_size = 0;
         for (size_t i = 0; i < var_decls.size(); i++) {
             auto &data = var_decls[i]->ir_data;
@@ -339,6 +341,7 @@ public:
             // The above line equates to -40 + -8/-16... Which is correct because the first id will always be accessed on the stack, and therefore IRL access needs to be negative
             for (size_t i = 1; i < var_expr.id_access.ids.size()-1; i++) {
                 code.push(Instruction(Op::MOVQ, Arg(Register::R8, IRL(get_var_symbol(var_expr.id_access.ids[i].sym)->ir_data.local_id * 8)), Arg(Register::R9, DIR()), "accessing member relative to it's scope")); // for the first access this is relative to current scope
+
                 code.push(Instruction(Op::MOVQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR()), "moving pointer to r8 to set up for future IRL access")); // this line is needed for structs of structs
             }
 
@@ -789,6 +792,7 @@ public:
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RDI, DIR())));
         code.push(Instruction(Op::SYSCALL));
         // Don't need CALLEE_RESTORE since we are exiting
+
         code.end_scope();
     }
 
@@ -838,6 +842,5 @@ IR *intermediate_code_generation(grammar::ast::Prog &prog) {
     link_instructions(*funcs);
     return funcs;
 }
-
 
 
