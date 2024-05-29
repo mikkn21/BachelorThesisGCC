@@ -11,6 +11,16 @@ GenericRegister Function::new_register() {
     return GenericRegister(++register_counter);
 }
 
+IR::~IR() {
+    for (auto func : functions) {
+        delete func;
+    }
+}
+
+GenericRegister Function::new_register() {
+    return GenericRegister(++register_counter);
+}
+
 IRL::IRL(long offset) : offset(offset) {}
 ImmediateValue::ImmediateValue(int v) : value(v) {}
 ImmediateData::ImmediateData(std::string v) : value(v) {}
@@ -163,6 +173,7 @@ std::ostream& operator<<(std::ostream& os, const IR &ir) {
 std::ostream& operator<<(std::ostream& os, const std::list<Instruction> &code) {
     for (const auto &instruction : code) {
         os << instruction << std::endl;
+
     }
     return os;
 }

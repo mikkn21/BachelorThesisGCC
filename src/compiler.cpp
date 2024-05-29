@@ -96,7 +96,8 @@ namespace grammar::compiler {
             return obj;
         }
         
-    
+            return obj;
+        }
         if (options.naive_register_allocation){
             naive_register_allocation(*obj->ir); 
         } else {

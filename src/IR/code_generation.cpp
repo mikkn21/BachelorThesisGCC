@@ -228,7 +228,6 @@ public:
         std::vector<VarSymbol*> var_decls = func_decl.sym->sym_tab->get_var_symbols();
 
         long stack_size = 0;
-
         for (size_t i = 0; i < var_decls.size(); i++) {
             auto &data = var_decls[i]->ir_data;
             if (!data.is_local) {
@@ -296,7 +295,6 @@ public:
             GenericRegister result = static_link_read(current_scope, target_var_symbol);
 
             code.push(Instruction(Op::MOVQ, Arg(result, DIR()), Arg(Register::R8, DIR()), "Initialise static link"));
-
             // The above line equates to -40 + -8/-16... Which is correct because the first id will always be accessed on the stack, and therefore IRL access needs to be negative
             for (size_t i = 1; i < var_symbols.size()-1; i++) {
                 code.push(Instruction(Op::MOVQ, Arg(Register::R8, IRL(var_symbols[i]->ir_data.local_id * 8)), Arg(Register::R9, DIR()), "accessing member relative to it's scope")); /// for the first access this is relative to current scope
@@ -309,7 +307,6 @@ public:
             VarSymbol *var_symbol = get_var_symbol(var_assign.id_access.ids.back().sym);
             auto current_scope = var_assign.id_access.ids.back().scope;
             static_link_write(*current_scope, *var_symbol, target);
-
         }        
     }
 
@@ -318,7 +315,6 @@ public:
         SymbolTable *current_scope = var_decl_assign.decl.id.scope;
         auto target_var_symbol = var_decl_assign.decl.sym;
         static_link_write(*current_scope, *target_var_symbol, target);
-
     }
 
 
@@ -773,6 +769,7 @@ public:
         code.new_empty_scope();
         code.push(Instruction(Op::LABEL, Arg(Label("print_is_beta"), DIR())));
         code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_SAVE, DIR())));
+
         code.push(Instruction(Op::PUSHQ, Arg(Register::RDI, DIR()), "Push line number"));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RAX, DIR()), "System call number for write"));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RDI, DIR()), "File descriptor for stdout"));
@@ -784,6 +781,7 @@ public:
         code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLER_SAVE, DIR())));
         code.push(Instruction(Op::CALL, Arg(Label("printNum"), DIR())));
         code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLER_RESTORE, DIR())));
+
 
         // Close with error code 1
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(60), DIR()), Arg(Register::RAX, DIR())));
@@ -840,6 +838,5 @@ IR *intermediate_code_generation(grammar::ast::Prog &prog) {
     link_instructions(*funcs);
     return funcs;
 }
-
 
 
