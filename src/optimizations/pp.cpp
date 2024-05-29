@@ -21,31 +21,31 @@ bool has_immediate_value(TargetType target, int value) {
  */
 std::list<Pattern> patterns = {
     // Pattern for A->B, B->C => A->C(transitive move) optimization
-    // Pattern({
-    //     Op::MOVQ,
-    //     Op::MOVQ
-    // }, {
-    //     [](std::vector<Block*> blocks, Pattern& pattern) {
-    //         if (blocks.size() != 2) {
-    //             throw std::invalid_argument("Invalid block size");
-    //         }  
-    //         Block b1 = *blocks.front();
-    //         Block b2 = *blocks.back();
-    //         if (b1.def == b2.use) {
-    //             auto &b1_args = b1.instructions.front().args;
-    //             auto &b2_args = b2.instructions.front().args;
+    Pattern({
+        Op::MOVQ,
+        Op::MOVQ
+    }, {
+        [](std::vector<Block*> blocks, Pattern& pattern) {
+            if (blocks.size() != 2) {
+                throw std::invalid_argument("Invalid block size");
+            }  
+            Block b1 = *blocks.front();
+            Block b2 = *blocks.back();
+            if (b1.def == b2.use) {
+                auto &b1_args = b1.instructions.front().args;
+                auto &b2_args = b2.instructions.front().args;
                 
-    //             // Only use this optimization if all the registers are accessed directly
-    //             if (std::holds_alternative<DIR>(b1_args[0].access_type) && std::holds_alternative<DIR>(b2_args[0].access_type) 
-    //                 && std::holds_alternative<DIR>(b1_args[1].access_type) && std::holds_alternative<DIR>(b2_args[1].access_type)
-    //             ){
-    //                 pattern.replacement.push_back(Instruction(Op::MOVQ, b1.instructions.front().args[0], b2.instructions.front().args[1]));
-    //                 return true;
-    //             }   
-    //         }
-    //         return false;
-    //     }
-    // }, {/* replacement */}),
+                // Only use this optimization if all the registers are accessed directly
+                if (std::holds_alternative<DIR>(b1_args[0].access_type) && std::holds_alternative<DIR>(b2_args[0].access_type) 
+                    && std::holds_alternative<DIR>(b1_args[1].access_type) && std::holds_alternative<DIR>(b2_args[1].access_type)
+                ){
+                    pattern.replacement.push_back(Instruction(Op::MOVQ, b1.instructions.front().args[0], b2.instructions.front().args[1]));
+                    return true;
+                }   
+            }
+            return false;
+        }
+    }, {/* replacement */})
     // Pattern for redundant push and pop optimization
     // Pattern ({
     //     Op::PUSHQ, 
@@ -61,32 +61,32 @@ std::list<Pattern> patterns = {
     //     }
     // }, {/* replacement */}),
     // Pattern to remove dead code
-    Pattern ({
-        WildCard()
-    }, {
-        [](std::vector<Block*> blocks, Pattern& pattern) {
-            if (blocks.size() != 1) {
-                std::cout << "size: " << blocks.size() << std::endl;
-                throw std::invalid_argument("Invalid block size");
-            }  
-            Block b1 = *blocks.front();
-            if(b1.instructions.front().operation == Op::SYSCALL || b1.instructions.front().operation == Op::CALL) return false;
-            if (b1.def.size() == 0) {
-                return false;
-            }
+    // Pattern ({
+    //     WildCard()
+    // }, {
+    //     [](std::vector<Block*> blocks, Pattern& pattern) {
+    //         if (blocks.size() != 1) {
+    //             std::cout << "size: " << blocks.size() << std::endl;
+    //             throw std::invalid_argument("Invalid block size");
+    //         }  
+    //         Block b1 = *blocks.front();
+    //         if(b1.instructions.front().operation == Op::SYSCALL || b1.instructions.front().operation == Op::CALL) return false;
+    //         if (b1.def.size() == 0) {
+    //             return false;
+    //         }
 
-            // define something but never use it = dead code
-            if (b1.out.size() == 0 && b1.def.size() > 0) {
-                return true; // replace with nothing
-            }
+    //         // define something but never use it = dead code
+    //         if (b1.out.size() == 0 && b1.def.size() > 0) {
+    //             return true; // replace with nothing
+    //         }
 
-            if (b1.out.find(*b1.def.begin()) == b1.out.end()) { //b1.def not in b1.out == dead code
-                return true; // replace with nothing
-            }
-            return false;
+    //         if (b1.out.find(*b1.def.begin()) == b1.out.end()) { //b1.def not in b1.out == dead code
+    //             return true; // replace with nothing
+    //         }
+    //         return false;
 
-        }
-    }, {/* replacement */})
+    //     }
+    // }, {/* replacement */})
 
     // pattern optimization for setting a register to 0 
     // Pattern ({
