@@ -170,7 +170,11 @@ void rewrite_program(Function &func, LivenessAnalysis &blocks, std::set<GenericR
 
     for (const auto &spilled_node : spilled_nodes) {
         func.code.insert(code_iter, Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()), "makeing space for spilled node"));
-        stack_mapping[spilled_node] = stack_mapping.size()*(-8) + callee_offset;
+        // std::cout << "spilled node: " << spilled_node.local_id << std::endl;
+        // std::cout << "offset: " << (func.get_stack_counter() + static_cast<long>(stack_mapping.size()))*(-8) + callee_offset << std::endl;
+        // std::cout << "func.get_stack_counter(): " << func.get_stack_counter() << std::endl;
+        // std::cout << "stack_mapping.size(): " << stack_mapping.size() << std::endl;
+        stack_mapping[spilled_node] = func.new_stack_slot()*(-8) + callee_offset;
     }
 
     while (blocks_iter != blocks.end()) {
@@ -227,7 +231,6 @@ void rewrite_program(Function &func, LivenessAnalysis &blocks, std::set<GenericR
         ++blocks_iter;
     }
 
-    std::cout << func.code << std::endl;
 }
 
 void apply_color_mapping(Function &func, std::map<GenericRegister, Register> &color_mapping) {
@@ -313,6 +316,8 @@ void convert_arguments(IR &ir) {
 }
 
 void register_allocation(IR &ir) {
+    // print ir
+    // std::cout << ir << std::endl;
     convert_arguments(ir);
     register_allocation_recursive(ir);
 }

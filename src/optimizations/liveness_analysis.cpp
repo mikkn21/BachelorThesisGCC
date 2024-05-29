@@ -275,4 +275,3 @@ LivenessAnalysis liveness_analysis(const std::list<Instruction> &code) {
     std::reverse(blocks.begin(), blocks.end());
     return blocks;
 }
-

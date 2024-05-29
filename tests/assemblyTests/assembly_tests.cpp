@@ -19,9 +19,11 @@ BOOST_AUTO_TEST_CASE(StaticLinkingRead) {test_assembly_file("static_linking_read
 BOOST_AUTO_TEST_CASE(StaticLinkingWrite) {test_assembly_file("static_linking_write.chad","0\n10\n20\n50\n11");}
 BOOST_AUTO_TEST_CASE(Arrays) {test_assembly_file("test_arrays.chad","42\n17\n29\n8");}
 BOOST_AUTO_TEST_CASE(ArraysInit) {test_assembly_file("test_array_init.chad","0\n0\n0\n0");}
+BOOST_AUTO_TEST_CASE(ArraysAsArguments) {test_assembly_file("test_array_argument.chad","10\n80\n30\n90\n40\n50\n20\n60");}
 
 BOOST_AUTO_TEST_CASE(BasicStructs) {test_assembly_file("basic_structs.chad","0\n3\n0\n0\n3\n0\n5");}
-BOOST_AUTO_TEST_CASE(AdvancedStructs) {test_assembly_file("advanced_structs.chad","1\n2\n3\n4\n5");} 
+BOOST_AUTO_TEST_CASE(AdvancedStructs) {test_assembly_file("advanced_structs.chad","1\n2\n3\n4\n5");}
+// BOOST_AUTO_TEST_CASE(StructsAsArguments) {test_assembly_file("struct_as_argument.chad","1\n2\n3");}  // TODO: Fix this test
 // BOOST_AUTO_TEST_CASE(ReturnStructs) {test_assembly_file("return_structs.chad","1\n2\n3\n4\n5");} //TODO: Fix this test
 BOOST_AUTO_TEST_CASE(StructOutsideScope) {test_assembly_string("class T{int x;} int main(){ T t = new T(); t.x = 2; int f(){print(t.x); return 0;} f(); return 0; }", "2");}
 
@@ -49,4 +51,5 @@ BOOST_AUTO_TEST_CASE(BetaAccessArrayExp) {test_assembly_string("int main(){int[3
 BOOST_AUTO_TEST_CASE(BetaAccessArrayLine2) {test_assembly_string("int main(){int[3] arr;\n arr[2,4,5]; return 0;}", "Attempted to access a beta value on line 2");}
 BOOST_AUTO_TEST_CASE(BetaAccessArrayLine4) {test_assembly_string("int main(){int[3] arr;\n\n\n arr[2,4,5]; return 0;}", "Attempted to access a beta value on line 4");}
 
-
+BOOST_AUTO_TEST_CASE(ManyVariablesTest) {test_assembly_file("test_many_variables.chad", "1\n1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13");}
+BOOST_AUTO_TEST_CASE(QuickSort) {test_assembly_file("quicksort.chad", "10\n20\n30\n40\n50\n60\n80\n90");}

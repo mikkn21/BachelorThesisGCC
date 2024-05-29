@@ -1,0 +1,39 @@
+int main() {
+
+    int x = 1;
+    int x2 = 2;
+    int x3 = 3;
+    int x4 = 4;
+    int x5 = 5;
+    int x6 = 6;
+    int x7 = 7;
+    int x8 = 8;
+    int x9 = 9;
+    int x10 = 10;
+    int x11 = 11;
+    int x12 = 12;
+    int x13 = 13;
+
+
+    int f() {
+        print(x);
+        return 0;
+    }
+
+    f();
+    print(x);
+    print(x2);
+    print(x3);
+    print(x4);
+    print(x5);
+    print(x6);
+    print(x7);
+    print(x8);
+    print(x9);
+    print(x10);
+    print(x11);
+    print(x12);
+    print(x13);
+
+    return 0;
+}
