@@ -21,59 +21,63 @@ bool has_immediate_value(TargetType target, int value) {
  */
 std::list<Pattern> patterns = {
     // Pattern for A->B, B->C => A->C(transitive move) optimization
-    // Pattern({
-    //     Op::MOVQ,
-    //     Op::MOVQ
-    // }, {
-    //     [](std::vector<Block*> blocks, Pattern& pattern) {
-    //         if (blocks.size() != 2) {
-    //             throw std::invalid_argument("Invalid block size");
-    //         }  
-    //         Block b1 = *blocks.front();
-    //         Block b2 = *blocks.back();
-    //         if (b1.def == b2.use) {
-    //             auto &b1_args = b1.instructions.front().args;
-    //             auto &b2_args = b2.instructions.front().args;
+    Pattern({
+        Op::MOVQ,
+        Op::MOVQ
+    }, {
+        [](std::vector<Block*> blocks, Pattern& pattern) {
+            if (blocks.size() != 2) {
+                throw std::invalid_argument("Invalid block size");
+            }  
+            Block b1 = *blocks.front();
+            Block b2 = *blocks.back();
+            if (b1.def == b2.use) {
+                auto &b1_args = b1.instructions.front().args;
+                auto &b2_args = b2.instructions.front().args;
                 
-    //             // Only use this optimization if all the registers are accessed directly
-    //             if (std::holds_alternative<DIR>(b1_args[0].access_type) && std::holds_alternative<DIR>(b2_args[0].access_type) 
-    //                 && std::holds_alternative<DIR>(b1_args[1].access_type) && std::holds_alternative<DIR>(b2_args[1].access_type)
-    //             ){
-    //                 pattern.replacement.push_back(Instruction(Op::MOVQ, b1.instructions.front().args[0], b2.instructions.front().args[1]));
-    //                 return true;
-    //             }   
-    //         }
-    //         return false;
-    //     }
-    // }, {/* replacement */})
+                // Only use this optimization if all the registers are accessed directly
+                if (std::holds_alternative<Register>(b1_args[0].target) && std::holds_alternative<Register>(b1_args[1].target)
+                    && std::holds_alternative<Register>(b1_args[0].target) && std::holds_alternative<Register>(b1_args[1].target)
+                ){
+                    if (std::holds_alternative<DIR>(b1_args[0].access_type) && std::holds_alternative<DIR>(b2_args[0].access_type) 
+                        && std::holds_alternative<DIR>(b1_args[1].access_type) && std::holds_alternative<DIR>(b2_args[1].access_type) 
+                        && b2.out.find(*b1.def.begin()) == b2.out.end()){
+                        pattern.replacement.push_back(Instruction(Op::MOVQ, b1.instructions.front().args[0], b2.instructions.front().args[1]));
+                        return true;
+                    }
+                }   
+            }
+            return false;
+        }
+    }, {/* replacement */}),
     // Pattern for redundant push and pop optimization
-    // Pattern ({
-    //     Op::PUSHQ, 
-    //     Op::POPQ
-    // }, {
-    //     [](std::vector<Block*> blocks, Pattern& pattern) {
-    //         if (blocks.size() != 2) {
-    //             throw std::invalid_argument("Invalid block size");
-    //         }  
-    //         Block b1 = *blocks.front();
-    //         Block b2 = *blocks.back();
-    //         return b1.use == b2.def;
-    //     }
-    // }, {/* replacement */}),
+    Pattern ({
+        Op::PUSHQ, 
+        Op::POPQ
+    }, {
+        [](std::vector<Block*> blocks, Pattern& pattern) {
+            if (blocks.size() != 2) {
+                throw std::invalid_argument("Invalid block size");
+            }  
+            Block b1 = *blocks.front();
+            Block b2 = *blocks.back();
+            return b1.use == b2.def;
+        }
+    }, {/* replacement */}),
     // Pattern for redundant pop and push optimization
-    // Pattern ({
-    //     Op::POPQ, 
-    //     Op::PUSHQ   
-    // }, {
-    //     [](std::vector<Block*> blocks, Pattern& pattern) {
-    //         if (blocks.size() != 2) {
-    //             throw std::invalid_argument("Invalid block size");
-    //         }  
-    //         Block b1 = *blocks.front();
-    //         Block b2 = *blocks.back();
-    //         return b1.def == b2.use;
-    //     }
-    // }, {/* replacement */})
+    Pattern ({
+        Op::POPQ, 
+        Op::PUSHQ   
+    }, {
+        [](std::vector<Block*> blocks, Pattern& pattern) {
+            if (blocks.size() != 2) {
+                throw std::invalid_argument("Invalid block size");
+            }  
+            Block b1 = *blocks.front();
+            Block b2 = *blocks.back();
+            return b1.def == b2.use;
+        }
+    }, {/* replacement */}),
     // Pattern to remove dead code
     Pattern ({
         WildCard()
@@ -112,8 +116,8 @@ std::list<Pattern> patterns = {
             }       
 
             if(b1.instructions.front().operation == Op::SYSCALL || b1.instructions.front().operation == Op::CALL) return false;
-            if (b1.def.size() == 0) {
-                return false;
+                if (b1.def.size() == 0) {
+                    return false;
             }
 
             // define something but never use it = dead code
@@ -125,26 +129,25 @@ std::list<Pattern> patterns = {
                 return true; // replace with nothing
             }
             return false;
-
+        }
+    }, {/* replacement */}),
+    // pattern optimization for setting a register to 0 
+    Pattern ({
+        Op::MOVQ,
+    }, {
+        [](std::vector<Block*> blocks, Pattern& pattern) {
+            if (blocks.size() != 1) {
+                throw std::invalid_argument("Invalid block size");
+            }  
+            Block b1 = *blocks.front();
+            auto &b1_args = b1.instructions.front().args;
+            if (std::holds_alternative<DIR>(b1_args[1].access_type) && has_immediate_value(b1_args[0].target, 0)) {
+                pattern.replacement.push_back(Instruction(Op::XORQ, b1_args[1], b1_args[1]));
+                return true;
+            }
+            return false;
         }
     }, {/* replacement */})
-    // pattern optimization for setting a register to 0 
-    // Pattern ({
-    //     Op::MOVQ,
-    // }, {
-    //     [](std::vector<Block*> blocks, Pattern& pattern) {
-    //         if (blocks.size() != 1) {
-    //             throw std::invalid_argument("Invalid block size");
-    //         }  
-    //         Block b1 = *blocks.front();
-    //         auto &b1_args = b1.instructions.front().args;
-    //         if (has_immediate_value(b1_args[0].target, 0)) {
-    //             pattern.replacement.push_back(Instruction(Op::XORQ, b1_args[1], b1_args[1]));
-    //             return true;
-    //         }
-    //         return false;
-    //     }
-    // }, {/* replacement */})
 };
 
 /**
@@ -169,7 +172,26 @@ bool check_lambda(std::vector<Block*> blocks, Pattern &pattern) {
 
 
 
-void print_block(Block block) { 
+void print_block(Block block) {
+    if (block.instructions.front().args.size() > 0){
+        if (std::holds_alternative<DIR>(block.instructions.front().args[0].access_type)) {
+            std::cout << "Mem_access0: " << "DIR" << std::endl;
+        } else if (std::holds_alternative<IRL>(block.instructions.front().args[0].access_type)) {
+            std::cout << "Mem_access0: " << "IRL" << std::endl;
+        } else if (std::holds_alternative<IND>(block.instructions.front().args[0].access_type)) {
+            std::cout << "Mem_access0: " << "IND" << std::endl;
+        }
+        if (block.instructions.front().args.size() > 1 ) {
+            if (std::holds_alternative<DIR>(block.instructions.front().args[1].access_type)) {
+                std::cout << "Mem_access1: " << "DIR" << std::endl;
+            } else if (std::holds_alternative<IRL>(block.instructions.front().args[1].access_type)) {
+                std::cout << "Mem_access1: " << "IRL" << std::endl;
+            } else if (std::holds_alternative<IND>(block.instructions.front().args[1].access_type)) {
+                std::cout << "Mem_access1: " << "IND" << std::endl;
+            }
+        }
+    }
+    
     std::cout << "out: "; 
     for (auto out : block.out) {
         std::cout << out << " ";

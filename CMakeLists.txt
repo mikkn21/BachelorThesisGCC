@@ -11,7 +11,7 @@ endif()
 message(STATUS "OS Detected: ${CMAKE_SYSTEM_NAME}")
 message(STATUS "Using Sanitizer Flags: ${SAN_FLAGS}")
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -g -std=c++20 ${SAN_FLAGS}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -O2 -g -std=c++20 ${SAN_FLAGS}")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lm")
 # For clangd syntax help
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
