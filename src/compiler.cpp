@@ -81,7 +81,6 @@ namespace grammar::compiler {
         if (options.use_peephole) {
             peephole_optimization(*obj->ir);
         } 
-
       
 
         if (options.stop_after == stopAfterPeepHole){
