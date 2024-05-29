@@ -1,14 +1,12 @@
-class test1 {
-    test2 two;
-    int num;
-}
 
-class test2 {
-    int num;
+int factorial(int n) {
+    if n == 1 {
+        return 1;
+    }
+    return n*factorial(n-1);
 }
 
 int main() {
-    test1 one = new test1();
-    one.two = new test2();
+    print(factorial(10));
     return 0;
 }
