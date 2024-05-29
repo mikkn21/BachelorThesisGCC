@@ -1,0 +1,29 @@
+
+class test1_class {
+    int a;
+    test2_class b;
+}
+
+class test2_class {
+    int c;
+    int d;
+}
+
+
+int test1(test1_class one) {
+    print(one.a);
+    print(one.b.c);
+    print(one.b.d);
+    return 0;
+}
+
+int main() {
+    test1_class one = new test1_class();
+    one.a = 1;
+    one.b = new test2_class();
+    one.b.c = 2;
+    one.b.d = 3;
+    test1(one);
+
+    return 0;
+}

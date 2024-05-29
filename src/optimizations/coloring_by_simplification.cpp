@@ -170,7 +170,11 @@ void rewrite_program(Function &func, LivenessAnalysis &blocks, std::set<GenericR
 
     for (const auto &spilled_node : spilled_nodes) {
         func.code.insert(code_iter, Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()), "makeing space for spilled node"));
-        stack_mapping[spilled_node] = stack_mapping.size()*(-8) + callee_offset;
+        // std::cout << "spilled node: " << spilled_node.local_id << std::endl;
+        // std::cout << "offset: " << (func.get_stack_counter() + static_cast<long>(stack_mapping.size()))*(-8) + callee_offset << std::endl;
+        // std::cout << "func.get_stack_counter(): " << func.get_stack_counter() << std::endl;
+        // std::cout << "stack_mapping.size(): " << stack_mapping.size() << std::endl;
+        stack_mapping[spilled_node] = func.new_stack_slot()*(-8) + callee_offset;
     }
 
     while (blocks_iter != blocks.end()) {
@@ -191,6 +195,7 @@ void rewrite_program(Function &func, LivenessAnalysis &blocks, std::set<GenericR
             if (std::holds_alternative<GenericRegister>(def)) {
                 auto generic_def = std::get<GenericRegister>(def);
                 if (stack_mapping.find(generic_def) != stack_mapping.end()) {
+                    std::cout << "generic_def: " << generic_def.local_id << std::endl;
                     if (spill_use_mapping.find(generic_def) == spill_use_mapping.end()) {
                         GenericRegister def_reg = func.new_register();
                         spill_def_mapping[generic_def] = def_reg;
@@ -313,6 +318,8 @@ void convert_arguments(IR &ir) {
 }
 
 void register_allocation(IR &ir) {
+    // print ir
+    // std::cout << ir << std::endl;
     convert_arguments(ir);
     register_allocation_recursive(ir);
 }

@@ -82,12 +82,15 @@ struct Instruction {
 
 class Function {
     size_t register_counter = 0;
+    long stack_counter = 0;
 public:
     std::list<Instruction> code;
 
     Function(size_t start_register_counter) : register_counter(start_register_counter) {};
 
     GenericRegister new_register();
+    long new_stack_slot() { return stack_counter++; };
+    long get_stack_counter() { return stack_counter; };
 };
 
 class IR {

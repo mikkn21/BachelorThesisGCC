@@ -46,13 +46,20 @@ public:
     }
 
     GenericRegister new_register() {
-
         return (*current_function_stack.top()).new_register();
     }
 
     /// get the intermediate code representations.
     IR *get_instructions() {
         return ir;
+    }
+
+    long get_stack_counter() {
+        return current_function_stack.top()->get_stack_counter();
+    }
+
+    long new_stack_slot() {
+        return current_function_stack.top()->new_stack_slot();
     }
 };
 
@@ -277,12 +284,10 @@ public:
 
         std::vector<VarSymbol*> var_decls = func_decl.sym->sym_tab->get_var_symbols();
 
-        long stack_size = 0;
         for (size_t i = 0; i < var_decls.size(); i++) {
             auto &data = var_decls[i]->ir_data;
             if (!data.is_local) {
-                data.stack_offset = stack_size;
-                ++stack_size;
+                data.stack_offset = code.new_stack_slot();
                 code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()), "initialize variable referenced from other scopes to 0"));
             }
         }
@@ -643,12 +648,10 @@ public:
         push_callee_save();
         auto var_decls = global_scope->get_var_symbols();
 
-        long stack_size = 0;
         for (size_t i = 0; i < var_decls.size(); i++) {
             var_decls[i]->ir_data.is_local = false;
             auto &data = var_decls[i]->ir_data;
-            data.stack_offset = stack_size;
-            ++stack_size;
+            data.stack_offset = code.new_stack_slot();
             code.push(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()), "initialize variable referenced from other scopes to 0"));
         }
     }
