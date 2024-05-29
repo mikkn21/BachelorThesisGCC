@@ -66,6 +66,7 @@ void test_assembly(std::string input, std::string expected_output, Compiler comp
 void test_assembly_file(std::string input, std::string expected_outpout) {
     std::string filepath = "../tests/assemblyTests/" + input;
     test_assembly(filepath, expected_outpout, grammar::compiler::compile_from_file);
+    std::cout << "test finished: " << input << std::endl;
 }
 
 void test_assembly_string(std::string input,std::string expected_outpout) {
