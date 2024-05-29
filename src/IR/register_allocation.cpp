@@ -2,10 +2,10 @@
 #include <set>
 #include <map>
 
-const int callee_offset = -40;
+const int callee_offset = -48;
 const int arg_offset = 16;
 
-std::list<Instruction> generic_translate(Instruction instruction) { // Does not work with procedures.
+std::list<Instruction> generic_translate(Instruction instruction, std::map<GenericRegister, long> stack_offset_map) { // Does not work with procedures.
     std::list<Instruction> instructions;
     Instruction translated_instruction = Instruction(instruction.operation, instruction.comment);
     std::vector<Register> registers = {Register::R11, Register::R12, Register::R13};
@@ -13,11 +13,7 @@ std::list<Instruction> generic_translate(Instruction instruction) { // Does not 
     for (size_t i = 0; i < instruction.args.size(); i++) {
         auto arg = instruction.args[i];
         if (std::holds_alternative<GenericRegister>(arg.target)) {
-            auto id = std::get<GenericRegister>(arg.target).local_id;
-            if (id == 0) {
-                throw IRError("Invalid Generic Register found");
-            }
-            long offset = std::get<GenericRegister>(arg.target).local_id*(-8) + ( id > 0 ? callee_offset : arg_offset);
+            long offset = stack_offset_map[std::get<GenericRegister>(arg.target)];
             instructions.push_back(Instruction(Op::MOVQ, Arg(Register::RBP, IRL(offset)), Arg(registers[i], DIR()), "Generic Register Translation"));
             translated_instruction.args.push_back(Arg(registers[i], arg.access_type));
         } else {
@@ -30,8 +26,7 @@ std::list<Instruction> generic_translate(Instruction instruction) { // Does not 
         auto j = i-1;
         auto arg = instruction.args[j];
         if (std::holds_alternative<GenericRegister>(arg.target)) {
-            auto id = std::get<GenericRegister>(arg.target).local_id;
-            long offset = std::get<GenericRegister>(arg.target).local_id*(-8) + ( id > 0 ? callee_offset : arg_offset);
+            long offset = stack_offset_map[std::get<GenericRegister>(arg.target)];
             instructions.push_back(Instruction(Op::MOVQ, Arg(registers[j], DIR()), Arg(Register::RBP, IRL(offset)), "move result back to Generic Register"));
         } 
     }
@@ -79,17 +74,19 @@ bool is_end_of_callee_save(Instruction &instruction) {
 
 void naive_register_allocation(IR &ir) {
     for (auto func : ir.functions) {
+        std::map<GenericRegister, long> stack_offset_map;
         std::list<Instruction> code;
-        std::set<GenericRegister> generic_registers;
-        std::map<GenericRegister, GenericRegister> update_id_map;
         for (auto &instruction : (*func).code) {
             for (auto &arg : instruction.args) {
-                if (std::holds_alternative<GenericRegister>(arg.target) && std::get<GenericRegister>(arg.target).local_id >= 0) {
-                    if (update_id_map.find(std::get<GenericRegister>(arg.target)) == update_id_map.end()) {
-                        update_id_map[std::get<GenericRegister>(arg.target)] = GenericRegister(generic_registers.size() + 1);
-                        generic_registers.insert(std::get<GenericRegister>(arg.target));
+                if (std::holds_alternative<GenericRegister>(arg.target)) {
+                    auto arg_target = std::get<GenericRegister>(arg.target);
+                    if (stack_offset_map.find(arg_target) == stack_offset_map.end()) {
+                        if (arg_target.local_id < 0) {
+                            stack_offset_map[arg_target] = arg_target.local_id * (-8) + arg_offset;
+                        } else {
+                            stack_offset_map[arg_target] = func->new_stack_slot() * (-8) + callee_offset;
+                        }
                     }
-                    arg.target = update_id_map[std::get<GenericRegister>(arg.target)];
                 }
             }
         }
@@ -104,10 +101,10 @@ void naive_register_allocation(IR &ir) {
                     code.push_back(procedure_translate(instruction));
                     break;
                 default:
-                    std::list<Instruction> translated_instructions = generic_translate(instruction);
+                    std::list<Instruction> translated_instructions = generic_translate(instruction, stack_offset_map);
                     code.insert(code.end(), translated_instructions.begin(), translated_instructions.end());
                     if (is_end_of_callee_save(instruction)) {
-                        for (size_t i = 0; i < generic_registers.size(); i++) {
+                        for (size_t i = 0; i < stack_offset_map.size(); i++) {
                             code.push_back(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()), "Setting temporary variable to 0"));
                         }
                     }

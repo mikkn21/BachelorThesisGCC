@@ -195,7 +195,6 @@ void rewrite_program(Function &func, LivenessAnalysis &blocks, std::set<GenericR
             if (std::holds_alternative<GenericRegister>(def)) {
                 auto generic_def = std::get<GenericRegister>(def);
                 if (stack_mapping.find(generic_def) != stack_mapping.end()) {
-                    std::cout << "generic_def: " << generic_def.local_id << std::endl;
                     if (spill_use_mapping.find(generic_def) == spill_use_mapping.end()) {
                         GenericRegister def_reg = func.new_register();
                         spill_def_mapping[generic_def] = def_reg;
@@ -232,7 +231,6 @@ void rewrite_program(Function &func, LivenessAnalysis &blocks, std::set<GenericR
         ++blocks_iter;
     }
 
-    std::cout << func.code << std::endl;
 }
 
 void apply_color_mapping(Function &func, std::map<GenericRegister, Register> &color_mapping) {
