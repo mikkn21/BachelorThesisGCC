@@ -26,7 +26,7 @@ std::list<Instruction> generic_translate(Instruction instruction, std::map<Gener
         auto arg = instruction.args[i];
         if (std::holds_alternative<GenericRegister>(arg.target)) {
             long offset = stack_offset_map[std::get<GenericRegister>(arg.target)];
-            instructions.push_back(Instruction(Op::MOVQ, Arg(registers[j], DIR()), Arg(Register::RBP, IRL(offset)), "move result back to Generic Register"));
+            instructions.push_back(Instruction(Op::MOVQ, Arg(registers[i], DIR()), Arg(Register::RBP, IRL(offset)), "move result back to Generic Register"));
         } 
     }
     return instructions;

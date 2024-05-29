@@ -18,7 +18,7 @@ void test_assembly(std::string input, std::string expected_output, Compiler comp
     cout << "\n----------------------" << endl;
     grammar::compiler::CompilerOptions options = grammar::compiler::CompilerOptions();
     // options.naive_register_allocation = false;
-    // options.use_peephole = false;
+    // options.use_peephole = true;
     
     grammar::ast::Prog ast1;
     try {
