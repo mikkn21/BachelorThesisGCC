@@ -165,7 +165,7 @@ private:
             }
             long target_stack_offset = callee_offset + (target_var_symbol.ir_data.stack_offset + 1) * -8;
             GenericRegister read_result = code.new_register();
-            std::cout << " Generic Register: " << read_result.local_id << std::endl;
+            // std::cout << " Generic Register: " << read_result.local_id << std::endl;
             code.push(Instruction(Op::MOVQ, Arg(Register::R8, IRL(target_stack_offset)), Arg(read_result, DIR()), "temporarely save result"));
             return read_result;
         }

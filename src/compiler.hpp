@@ -39,8 +39,9 @@ public:
     bool print_input = false;
     bool print_code_generation = false;
     bool print_register_allocation = false;
-    bool naive_register_allocation = false;
-    bool use_peephole = false;
+    bool naive_register_allocation = true;
+    bool use_peephole = true;
+
 };
 
 std::string get_file_content(std::string_view input);
