@@ -1,4 +1,5 @@
 #include "ir.hpp"
+#include <ostream>
 
 IR::~IR() {
     for (auto func : functions) {
@@ -104,6 +105,7 @@ std::ostream& operator<<(std::ostream& os, const Op op) {
         case Op::SYSCALL:       os << "syscall";    break;
         case Op::NOTHING:                           break;
         case Op::LEAQ:          os << "leaq";       break;
+        case Op::DUMMY:         os << "dummy";      break;
         default:                throw IRError("Invalid operation");    break;
     }
     return os;
@@ -154,6 +156,14 @@ std::ostream& operator<<(std::ostream& os, const IR &ir) {
         for (const auto &instruction : (*scope).code) {
             os << instruction << std::endl;
         }
+    }
+    return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const std::list<Instruction> &code) {
+    for (const auto &instruction : code) {
+        os << instruction << std::endl;
+
     }
     return os;
 }
