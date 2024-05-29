@@ -128,7 +128,6 @@ std::list<Pattern> patterns = {
 
         }
     }, {/* replacement */})
-
     // pattern optimization for setting a register to 0 
     // Pattern ({
     //     Op::MOVQ,
@@ -223,7 +222,6 @@ void apply_replacement(std::list<Instruction> &func, Pattern& pattern, int match
         func.insert(end_point, num_erased - num_inserted, dummy);
     }
 
-
 }
 
 void prune_dummy(std::list<Instruction> &func) {
@@ -277,7 +275,7 @@ void peephole_optimization(IR &ir) {
                             // if(!pattern.replacement.empty()) std::cout << "with: " << pattern.replacement.front() << std::endl;
                             pattern.replacement.clear(); // clear replacements to avoid adding duplicate code
 
-                            
+
                         }
                         pattern_op = pattern.components.begin();
                         match_start = i+1;
