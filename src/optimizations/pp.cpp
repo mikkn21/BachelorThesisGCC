@@ -36,11 +36,15 @@ std::list<Pattern> patterns = {
                 auto &b2_args = b2.instructions.front().args;
                 
                 // Only use this optimization if all the registers are accessed directly
-                if (std::holds_alternative<DIR>(b1_args[0].access_type) && std::holds_alternative<DIR>(b2_args[0].access_type) 
-                    && std::holds_alternative<DIR>(b1_args[1].access_type) && std::holds_alternative<DIR>(b2_args[1].access_type)
+                if (std::holds_alternative<Register>(b1_args[0].target) && std::holds_alternative<Register>(b1_args[1].target)
+                    && std::holds_alternative<Register>(b1_args[0].target) && std::holds_alternative<Register>(b1_args[1].target)
                 ){
-                    pattern.replacement.push_back(Instruction(Op::MOVQ, b1.instructions.front().args[0], b2.instructions.front().args[1]));
-                    return true;
+                    if (std::holds_alternative<DIR>(b1_args[0].access_type) && std::holds_alternative<DIR>(b2_args[0].access_type) 
+                        && std::holds_alternative<DIR>(b1_args[1].access_type) && std::holds_alternative<DIR>(b2_args[1].access_type) 
+                        && b2.out.find(*b1.def.begin()) == b2.out.end()){
+                        pattern.replacement.push_back(Instruction(Op::MOVQ, b1.instructions.front().args[0], b2.instructions.front().args[1]));
+                        return true;
+                    }
                 }   
             }
             return false;
@@ -127,7 +131,7 @@ std::list<Pattern> patterns = {
             return false;
         }
     }, {/* replacement */}),
-    //pattern optimization for setting a register to 0 
+    // pattern optimization for setting a register to 0 
     Pattern ({
         Op::MOVQ,
     }, {

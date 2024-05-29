@@ -97,10 +97,15 @@ namespace grammar::compiler {
         if (options.stop_after == StopAfterRegAlloc){
             return obj;
         }
+
         
         if (options.print_register_allocation){
             std::cout << "RegisterAllocation:\n" << obj->ir << std::endl;
         }
+
+        if (options.use_peephole) {
+            peephole_optimization(*obj->ir);
+        } 
 
         emit(*obj->ir);        
 

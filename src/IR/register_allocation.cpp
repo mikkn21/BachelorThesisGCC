@@ -26,13 +26,12 @@ std::list<Instruction> generic_translate(Instruction instruction) { // Does not 
     }
     instructions.push_back(translated_instruction);
 
-    for (size_t i = instruction.args.size(); i > 0; i--) {
-        auto j = i-1;
-        auto arg = instruction.args[j];
+    for (size_t i = 0; i < instruction.args.size(); i++) {
+        auto arg = instruction.args[i];
         if (std::holds_alternative<GenericRegister>(arg.target)) {
             auto id = std::get<GenericRegister>(arg.target).local_id;
             long offset = std::get<GenericRegister>(arg.target).local_id*(-8) + ( id > 0 ? callee_offset : arg_offset);
-            instructions.push_back(Instruction(Op::MOVQ, Arg(registers[j], DIR()), Arg(Register::RBP, IRL(offset)), "move result back to Generic Register"));
+            instructions.push_back(Instruction(Op::MOVQ, Arg(registers[i], DIR()), Arg(Register::RBP, IRL(offset)), "move result back to Generic Register"));
         } 
     }
     return instructions;
