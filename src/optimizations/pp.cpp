@@ -131,10 +131,27 @@ bool check_lambda(std::vector<Block*> blocks, Pattern &pattern) {
 
 
 void print_block(Block block) { 
-    std::cout << "out: " << block.out.size() << std::endl; 
-    std::cout << "def: " << block.def.size() << std::endl; 
-    std::cout << "use: " << block.use.size() << std::endl;
-    std::cout << "in: " << block.in.size() << std::endl;
+    std::cout << "out: "; 
+    for (auto out : block.out) {
+        std::cout << out << " ";
+    }
+    std::cout << std::endl;
+    std::cout << "def: ";
+    for (auto def : block.def) {
+        std::cout << def << " ";
+    }
+    std::cout << std::endl;
+    std::cout << "use: ";
+    for (auto use : block.use) {
+        std::cout << use << " ";
+    }
+    std::cout << std::endl;
+    
+    std::cout << "in: ";
+    for (auto in : block.in) {
+        std::cout << in << " ";
+    }
+    std::cout << std::endl;
     
 }
 
