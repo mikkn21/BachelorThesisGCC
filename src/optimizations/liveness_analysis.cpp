@@ -107,11 +107,16 @@ void add_def_use_to_block(Block* current_block, Instruction instruction) {
     switch (instruction.operation) {
         case Op::MOVQ:
             if (holds_any_of<GenericRegister, Register>(instruction.args[0].target)) {
-                if (std::holds_alternative<DIR>(instruction.args[1].access_type)) {
-                    current_block->use.insert(get_register_type(instruction.args[0].target));       
-                }
+                current_block->use.insert(get_register_type(instruction.args[0].target));       
             }
-            if (std::holds_alternative<DIR>(instruction.args[1].access_type)) current_block->def.insert(get_register_type(instruction.args[1].target));
+
+            if (std::holds_alternative<IRL>(instruction.args[1].access_type) || std::holds_alternative<IND>(instruction.args[1].access_type)) {
+                current_block->use.insert(get_register_type(instruction.args[1].target));
+            }
+
+            if (std::holds_alternative<DIR>(instruction.args[1].access_type)) { 
+                current_block->def.insert(get_register_type(instruction.args[1].target));
+            }
             break;
         case Op::POPQ:
             current_block->def.insert(get_register_type(instruction.args[0].target));
@@ -191,6 +196,9 @@ void add_def_use_to_block(Block* current_block, Instruction instruction) {
             current_block->use.insert(Register::RBP);
             current_block->use.insert(Register::RSP);
             //current_block->def.insert(Register::RBP);
+            break;
+        case Op::RET:
+            current_block->use.insert(Register::RAX);
             break;
         default:
             if (!instruction.args.empty() && holds_any_of<GenericRegister, Register>(instruction.args[0].target)) {

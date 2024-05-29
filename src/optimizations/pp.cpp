@@ -112,8 +112,8 @@ std::list<Pattern> patterns = {
             }       
 
             if(b1.instructions.front().operation == Op::SYSCALL || b1.instructions.front().operation == Op::CALL) return false;
-            if (b1.def.size() == 0) {
-                return false;
+                if (b1.def.size() == 0) {
+                    return false;
             }
 
             // define something but never use it = dead code
@@ -125,7 +125,6 @@ std::list<Pattern> patterns = {
                 return true; // replace with nothing
             }
             return false;
-
         }
     }, {/* replacement */})
 
@@ -170,7 +169,26 @@ bool check_lambda(std::vector<Block*> blocks, Pattern &pattern) {
 
 
 
-void print_block(Block block) { 
+void print_block(Block block) {
+    if (block.instructions.front().args.size() > 0){
+        if (std::holds_alternative<DIR>(block.instructions.front().args[0].access_type)) {
+            std::cout << "Mem_access0: " << "DIR" << std::endl;
+        } else if (std::holds_alternative<IRL>(block.instructions.front().args[0].access_type)) {
+            std::cout << "Mem_access0: " << "IRL" << std::endl;
+        } else if (std::holds_alternative<IND>(block.instructions.front().args[0].access_type)) {
+            std::cout << "Mem_access0: " << "IND" << std::endl;
+        }
+        if (block.instructions.front().args.size() > 1 ) {
+            if (std::holds_alternative<DIR>(block.instructions.front().args[1].access_type)) {
+                std::cout << "Mem_access1: " << "DIR" << std::endl;
+            } else if (std::holds_alternative<IRL>(block.instructions.front().args[1].access_type)) {
+                std::cout << "Mem_access1: " << "IRL" << std::endl;
+            } else if (std::holds_alternative<IND>(block.instructions.front().args[1].access_type)) {
+                std::cout << "Mem_access1: " << "IND" << std::endl;
+            }
+        }
+    }
+    
     std::cout << "out: "; 
     for (auto out : block.out) {
         std::cout << out << " ";
