@@ -1,39 +1,50 @@
-int main() {
-
-    int x = 1;
-    int x2 = 2;
-    int x3 = 3;
-    int x4 = 4;
-    int x5 = 5;
-    int x6 = 6;
-    int x7 = 7;
-    int x8 = 8;
-    int x9 = 9;
-    int x10 = 10;
-    int x11 = 11;
-    int x12 = 12;
-    int x13 = 13;
-
-
-    int f() {
-        print(x);
-        return 0;
+int partition(int[1] arr, int low, int high) {
+    int pivot = arr[high];
+    int i = (low - 1); 
+    int j = low;
+    while (j <= high-1) {
+        if (arr[j] <= pivot) {
+            i = i+1; 
+            int temp1 = arr[i];
+            arr[i] = arr[j];
+            arr[j] = temp1;
+        }
+        j = j+1;
     }
+    int temp2 = arr[i + 1];
+    arr[i + 1] = arr[high];
+    arr[high] = temp2;
+    return (i + 1);
+}
 
-    f();
-    print(x);
-    print(x2);
-    print(x3);
-    print(x4);
-    print(x5);
-    print(x6);
-    print(x7);
-    print(x8);
-    print(x9);
-    print(x10);
-    print(x11);
-    print(x12);
-    print(x13);
+int quicksort(int[1] arr, int low, int high) {
+    if (low < high) {
+        int pi = partition(arr, low, high);
+
+        quicksort(arr, low, pi - 1);
+        quicksort(arr, pi + 1, high);
+    }
+    return 0;
+}
+
+int main() {
+    int[1] arr = new int[8];
+    arr[0] = 10;
+    arr[1] = 80;
+    arr[2] = 30;
+    arr[3] = 90;
+    arr[4] = 40;
+    arr[5] = 50;
+    arr[6] = 20;
+    arr[7] = 60;
+
+    quicksort(arr, 0, 7);
+    
+    int i = 0;
+    while i < 8 {
+        print(arr[i]);
+        i = i + 1;
+    }
 
     return 0;
 }
