@@ -17,7 +17,8 @@ template<typename Compiler>
 void test_assembly(std::string input, std::string expected_output, Compiler compiler) {
     cout << "\n----------------------" << endl;
     grammar::compiler::CompilerOptions options = grammar::compiler::CompilerOptions();
-    options.naive_register_allocation = true;
+    // options.naive_register_allocation = true;
+    // options.use_peephole = false;
     
     grammar::ast::Prog ast1;
     try {

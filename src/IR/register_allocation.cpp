@@ -84,7 +84,7 @@ void naive_register_allocation(IR &ir) {
         std::map<GenericRegister, GenericRegister> update_id_map;
         for (auto &instruction : (*func).code) {
             for (auto &arg : instruction.args) {
-                if (std::holds_alternative<GenericRegister>(arg.target)) {
+                if (std::holds_alternative<GenericRegister>(arg.target) && std::get<GenericRegister>(arg.target).local_id >= 0) {
                     if (update_id_map.find(std::get<GenericRegister>(arg.target)) == update_id_map.end()) {
                         update_id_map[std::get<GenericRegister>(arg.target)] = GenericRegister(generic_registers.size() + 1);
                         generic_registers.insert(std::get<GenericRegister>(arg.target));
