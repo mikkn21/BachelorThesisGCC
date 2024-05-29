@@ -95,9 +95,6 @@ namespace grammar::compiler {
         if (options.stop_after == stopAfterPeepHole){
             return obj;
         }
-        
-            return obj;
-        }
         if (options.naive_register_allocation){
             naive_register_allocation(*obj->ir); 
         } else {
