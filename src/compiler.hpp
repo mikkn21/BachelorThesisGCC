@@ -47,6 +47,6 @@ std::string get_file_content(std::string_view input);
 std::unique_ptr<CompilerReturnObj> compile_from_file(std::string_view input, const CompilerOptions &options);
 std::unique_ptr<CompilerReturnObj> compile_from_string(std::string_view input, const CompilerOptions &options);
 
-}
 
+}
 #endif

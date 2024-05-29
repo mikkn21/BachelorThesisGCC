@@ -4,11 +4,23 @@
 #include "graph.hpp"
 #include <stack>
 #include <iostream>
+#include <algorithm>
+
 
 const int callee_offset = -48; // TODO: this should be referenced from a shared file so all occurences of this has a common variable. Or it should be removed
+const int arg_offset = 16;
 const std::array<Register, 9> REGISTERS = {Register::RBX, Register::RCX, Register::RDX, Register::RSI, Register::R11, Register::R12, Register::R13, Register::R14, Register::R15};
 
 // const std::array<Register, 14> REGISTERS = {Register::RAX, Register::RBX, Register::RCX, Register::RDX, Register::RDI, Register::RSI, Register::R8, Register::R9, Register::R10, Register::R11, Register::R12, Register::R13, Register::R14, Register::R15};
+
+
+template<typename S>
+auto select_random(const S &s, size_t n) {
+  auto it = std::begin(s);
+  // 'advance' the iterator n times
+  std::advance(it,n);
+  return it;
+}
 
 Graph<RegisterType> build_interference_graph(LivenessAnalysis &blocks) {
     Graph<RegisterType> graph;
@@ -79,7 +91,12 @@ void simplify(Graph<RegisterType> &graph, std::set<GenericRegister> &spill_workl
 }
 
 void select_spill(Graph<RegisterType> &graph, std::set<GenericRegister> &spill_worklist, std::set<GenericRegister> &simplify_worklist) {
-    GenericRegister node = *spill_worklist.begin();
+    
+    auto r = rand() % spill_worklist.size(); // not _really_ random
+    auto node = *select_random(spill_worklist, r);
+    // GenericRegister node = *spill_worklist.begin();
+    
+    
     spill_worklist.erase(node);
     simplify_worklist.insert(node);
 }
@@ -98,12 +115,6 @@ void assign_colors(Graph<RegisterType> &graph, std::stack<GenericRegister> &sele
         select_stack.pop();
         auto ok_colors = get_okay_colors();
         for (const auto &neighbor : graph.get_neighbors(node)) {
-            if (std::holds_alternative<GenericRegister>(neighbor->value)) {
-                if (colored_nodes.find(std::get<GenericRegister>(neighbor->value)) != colored_nodes.end()) {
-                    // std::cout << "neighbor is colored" << std::get<GenericRegister>(neighbor->value) << std::endl;
-                    // ok_colors.erase(color_mapping[std::get<GenericRegister>(neighbor->value)]);
-                }
-            }
             if (std::holds_alternative<Register>(neighbor->value)) {
                 auto neighbor_reg = std::get<Register>(neighbor->value);
                 ok_colors.erase(neighbor_reg);
@@ -120,47 +131,59 @@ void assign_colors(Graph<RegisterType> &graph, std::stack<GenericRegister> &sele
     }
 }
 
-bool block_has_procedure(Block &block, Procedure proc) {
+bool instruction_is_callee_save_end(const Instruction &instruction) {
+    return instruction.comment.value_or("") == "END OF CALLEE SAVE";
+}
+
+bool block_has_callee_save_end(Block &block) {
     for (const auto &instruction : block.instructions) {
-        if (instruction.operation == Op::PROCEDURE && std::get<Procedure>(instruction.args[0].target) == proc) {
+        if (instruction_is_callee_save_end(instruction)) {
             return true;
         }
     }
     return false;
 }
 
-auto skip_activation_record(std::list<Instruction> &new_func, LivenessAnalysis &blocks) {
-    auto it = blocks.begin();
-    while (it != blocks.end() && !block_has_procedure(**it, Procedure::CALLEE_SAVE)) {
-        auto instructions = (*it)->instructions;
-        new_func.insert(new_func.end(), instructions.begin(), instructions.end());
+auto skip_activation_record(LivenessAnalysis &blocks) {
+    auto blocks_iter = blocks.begin();
+    while (blocks_iter != blocks.end() && !block_has_callee_save_end(**blocks_iter)) {
+        auto instructions = (*blocks_iter)->instructions;
+        ++blocks_iter;
+    }
+    ++blocks_iter;
+    return blocks_iter;
+}
+
+auto skip_activation_record_instructions(std::list<Instruction> &code) {
+    auto it = code.begin();
+    while (it != code.end() && !instruction_is_callee_save_end(*it)) {
         ++it;
     }
-    new_func.insert(new_func.end(), (*it)->instructions.begin(), (*it)->instructions.end());
     ++it;
     return it;
 }
 
 void rewrite_program(Function &func, LivenessAnalysis &blocks, std::set<GenericRegister> &spill_worklist, std::set<GenericRegister> &colored_nodes, std::set<GenericRegister> spilled_nodes, std::map<GenericRegister, Register> &color_mapping) {
     std::map<GenericRegister, long> stack_mapping;
-    std::map<GenericRegister, GenericRegister> spill_use_mapping;
-    std::map<GenericRegister, GenericRegister> spill_def_mapping;
-    std::list<Instruction> new_func;
-    auto blocks_iter = skip_activation_record(new_func, blocks);
+    auto blocks_iter = skip_activation_record(blocks);
+    auto code_iter = skip_activation_record_instructions(func.code);
 
     for (const auto &spilled_node : spilled_nodes) {
-        new_func.push_back(Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR())));
+        func.code.insert(code_iter, Instruction(Op::PUSHQ, Arg(ImmediateValue(0), DIR()), "makeing space for spilled node"));
         stack_mapping[spilled_node] = stack_mapping.size()*(-8) + callee_offset;
     }
 
-    for (; blocks_iter != blocks.end(); ++blocks_iter) {
+    while (blocks_iter != blocks.end()) {
+        std::map<GenericRegister, GenericRegister> spill_use_mapping;
+        std::map<GenericRegister, GenericRegister> spill_def_mapping;
+
         for (auto &use : (*blocks_iter)->use) {
             if (std::holds_alternative<GenericRegister>(use)) {
                 auto generic_use = std::get<GenericRegister>(use);
                 if (stack_mapping.find(generic_use) != stack_mapping.end()) {
                     GenericRegister use_reg = func.new_register();
                     spill_use_mapping[generic_use] = use_reg;
-                    new_func.push_back(Instruction(Op::MOVQ, Arg(Register::RBP, IRL(stack_mapping[generic_use])), Arg(use_reg, DIR()), "use register"));
+                    func.code.insert(code_iter, Instruction(Op::MOVQ, Arg(Register::RBP, IRL(stack_mapping[generic_use])), Arg(use_reg, DIR()), "use register"));
                 }
             }
         }        
@@ -178,7 +201,8 @@ void rewrite_program(Function &func, LivenessAnalysis &blocks, std::set<GenericR
             }
         }
 
-        for (Instruction &instruction : (*blocks_iter)->instructions) {
+        for (Instruction &inst : (*blocks_iter)->instructions) {
+            Instruction &instruction = *code_iter;
             for (auto &arg : instruction.args) {
                 if (std::holds_alternative<GenericRegister>(arg.target)) {
                     auto generic_arg = std::get<GenericRegister>(arg.target);
@@ -193,13 +217,17 @@ void rewrite_program(Function &func, LivenessAnalysis &blocks, std::set<GenericR
                     } 
                 }
             }
+            ++code_iter;
         }
 
         for (auto def : spill_def_mapping) {
-            new_func.push_back(Instruction(Op::MOVQ, Arg(def.second, DIR()), Arg(Register::RBP, IRL(stack_mapping[def.first])), "def register"));
+            func.code.insert(code_iter, Instruction(Op::MOVQ, Arg(def.second, DIR()), Arg(Register::RBP, IRL(stack_mapping[def.first])), "def register"));
         }
-        func.code = new_func;
+
+        ++blocks_iter;
     }
+
+    std::cout << func.code << std::endl;
 }
 
 void apply_color_mapping(Function &func, std::map<GenericRegister, Register> &color_mapping) {
@@ -235,7 +263,7 @@ void register_allocation_recursive(IR &ir) {
         std::set<GenericRegister> spilled_nodes;
         std::map<GenericRegister, Register> color_mapping;
         assign_colors(interference_graph_copy, select_stack, spilled_nodes, colored_nodes, color_mapping);
-        if (!spill_worklist.empty()) {
+        if (!spilled_nodes.empty()) {
             rewrite_program(*func, blocks, spill_worklist, colored_nodes, spilled_nodes, color_mapping);
             register_allocation_recursive(ir);
         } else {
@@ -248,11 +276,45 @@ void register_allocation_recursive(IR &ir) {
 
 }
 
-void register_allocation(IR &ir) {
-    // TODO: Handle arguments by replacing generic registers with negative ids to be on the stack.
-    std::cout << "Register allocation begin:\n";
-    register_allocation_recursive(ir);// remove later
 
+void convert_arguments(IR &ir) {
+    
+    for (auto func : ir.functions) {
+        std::map<GenericRegister, GenericRegister> argument_mapping;
+        // Find argument mapping
+        for (auto &instruction : func->code) {
+            for (auto &arg : instruction.args) {
+                if (std::holds_alternative<GenericRegister>(arg.target) && std::get<GenericRegister>(arg.target).local_id < 0) {
+                    if (argument_mapping.find(std::get<GenericRegister>(arg.target)) == argument_mapping.end()) {
+                        auto reg = func->new_register();
+                        argument_mapping[std::get<GenericRegister>(arg.target)] = reg;
+                    }
+                }
+            }
+        }
+
+        auto it = skip_activation_record_instructions(func->code);
+        for (auto &mapping : argument_mapping) {
+            long offset = mapping.first.local_id*(-8) + arg_offset;
+
+            auto new_instruction = Instruction(Op::MOVQ, Arg(Register::RBP, IRL(offset)), Arg(mapping.second, DIR()), "move argument from stack");
+            func->code.insert(it, new_instruction);
+        }
+
+        for (auto &instruction : func->code) {
+            for (auto &arg : instruction.args) {
+                if (std::holds_alternative<GenericRegister>(arg.target) && argument_mapping.find(std::get<GenericRegister>(arg.target)) != argument_mapping.end()) {
+                    auto generic_arg = std::get<GenericRegister>(arg.target);
+                    arg.target = argument_mapping[generic_arg];
+                }
+            }
+        }
+    }
+}
+
+void register_allocation(IR &ir) {
+    convert_arguments(ir);
+    register_allocation_recursive(ir);
 }
 
 
