@@ -97,10 +97,10 @@ std::vector<Instruction> binop_instructions(std::string op, GenericRegister resu
         code.push_back(Instruction(Op::SETG, Arg(Register::R10B, DIR())));
         code.push_back(Instruction(Op::MOVQ, Arg(Register::R10, DIR()), Arg(result, DIR())));
     } else if (op == "==") {
-        code.push_back(Instruction(Op::XORQ, Arg(Register::R10, DIR()), Arg(Register::R10, DIR())));
+        code.push_back(Instruction(Op::XORQ, Arg(Register::R10, DIR()), Arg(Register::R10, DIR()), "start of equal compare"));
         code.push_back(Instruction(Op::CMPQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR())));
         code.push_back(Instruction(Op::SETE, Arg(Register::R10B, DIR())));
-        code.push_back(Instruction(Op::MOVQ, Arg(Register::R10, DIR()), Arg(result, DIR())));
+        code.push_back(Instruction(Op::MOVQ, Arg(Register::R10, DIR()), Arg(result, DIR()), "end of equal compare"));
     } else if (op == "!=") {
         code.push_back(Instruction(Op::XORQ, Arg(Register::R10, DIR()), Arg(Register::R10, DIR())));
         code.push_back(Instruction(Op::CMPQ, Arg(Register::R9, DIR()), Arg(Register::R8, DIR())));
@@ -414,8 +414,8 @@ public:
         auto r_target = get_target(pop(intermediary_storage));
         auto l_target = get_target(pop(intermediary_storage));
 
-        code.push(Instruction(Op::MOVQ, Arg(l_target, DIR()), Arg(Register::R8, DIR())));
-        code.push(Instruction(Op::MOVQ, Arg(r_target, DIR()), Arg(Register::R9, DIR())));
+        code.push(Instruction(Op::MOVQ, Arg(l_target, DIR()), Arg(Register::R8, DIR()), "Rhs left hand side"));
+        code.push(Instruction(Op::MOVQ, Arg(r_target, DIR()), Arg(Register::R9, DIR()), "Rhs right hand side"));
 
         auto binop_result = binop_instructions(op_exp.op, result);
         for (auto instruction : binop_result) {
@@ -813,6 +813,9 @@ public:
     void push_mem_alloc_function() {
         code.new_empty_scope();
         code.push(Instruction(Op::LABEL, Arg(Label("allocate"), DIR())));
+        code.push(Instruction(Op::PUSHQ , Arg(Register::RBP, DIR())));
+        code.push(Instruction(Op::MOVQ, Arg(Register::RSP, DIR()), Arg(Register::RBP, DIR())));
+        push_caller_save();
 
         code.push(Instruction(Op::PUSHQ, Arg(Register::RDI, DIR())));
         code.push(Instruction(Op::NOTHING, "1. Find the current end of the data segment."));
@@ -825,8 +828,14 @@ public:
         code.push(Instruction(Op::ADDQ, Arg(Register::RAX, DIR()), Arg(Register::RDI, DIR()), "compute the new end"));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(12), DIR()), Arg(Register::RAX, DIR()), "brk"));
         code.push(Instruction(Op::SYSCALL));
-        code.push(Instruction(Op::POPQ, Arg(Register::RAX, DIR()), "the old end, which is the address of our allocated memory"));
+        GenericRegister result = code.new_register();
+        code.push(Instruction(Op::POPQ, Arg(result, DIR()), "the old end, which is the address of our allocated memory"));
 
+        push_caller_restore();
+        code.push(Instruction(Op::MOVQ, Arg(result, DIR()), Arg(Register::RAX, DIR())));
+
+        code.push(Instruction(Op::POPQ, Arg(Register::RBP, DIR())));
+        
         code.push(Instruction(Op::RET));
         code.end_scope();
     }
@@ -834,7 +843,6 @@ public:
     void push_print_is_beta_function() {
         code.new_empty_scope();
         code.push(Instruction(Op::LABEL, Arg(Label("print_is_beta"), DIR())));
-        // code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLEE_SAVE, DIR())));
         push_callee_save();
 
         code.push(Instruction(Op::PUSHQ, Arg(Register::RDI, DIR()), "Push line number"));

@@ -1,5 +1,6 @@
 #include "register_allocation.hpp"
 #include <set>
+#include <map>
 
 const int callee_offset = -40;
 const int arg_offset = 16;
@@ -80,10 +81,15 @@ void naive_register_allocation(IR &ir) {
     for (auto func : ir.functions) {
         std::list<Instruction> code;
         std::set<GenericRegister> generic_registers;
+        std::map<GenericRegister, GenericRegister> update_id_map;
         for (auto &instruction : (*func).code) {
             for (auto &arg : instruction.args) {
-                if (std::holds_alternative<GenericRegister>(arg.target)) {
-                    generic_registers.insert(std::get<GenericRegister>(arg.target));
+                if (std::holds_alternative<GenericRegister>(arg.target) && std::get<GenericRegister>(arg.target).local_id >= 0) {
+                    if (update_id_map.find(std::get<GenericRegister>(arg.target)) == update_id_map.end()) {
+                        update_id_map[std::get<GenericRegister>(arg.target)] = GenericRegister(generic_registers.size() + 1);
+                        generic_registers.insert(std::get<GenericRegister>(arg.target));
+                    }
+                    arg.target = update_id_map[std::get<GenericRegister>(arg.target)];
                 }
             }
         }
