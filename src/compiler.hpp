@@ -41,6 +41,7 @@ public:
     bool print_register_allocation = false;
     bool naive_register_allocation = false;
     bool use_peephole = true;
+    std::string output_file = "chad.s";
 };
 
 std::string get_file_content(std::string_view input);

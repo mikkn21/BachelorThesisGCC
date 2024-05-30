@@ -13,13 +13,6 @@ int main() {
     int x11 = 11;
     int x12 = 12;
     int x13 = 13;
-    int x14 = 14;
-    int x15 = 15;
-    int x16 = 16;
-    int x17 = 17;
-    int x18 = 18;
-    int x19 = 19;
-    int x20 = 20;
 
 
     int f() {
@@ -41,14 +34,6 @@ int main() {
     print(x11);
     print(x12);
     print(x13);
-    print(x14);
-    print(x15);
-    print(x16);
-    print(x17);
-    print(x18);
-    print(x19);
-    print(x20);
-    
 
     return 0;
 }

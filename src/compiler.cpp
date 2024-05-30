@@ -106,7 +106,7 @@ namespace grammar::compiler {
             peephole_optimization(*obj->ir);
         } 
 
-        emit(*obj->ir);        
+        emit(*obj->ir, options.output_file);        
 
         return obj;
     }

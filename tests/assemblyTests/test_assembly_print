@@ -1,0 +1,16 @@
+#define BOOST_TEST_MODULE AssemblyTests
+#define BOOST_TEST_DYN_LINK  
+
+#include "../lib/testing_assembly_lib.hpp"
+
+
+BOOST_AUTO_TEST_CASE(Print) {test_assembly_file("chad_print_test", "test_print.chad", "1\n0\ntrue\nfalse\n9123923\n2\ntrue\nfalse");}
+BOOST_AUTO_TEST_CASE(PrintTrue) {test_assembly_string("chad_print_test", "int main(){print(true); return 0;}", "true");}
+BOOST_AUTO_TEST_CASE(PrintFalse) {test_assembly_string("chad_print_test", "int main(){print(false); return 0;}", "false");}
+BOOST_AUTO_TEST_CASE(PrintObject) {test_assembly_string("chad_print_test", "class T{} int main(){T t = new T(); print(t); return 0;}", "object");}
+BOOST_AUTO_TEST_CASE(PrintObjectBeta) {test_assembly_string("chad_print_test", "class T{} int main(){T t = beta; print(t); return 0;}", "beta");}
+BOOST_AUTO_TEST_CASE(PrintObjectBetaNoInit) {test_assembly_string("chad_print_test", "class T{} int main(){T t; print(t); return 0;}", "beta");}
+BOOST_AUTO_TEST_CASE(PrintArray) {test_assembly_string("chad_print_test", "int main(){int[3] arr = new int[10,10,10]; print(arr); return 0;}", "array");}
+BOOST_AUTO_TEST_CASE(PrintArrayBeta) {test_assembly_string("chad_print_test", "int main(){int[3] arr = beta; print(arr); return 0;}", "beta");}
+BOOST_AUTO_TEST_CASE(PrintArrayBetaNoInit) {test_assembly_string("chad_print_test", "int main(){int[3] arr; print(arr); return 0;}", "beta");}
+BOOST_AUTO_TEST_CASE(PrintBeta) {test_assembly_string("chad_print_test", "int main(){print(beta); return 0;}", "beta");}

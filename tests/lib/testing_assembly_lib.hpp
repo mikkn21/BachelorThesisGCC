@@ -5,7 +5,7 @@
 #include <string>
 #include <boost/test/unit_test.hpp>
 
-void test_assembly_file(std::string input, std::string expected_output);
-void test_assembly_string(std::string input, std::string expected_output);
+void test_assembly_file(std::string output_file_name, std::string input, std::string expected_output);
+void test_assembly_string(std::string output_file_name, std::string input, std::string expected_output);
 
 #endif // ASSEMBLY_TEST_LIB_HPP
