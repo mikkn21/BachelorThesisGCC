@@ -90,9 +90,6 @@ namespace grammar::compiler {
             peephole_optimization(*obj->ir);
         } 
 
-        //std::cout << "CodeGen:\n" << *obj->ir << std::endl;
-
-      
 
         if (options.stop_after == stopAfterPeepHole){
             return obj;

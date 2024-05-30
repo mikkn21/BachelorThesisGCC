@@ -247,10 +247,16 @@ void apply_color_mapping(Function &func, std::map<GenericRegister, Register> &co
 // right now I have made the mapping from generic register to actual register in the rewrite_program function, but it should be done after the recursive function.
 void register_allocation_recursive(IR &ir) {
     for (auto func : ir.functions) {
+        // std::cout << "new func register allocation" << std::endl;
         LivenessAnalysis blocks = liveness_analysis(func->code);
+        // std::cout << "liveness analysis done" << std::endl;
         Graph<RegisterType> interference_graph = build_interference_graph(blocks);
+        // std::cout << "interference graph done" << std::endl;
         Graph<RegisterType> interference_graph_copy = build_interference_graph(blocks);
+        // std::cout << "interference graph copy done" << std::endl;
         auto [simplify_worklist, spill_worklist] = make_worklist(interference_graph);
+        // std::cout << "worklist done" << std::endl;
+    
 
         std::stack<GenericRegister> select_stack;
         do {
@@ -260,19 +266,25 @@ void register_allocation_recursive(IR &ir) {
                 select_spill(interference_graph, spill_worklist, simplify_worklist);
             }
         } while (!simplify_worklist.empty() || !spill_worklist.empty());
+
+        // std::cout << "simple and spill done" << std::endl;
         std::set<GenericRegister> colored_nodes;
         std::set<GenericRegister> spilled_nodes;
         std::map<GenericRegister, Register> color_mapping;
         assign_colors(interference_graph_copy, select_stack, spilled_nodes, colored_nodes, color_mapping);
+        // std::cout << "assign colors done" << std::endl;
         if (!spilled_nodes.empty()) {
+            // std::cout << "rewrite program" << std::endl;
             rewrite_program(*func, blocks, spill_worklist, colored_nodes, spilled_nodes, color_mapping);
             register_allocation_recursive(ir);
         } else {
+            // std::cout << "apply color mapping" << std::endl;
             apply_color_mapping(*func, color_mapping);
         }
         for (Block *block : blocks) {
             delete block;
         }
+        // std::cout << "done with function" << std::endl;
     }
 
 }
