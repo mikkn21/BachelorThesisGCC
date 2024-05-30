@@ -72,8 +72,11 @@ namespace grammar::compiler {
         }
         obj->ir = intermediate_code_generation(obj->ast); 
         if (options.print_code_generation) {
-            std::cout << "CodeGen:\n" << obj->ir << std::endl;
+            std::cout << "CodeGen:\n" << *obj->ir << std::endl;
         }
+
+        std::cout << "\n ---------------------------------- \n" << std::endl;
+
         if (options.stop_after == StopAfterCodeGen) {
             return obj;
         }
@@ -81,6 +84,9 @@ namespace grammar::compiler {
         if (options.use_peephole) {
             peephole_optimization(*obj->ir);
         } 
+
+        std::cout << "CodeGen:\n" << *obj->ir << std::endl;
+
       
 
         if (options.stop_after == stopAfterPeepHole){
