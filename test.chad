@@ -1,29 +1,16 @@
-class test1 {
-    test2 two;
-    int num;
+
+class T {
+    int x;
 }
 
-class test2 {
-    int num;
-    test3 t3;
-}
-
-class test3 {
-    int num;
-    int num2;
-}
-
-int main() {
-    f();
-
+int f(T t) {
+    print(t.x);
     return 0;
 }
 
-int f() {
-    test1 t1 = new test1();
-    t1.two = new test2();
-    t1.two.t3 = new test3();
-    t1.two.t3.num = 3;
-    print(t1.two.t3.num);
+int main() {
+    T t = new T();
+    t.x = 42;
+    f(t);
     return 0;
 }
