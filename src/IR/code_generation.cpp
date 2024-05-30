@@ -24,7 +24,7 @@ public:
 
     /// adds a new list of instructions to the current scope
     void new_scope(SymbolTable *scope) {
-        auto *func = new Function(scope->register_counter, scope->get_var_symbols());
+        auto *func = new Function(scope->register_counter, {});
         ir->functions.push_back(func);
         current_function_stack.push(func);
     }
@@ -93,11 +93,9 @@ private:
     std::vector<std::string> function_container;
     std::stack<AstValue> intermediary_storage;
 
-    /// Expects there to be space on the stack for the result register taken as input. 
-    /// uses register R8 and R9, so should be saved before use
     GenericRegister static_link_read(SymbolTable &current_scope, VarSymbol &target_var_symbol) {
         if (target_var_symbol.ir_data.is_local) {
-            return code.get_local_var_register(target_var_symbol);
+            return GenericRegister(target_var_symbol.ir_data.local_id);
         } else {
             size_t depth = current_scope.depth - target_var_symbol.var_decl->id.scope->depth;
             GenericRegister static_link_reg = code.new_register();
@@ -111,10 +109,9 @@ private:
         }
     }
 
-    /// uses register R8, R9 and R10, so should be saved before use
     void static_link_write(SymbolTable &current_scope, VarSymbol &target_var_symbol, TargetType write_value) {
         if (target_var_symbol.ir_data.is_local) {
-            code.push(Instruction(Op::MOVQ, Arg(write_value, DIR()), Arg(code.get_local_var_register(target_var_symbol), DIR()), "assign value to local variable"));
+            code.push(Instruction(Op::MOVQ, Arg(write_value, DIR()), Arg(GenericRegister(target_var_symbol.ir_data.local_id), DIR()), "assign value to local variable"));
         } else {
             GenericRegister static_link_reg = code.new_register();
             size_t depth = current_scope.depth - target_var_symbol.var_decl->id.scope->depth;

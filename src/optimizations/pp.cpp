@@ -39,13 +39,12 @@ std::list<Pattern> patterns = {
                 // if (std::holds_alternative<Register>(b1_args[0].target) && std::holds_alternative<Register>(b1_args[1].target)
                 //     && std::holds_alternative<Register>(b1_args[0].target) && std::holds_alternative<Register>(b1_args[1].target)
                 // ){
-                    if (std::holds_alternative<DIR>(b1_args[0].access_type) && std::holds_alternative<DIR>(b2_args[0].access_type) 
-                        && std::holds_alternative<DIR>(b1_args[1].access_type) && std::holds_alternative<DIR>(b2_args[1].access_type) 
-                        // && b2.out.find(*b1.def.begin()) == b2.out.end()){ 
-                    ){
-                        pattern.replacement.push_back(Instruction(Op::MOVQ, b1.instructions.front().args[0], b2.instructions.front().args[1]));
-                        return true;
-                    }
+                if (std::holds_alternative<DIR>(b1_args[0].access_type) && std::holds_alternative<DIR>(b2_args[0].access_type) 
+                    && std::holds_alternative<DIR>(b1_args[1].access_type) && std::holds_alternative<DIR>(b2_args[1].access_type) 
+                    && b2.out.find(*b1.def.begin()) == b2.out.end()){ 
+                    pattern.replacement.push_back(Instruction(Op::MOVQ, b1.instructions.front().args[0], b2.instructions.front().args[1]));
+                    return true;
+                }
                 // }   
             }
             return false;
