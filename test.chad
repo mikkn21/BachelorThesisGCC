@@ -1,12 +1,20 @@
-class A{
+class V{
     int x;
     int y;
-    int z;
+    W z;
+}
+
+class W{
+    int a;
+    int b;
+    int c;
 }
 
 int main(){
-    A a = new A();
-    print(a.x);
-    a.x = 3;
+    V a = new V();
+    a.z = new W();
+    print(a.z.c);
+    a.z.c = 3;
+    print(a.z.c);
     return 0;
 }
