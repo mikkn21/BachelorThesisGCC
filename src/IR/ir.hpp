@@ -7,6 +7,8 @@
 #include <optional>
 #include <iostream>
 #include "../error/compiler_error.hpp"
+#include <map>
+#include "../semantics/symbol_table.hpp"
 
 
 enum class Op {
@@ -83,14 +85,17 @@ struct Instruction {
 class Function {
     size_t register_counter = 0;
     long stack_counter = 0;
+    std::map<std::string, GenericRegister> local_var_register_map;
 public:
     std::list<Instruction> code;
 
-    Function(size_t start_register_counter) : register_counter(start_register_counter) {};
+    Function(size_t start_register_counter, std::vector<VarSymbol*> local_vars);
 
     GenericRegister new_register();
     long new_stack_slot() { return stack_counter++; };
     long get_stack_counter() { return stack_counter; };
+
+    GenericRegister get_local_var_register(VarSymbol *var_symbol);
 };
 
 class IR {

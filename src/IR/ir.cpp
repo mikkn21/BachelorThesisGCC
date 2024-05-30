@@ -7,6 +7,16 @@ IR::~IR() {
     }
 }
 
+Function::Function(size_t start_register_counter, std::vector<VarSymbol*> local_vars) : register_counter(start_register_counter) {
+    for (VarSymbol *var : local_vars) {
+        local_var_register_map[var->var_decl->id.id] = new_register();
+    }
+};
+
+GenericRegister Function::get_local_var_register(VarSymbol *var_symbol) {
+    return local_var_register_map[var_symbol->var_decl->id.id];
+}
+
 GenericRegister Function::new_register() {
     return GenericRegister(++register_counter);
 }
@@ -50,7 +60,16 @@ std::ostream& operator<<(std::ostream& os, const Arg arg) {
             throw IRError("Unexpected access_type");
         }
     } else if (std::holds_alternative<GenericRegister>(arg.target)) {
-        os << "Generic Register(" << std::get<GenericRegister>(arg.target).local_id << ")";
+        std::string generic = "Generic Register(" + std::to_string(std::get<GenericRegister>(arg.target).local_id) + ")";
+        if (std::holds_alternative<IND>(arg.access_type)) {
+            os << "(" << generic << ")";
+        } else if (std::holds_alternative<IRL>(arg.access_type)) {
+            os << std::get<IRL>(arg.access_type).offset << "(" << generic << ")";
+        } else if (std::holds_alternative<DIR>(arg.access_type)) {
+            os << generic;
+        } else {
+            throw IRError("Unexpected access_type");
+        }
     } else if (std::holds_alternative<Label>(arg.target)) {
         os << std::get<Label>(arg.target).label;
     } else if (std::holds_alternative<Procedure>(arg.target)) {

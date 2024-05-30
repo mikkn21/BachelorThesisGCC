@@ -36,16 +36,17 @@ std::list<Pattern> patterns = {
                 auto &b2_args = b2.instructions.front().args;
                 
                 // Only use this optimization if all the registers are accessed directly
-                if (std::holds_alternative<Register>(b1_args[0].target) && std::holds_alternative<Register>(b1_args[1].target)
-                    && std::holds_alternative<Register>(b1_args[0].target) && std::holds_alternative<Register>(b1_args[1].target)
-                ){
+                // if (std::holds_alternative<Register>(b1_args[0].target) && std::holds_alternative<Register>(b1_args[1].target)
+                //     && std::holds_alternative<Register>(b1_args[0].target) && std::holds_alternative<Register>(b1_args[1].target)
+                // ){
                     if (std::holds_alternative<DIR>(b1_args[0].access_type) && std::holds_alternative<DIR>(b2_args[0].access_type) 
                         && std::holds_alternative<DIR>(b1_args[1].access_type) && std::holds_alternative<DIR>(b2_args[1].access_type) 
-                        && b2.out.find(*b1.def.begin()) == b2.out.end()){
+                        // && b2.out.find(*b1.def.begin()) == b2.out.end()){ 
+                    ){
                         pattern.replacement.push_back(Instruction(Op::MOVQ, b1.instructions.front().args[0], b2.instructions.front().args[1]));
                         return true;
                     }
-                }   
+                // }   
             }
             return false;
         }
@@ -147,7 +148,26 @@ std::list<Pattern> patterns = {
             }
             return false;
         }
-    }, {/* replacement */})
+    }, {/* replacement */}), 
+    // pattern jump to label under label optimization
+    Pattern ({
+        Op::JMP,
+        Op::LABEL
+    }, {
+        [](std::vector<Block*> blocks, Pattern& pattern) {
+            if (blocks.size() != 2) {
+                throw std::invalid_argument("Invalid block size");
+            }  
+            Block b1 = *blocks.front();
+            Block b2 = *blocks.back(); 
+
+            if (std::get<Label>(b1.instructions.front().args[0].target).label == std::get<Label>(b2.instructions.front().args[0].target).label){
+                pattern.replacement.push_back(b2.instructions.front());
+                return true;
+            }
+            return false;
+        }
+    }, {/* replacement */}),
 };
 
 /**

@@ -8,12 +8,5 @@ int main(){
     A a = new A();
     print(a.x);
     a.x = 3;
-    print(a.x);
-    print(a.y);
-    print(a.z);
-    a.z = 5;
-    print(a.x);
-    print(a.y);
-    print(a.z);
     return 0;
 }

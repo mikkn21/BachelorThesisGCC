@@ -24,13 +24,13 @@ public:
 
     /// adds a new list of instructions to the current scope
     void new_scope(SymbolTable *scope) {
-        auto *func = new Function(scope->register_counter);
+        auto *func = new Function(scope->register_counter, scope->get_var_symbols());
         ir->functions.push_back(func);
         current_function_stack.push(func);
     }
 
     void new_empty_scope() {
-        auto *func = new Function(0);
+        auto *func = new Function(0, {});
         ir->functions.push_back(func);
         current_function_stack.push(func);
     }
@@ -46,7 +46,11 @@ public:
     }
 
     GenericRegister new_register() {
-        return (*current_function_stack.top()).new_register();
+        return current_function_stack.top()->new_register();
+    }
+
+    GenericRegister get_local_var_register(VarSymbol &var_symbol) {
+        return current_function_stack.top()->get_local_var_register(&var_symbol);
     }
 
     /// get the intermediate code representations.
@@ -93,7 +97,7 @@ private:
     /// uses register R8 and R9, so should be saved before use
     GenericRegister static_link_read(SymbolTable &current_scope, VarSymbol &target_var_symbol) {
         if (target_var_symbol.ir_data.is_local) {
-            return GenericRegister(target_var_symbol.ir_data.local_id);
+            return code.get_local_var_register(target_var_symbol);
         } else {
             size_t depth = current_scope.depth - target_var_symbol.var_decl->id.scope->depth;
             GenericRegister static_link_reg = code.new_register();
@@ -110,7 +114,7 @@ private:
     /// uses register R8, R9 and R10, so should be saved before use
     void static_link_write(SymbolTable &current_scope, VarSymbol &target_var_symbol, TargetType write_value) {
         if (target_var_symbol.ir_data.is_local) {
-            code.push(Instruction(Op::MOVQ, Arg(write_value, DIR()), Arg(GenericRegister(target_var_symbol.ir_data.local_id), DIR()), "assign value to local variable"));
+            code.push(Instruction(Op::MOVQ, Arg(write_value, DIR()), Arg(code.get_local_var_register(target_var_symbol), DIR()), "assign value to local variable"));
         } else {
             GenericRegister static_link_reg = code.new_register();
             size_t depth = current_scope.depth - target_var_symbol.var_decl->id.scope->depth;
@@ -306,6 +310,7 @@ public:
             auto &read_var_symbol = *get_var_symbol(frontId.sym); // auto frontLocalId = frontSym->local_id;
             auto &current_scope = *var_expr.id_access.ids.back().scope;
             GenericRegister read_register = static_link_read(current_scope, read_var_symbol);
+            
             GenericRegister reg1 = code.new_register();
 
             code.push(Instruction(Op::MOVQ, Arg(read_register, DIR()), Arg(reg1, DIR()), "Store static link for object access"));
