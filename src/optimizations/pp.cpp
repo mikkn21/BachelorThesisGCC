@@ -35,10 +35,6 @@ std::list<Pattern> patterns = {
                 auto &b1_args = b1.instructions.front().args;
                 auto &b2_args = b2.instructions.front().args;
                 
-                // Only use this optimization if all the registers are accessed directly
-                // if (std::holds_alternative<Register>(b1_args[0].target) && std::holds_alternative<Register>(b1_args[1].target)
-                //     && std::holds_alternative<Register>(b1_args[0].target) && std::holds_alternative<Register>(b1_args[1].target)
-                // ){
                 if (std::holds_alternative<DIR>(b1_args[0].access_type) && std::holds_alternative<DIR>(b2_args[0].access_type) 
                     && std::holds_alternative<DIR>(b1_args[1].access_type) && std::holds_alternative<DIR>(b2_args[1].access_type) 
                     && b2.out.find(*b1.def.begin()) == b2.out.end()){ 
