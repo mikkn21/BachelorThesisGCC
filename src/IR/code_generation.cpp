@@ -267,14 +267,12 @@ public:
             GenericRegister reg1 = code.new_register();
             
             code.push(Instruction(Op::MOVQ, Arg(result, DIR()), Arg(reg1, DIR()), "Initialise static link for object access"));
-            // The above line equates to -40 + -8/-16... Which is correct because the first id will always be accessed on the stack, and therefore IRL access needs to be negative
-            // std::cout << "size: " << var_symbols.size() << std::endl;
             for (size_t i = 1; i < var_symbols.size()-1; i++) {
+            //                                          -1 because heap memory is 0 inxed, but stack memory is not            
                 code.push(Instruction(Op::MOVQ, Arg(reg1, IRL((var_symbols[i]->ir_data.local_id-1) * 8)), Arg(reg1, DIR()), "accessing member relative to it's scope")); /// for the first access this is relative to current scope
-                // code.push(Instruction(Op::MOVQ, Arg(reg1, IRL(var_symbols[i]->ir_data.local_id * 8)), Arg(reg1, DIR()), "accessing member relative to it's scope")); /// for the first access this is relative to current scope
             } // by the end of this loop the scope / block of data where varAssign.idAccess.back() is located should be in R8
 
-            // std::cout << "a.x local_id: " << var_symbols.back()->ir_data.local_id-1 << std::endl;            
+            //                                          -1 because heap memory is 0 inxed, but stack memory is not            
             code.push(Instruction(Op::MOVQ, Arg(target, DIR()), Arg(reg1, IRL((var_symbols.back()->ir_data.local_id-1) * 8)), "inserting value into found member"));
         } else {
             VarSymbol *var_symbol = get_var_symbol(var_assign.id_access.ids.back().sym);
@@ -313,12 +311,11 @@ public:
             GenericRegister reg1 = code.new_register();
 
             code.push(Instruction(Op::MOVQ, Arg(read_register, DIR()), Arg(reg1, DIR()), "Store static link for object access"));
-            // The above line equates to -40 + -8/-16... Which is correct because the first id will always be accessed on the stack, and therefore IRL access needs to be negative
             for (size_t i = 1; i < var_expr.id_access.ids.size()-1; i++) {
-                // code.push(Instruction(Op::MOVQ, Arg(reg1, IRL(get_var_symbol(var_expr.id_access.ids[i].sym)->ir_data.local_id * 8)), Arg(reg1, DIR()), "accessing member relative to it's scope")); // for the first access this is relative to current scope
+            //                                          -1 because heap memory is 0 inxed, but stack memory is not            
                 code.push(Instruction(Op::MOVQ, Arg(reg1, IRL((get_var_symbol(var_expr.id_access.ids[i].sym)->ir_data.local_id - 1) * 8)), Arg(reg1, DIR()), "accessing member relative to it's scope")); // for the first access this is relative to current scope
             }
-
+            //                                          -1 because heap memory is 0 inxed, but stack memory is not            
             code.push(Instruction(Op::MOVQ, Arg(reg1, IRL((get_var_symbol(var_expr.id_access.ids.back().sym)->ir_data.local_id-1) * 8)), Arg(reg1, DIR()), "get value from member of class and save to temporary register")); 
             intermediary_storage.push(reg1);
         } else {
@@ -609,6 +606,7 @@ public:
 
         GenericRegister result_register = code.new_register();
 
+        //                                          -1 because heap memory is 0 inxed, but stack memory is not
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue((attrs.size()-1) * 8), DIR()), Arg(Register::RDI, DIR()), "allocate argument"));
         code.push(Instruction(Op::CALL, Arg(Label("allocate"), DIR()), "allocating space for variables"));
         code.push(Instruction(Op::MOVQ, Arg(Register::RAX, DIR()), Arg(result_register, DIR()), "returning address to result_register")); 
