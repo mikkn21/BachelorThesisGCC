@@ -104,14 +104,23 @@ RegisterType get_register_type(TargetType reg) {
 
 
 void add_def_use_to_block(Block* current_block, Instruction instruction) {
+    
+    // for all IND/IRL access types, add the register to the use set
+    if (instruction.args.size() > 0) {
+        if (std::holds_alternative<IRL>(instruction.args[0].access_type) || std::holds_alternative<IND>(instruction.args[0].access_type)) {
+                current_block->use.insert(get_register_type(instruction.args[0].target));
+        }
+        if(instruction.args.size() > 1) {
+            if (std::holds_alternative<IRL>(instruction.args[1].access_type) || std::holds_alternative<IND>(instruction.args[1].access_type)) {
+                current_block->use.insert(get_register_type(instruction.args[1].target));
+            }
+        }
+    }
+        
     switch (instruction.operation) {
         case Op::MOVQ:
             if (holds_any_of<GenericRegister, Register>(instruction.args[0].target)) {
                 current_block->use.insert(get_register_type(instruction.args[0].target));       
-            }
-
-            if (std::holds_alternative<IRL>(instruction.args[1].access_type) || std::holds_alternative<IND>(instruction.args[1].access_type)) {
-                current_block->use.insert(get_register_type(instruction.args[1].target));
             }
 
             if (std::holds_alternative<DIR>(instruction.args[1].access_type)) { 
