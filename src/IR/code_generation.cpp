@@ -271,7 +271,6 @@ public:
             //                                          -1 because heap memory is 0 inxed, but stack memory is not            
                 code.push(Instruction(Op::MOVQ, Arg(reg1, IRL((var_symbols[i]->ir_data.local_id-1) * 8)), Arg(reg1, DIR()), "accessing member relative to it's scope")); /// for the first access this is relative to current scope
             } // by the end of this loop the scope / block of data where varAssign.idAccess.back() is located should be in R8
-
             //                                          -1 because heap memory is 0 inxed, but stack memory is not            
             code.push(Instruction(Op::MOVQ, Arg(target, DIR()), Arg(reg1, IRL((var_symbols.back()->ir_data.local_id-1) * 8)), "inserting value into found member"));
         } else {
@@ -607,7 +606,7 @@ public:
         GenericRegister result_register = code.new_register();
 
         //                                          -1 because heap memory is 0 inxed, but stack memory is not
-        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue((attrs.size()-1) * 8), DIR()), Arg(Register::RDI, DIR()), "allocate argument"));
+        code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(attrs.size() * 8), DIR()), Arg(Register::RDI, DIR()), "allocate argument"));
         code.push(Instruction(Op::CALL, Arg(Label("allocate"), DIR()), "allocating space for variables"));
         code.push(Instruction(Op::MOVQ, Arg(Register::RAX, DIR()), Arg(result_register, DIR()), "returning address to result_register")); 
         for (size_t i = 0 ; i < attrs.size() ; ++i) {

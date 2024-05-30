@@ -1,20 +1,29 @@
-class V{
-    int x;
-    int y;
-    W z;
+class test1 {
+    test2 two;
+    int num;
 }
 
-class W{
-    int a;
-    int b;
-    int c;
+class test2 {
+    int num;
+    test3 t3;
 }
 
-int main(){
-    V a = new V();
-    a.z = new W();
-    print(a.z.c);
-    a.z.c = 3;
-    print(a.z.c);
+class test3 {
+    int num;
+    int num2;
+}
+
+int main() {
+    f();
+
+    return 0;
+}
+
+int f() {
+    test1 t1 = new test1();
+    t1.two = new test2();
+    t1.two.t3 = new test3();
+    t1.two.t3.num = 3;
+    print(t1.two.t3.num);
     return 0;
 }
