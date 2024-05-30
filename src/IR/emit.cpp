@@ -112,9 +112,9 @@ string procedure(Instruction instruction) {
     }
 }
 
-void emit_to_file(IR &ir) {
+void emit_to_file(IR &ir, std::string output_file_name) {
 
-    ofstream output_file("chad.s");
+    ofstream output_file(output_file_name);
     if (output_file.is_open()) {
         output_file << ".data\n";
         output_file << "true: .ascii \"true\\n\"\n";
@@ -159,6 +159,6 @@ void emit_to_file(IR &ir) {
 
 
 
-void emit(IR &ir) {
-    emit_to_file(ir);
+void emit(IR &ir, std::string output_file) {
+    emit_to_file(ir, output_file);
 }

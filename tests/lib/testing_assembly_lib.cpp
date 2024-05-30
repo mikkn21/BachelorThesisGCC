@@ -14,12 +14,15 @@ bool equal_ignore_whitespaces(const std::string& str1, const std::string& str2) 
 }
 
 template<typename Compiler>
-void test_assembly(std::string input, std::string expected_output, Compiler compiler) {
+void test_assembly(std::string output_file_name, std::string input, std::string expected_output, Compiler compiler) {
     cout << "\n----------------------" << endl;
     grammar::compiler::CompilerOptions options = grammar::compiler::CompilerOptions();
-    // options.naive_register_allocation = true;
-    // options.use_peephole = true;
-    
+    // options.naive_register_allocation = false;
+    options.use_peephole = false;
+
+    std::string assembly_file = output_file_name + ".s";
+
+    options.output_file = assembly_file;
     grammar::ast::Prog ast1;
     try {
         compiler(input, options); 
@@ -31,19 +34,18 @@ void test_assembly(std::string input, std::string expected_output, Compiler comp
         return;
     }
     // compile assembly file called chad.s here, and run it to check the output is correct with expected_output
-    std::string assembly_file = "chad.s";
     // Assemble the assembly file
-    std::string assemble_cmd = "as --gstabs " + assembly_file + " -o chad.o";
+    std::string assemble_cmd = "as --gstabs " + assembly_file + " -o " + output_file_name + ".o";
     int assemble_result = system(assemble_cmd.c_str());
     BOOST_CHECK_EQUAL(assemble_result, 0);
 
     // Link the object file
-    std::string link_cmd = "ld -o chad chad.o";
+    std::string link_cmd = "ld -o " + output_file_name + " " + output_file_name + ".o";
     int link_result = system(link_cmd.c_str());
     BOOST_CHECK_EQUAL(link_result, 0);
 
     // Run the compiled program and capture its output
-    std::string run_cmd = "./chad";
+    std::string run_cmd = "./" + output_file_name;
     std::string output;
     FILE* pipe = popen(run_cmd.c_str(), "r");
     if (pipe) {
@@ -60,18 +62,18 @@ void test_assembly(std::string input, std::string expected_output, Compiler comp
 
     //Clean up the generated files
     remove(assembly_file.c_str());
-    remove("chad.o");
-    remove("chad");
+    remove((output_file_name + ".o").c_str());
+    remove(output_file_name.c_str());
 }
 
-void test_assembly_file(std::string input, std::string expected_outpout) {
+void test_assembly_file(std::string output_file_name, std::string input, std::string expected_outpout) {
     std::string filepath = "../tests/assemblyTests/" + input;
-    test_assembly(filepath, expected_outpout, grammar::compiler::compile_from_file);
+    test_assembly(output_file_name, filepath, expected_outpout, grammar::compiler::compile_from_file);
     std::cout << "test finished: " << input << std::endl;
 }
 
-void test_assembly_string(std::string input,std::string expected_outpout) {
-    test_assembly(input, expected_outpout, grammar::compiler::compile_from_string);
+void test_assembly_string(std::string output_file_name, std::string input,std::string expected_outpout) {
+    test_assembly(output_file_name, input, expected_outpout, grammar::compiler::compile_from_string);
 }
 
 
