@@ -280,12 +280,10 @@ void peephole_optimization(IR &ir) {
                 LivenessAnalysis blocks = liveness_analysis(function->code);
                 int match_start = 0;
                 auto pattern_op = pattern.components.begin();
-
                 for (size_t i = 0; i < blocks.size(); i++) {
                     // std::cout << "-----------------------------------------" << std::endl;
                     // std::cout << blocks[i]->instructions.front() << std::endl;
                     // print_block(*blocks[i]);
-
                     if (std::holds_alternative<Op>(*pattern_op)) {
                         // std::cout << "in first if" << std::endl;
                         if (std::get<Op>(*pattern_op) != blocks[i]->instructions.front().operation) {
@@ -299,7 +297,6 @@ void peephole_optimization(IR &ir) {
                             continue; // pattern and block did not match look at next pattern
                         }
                     }
-                    
                     if (pattern_op == std::prev(pattern.components.end())) {
                         // std::cout << "Making subset replacement: " << match_start << " - " << i << std::endl;
                         if(check_lambda(std::vector<Block*>(blocks.begin() + match_start, blocks.begin() + i + 1), pattern)){
@@ -311,8 +308,6 @@ void peephole_optimization(IR &ir) {
                             // std:: cout << "replace: " << blocks[i]->instructions.front() << std::endl;
                             // if(!pattern.replacement.empty()) std::cout << "with: " << pattern.replacement.front() << std::endl;
                             pattern.replacement.clear(); // clear replacements to avoid adding duplicate code
-
-
                         }
                         pattern_op = pattern.components.begin();
                         match_start = i+1;
@@ -323,7 +318,6 @@ void peephole_optimization(IR &ir) {
                 prune_dummy(function->code); 
                 for(auto block : blocks) delete block;
             }
-            
         }
     }
 }
