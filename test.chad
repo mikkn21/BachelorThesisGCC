@@ -1,91 +1,62 @@
-int merge(int[1] arr, int l, int m, int r) {
-    int n1 = m - l + 1;
-    int n2 = r - m;
+int x = 1;
 
-    int[1] L = new int[n1];
-    int[1] R = new int[n2];
-
-    int i = 0;
-    while (i < n1) {
-        L[i] = arr[l + i];
-        i = i + 1;
+int f() {
+    print(x);
+    int y = 2;
+    int g() {
+        return y;
     }
-
-    int j = 0;
-    while (j < n2) {
-        R[j] = arr[m + 1 + j];
-        j = j + 1;
-    }
-
-    i = 0;
-    j = 0;
-    int k = l;
-
-    while (i < n1 & j < n2) {
-        if (L[i] <= R[j]) {
-            arr[k] = L[i];
-            i = i + 1;
-        } else {
-            arr[k] = R[j];
-            j = j + 1;
-        }
-        k = k + 1;
-    }
-
-    while (i < n1) {
-        arr[k] = L[i];
-        i = i + 1;
-        k = k + 1;
-    }
-
-    while (j < n2) {
-        arr[k] = R[j];
-        j = j + 1;
-        k = k + 1;
-    }
-
-    return 0;
-}
-
-int mergeSortHelper(int[1] arr, int l, int r) {
-    while (l < r) {
-        int m = l + (r - l) / 2;
-
-        mergeSortHelper(arr, l, m);
-        mergeSortHelper(arr, m + 1, r);
-
-        merge(arr, l, m, r);
-        
-        return 0;
-    }
-
-    return 0;
-}
-
-int mergeSort(int[1] arr, int n) {
-    return mergeSortHelper(arr, 0, n - 1);
+    return g();
 }
 
 int main() {
-    int[1] arr = new int[8];
-    arr[0] = 12;
-    arr[1] = 11;
-    arr[2] = 13;
-    arr[3] = 5;
-    arr[4] = 6;
-    arr[5] = 7;
-    arr[6] = 18;
-    arr[7] = 2;
+    print(x);
+    int x = 3;
+    print(f());
+    g1();
+    g2();
+    return 0;
+}
 
-
-
-    mergeSort(arr, 8);
-
-    int i = 0;
-    while (i < 8) {
-        print(arr[i]);
-        i = i + 1;
+int i = 4;
+int g1() {
+    int i = 5;
+    int h1() {
+        int c1() {
+            int l1() {
+                print(i);
+                return 0;
+            }
+            l1();
+            return 0;
+        }
+        c1();
+        return 0;
     }
+    h1();
+    return 0;
+}
 
+int k = 6;
+int g2() {
+    print(k);
+    int k = 7;
+    int h2() {
+        print(k);
+        int k = 8;
+        int c2() {
+            print(k);
+            int k = 9;
+            int l2() {
+                print(k);
+                return 0;
+            }
+            l2();
+            return 0;
+        }
+        c2();
+        return 0;
+    }
+    h2();
     return 0;
 }

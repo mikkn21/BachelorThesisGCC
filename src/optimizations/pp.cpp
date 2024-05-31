@@ -76,16 +76,8 @@ std::list<Pattern> patterns = {
             }  
             Block b1 = *blocks.front();
             Block b2 = *blocks.back();
-            // if (holds_any_of<GenericRegister, Register>(*b1.def.begin())) {
-            //     if (std::holds_alternative<GenericRegister>(*b1.def.begin())) {
-            //         GenericRegister target = std::get<GenericRegister>(*b1.def.begin());
-            //         pattern.replacement.push_back(Instruction(Op::MOVQ, Arg(Register::RSP, IND()), Arg(target, DIR())));
-            //     } else {
-            //         Register target = std::get<Register>(*b1.def.begin());
-            //         pattern.replacement.push_back(Instruction(Op::MOVQ, Arg(Register::RSP, IND()), Arg(target, DIR())));
-            //     }
-            // }
-            return b1.def == b2.use;
+
+            return b1.def == b2.use && b1.out == b2.out;
         }
     }, {/* replacement */}),
     // Pattern to remove dead code
