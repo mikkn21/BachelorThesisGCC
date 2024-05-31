@@ -4,7 +4,6 @@
 #include "graph.hpp"
 #include <stack>
 #include <iostream>
-#include <algorithm>
 
 
 const int callee_offset = -48; // TODO: this should be referenced from a shared file so all occurences of this has a common variable. Or it should be removed
@@ -12,13 +11,6 @@ const int arg_offset = 16;
 const std::array<Register, 14> REGISTERS = {Register::RAX, Register::RBX, Register::RCX, Register::RDX, Register::RDI, Register::RSI, Register::R8, Register::R9, Register::R10, Register::R11, Register::R12, Register::R13, Register::R14, Register::R15};
 
 
-template<typename S>
-auto select_random(const S &s, size_t n) {
-  auto it = std::begin(s);
-  // 'advance' the iterator n times
-  std::advance(it,n);
-  return it;
-}
 
 Graph<RegisterType> build_interference_graph(LivenessAnalysis &blocks) {
     Graph<RegisterType> graph;
@@ -89,10 +81,7 @@ void simplify(Graph<RegisterType> &graph, std::set<GenericRegister> &spill_workl
 }
 
 void select_spill(Graph<RegisterType> &graph, std::set<GenericRegister> &spill_worklist, std::set<GenericRegister> &simplify_worklist) {
-    
-    auto r = rand() % spill_worklist.size(); // not _really_ random
-    auto node = *select_random(spill_worklist, r);
-    // GenericRegister node = *spill_worklist.begin();
+    GenericRegister node = *spill_worklist.begin();
     
     
     spill_worklist.erase(node);

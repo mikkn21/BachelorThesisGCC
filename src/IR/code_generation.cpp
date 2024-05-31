@@ -781,6 +781,7 @@ public:
         code.push(Instruction(Op::LABEL, Arg(Label("allocate"), DIR())));
         code.push(Instruction(Op::PUSHQ , Arg(Register::RBP, DIR())));
         code.push(Instruction(Op::MOVQ, Arg(Register::RSP, DIR()), Arg(Register::RBP, DIR())));
+        push_callee_save();
         push_caller_save();
 
         code.push(Instruction(Op::PUSHQ, Arg(Register::RDI, DIR())));
@@ -799,6 +800,7 @@ public:
 
         push_caller_restore();
         code.push(Instruction(Op::MOVQ, Arg(result, DIR()), Arg(Register::RAX, DIR())));
+        push_callee_restore();
 
         code.push(Instruction(Op::POPQ, Arg(Register::RBP, DIR())));
         

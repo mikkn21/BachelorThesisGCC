@@ -179,46 +179,16 @@ private:
 
 
     void post_visit(grammar::ast::ReturnStatement &rtn) override {
-        std::cout << "post return1" << std::endl;
         auto t1 = pop(type_stack); // Exp
         auto t2 = pop(type_stack); // Return type of function
-
-        if (auto t12 = boost::get<ClassSymbolType>(&t1)) {
-            std::cout << "t1 is set: " << t12->symbol->decl->id.id << std::endl;
-        }
-
-        if (auto t22 = boost::get<ClassSymbolType>(&t2)) {
-            std::cout << "t2 is set: " << t22->symbol->decl->id.id << std::endl;
-        }
-
-        // std::cout << t1 << std::endl;
-        // std::cout << t2 << std::endl;
-        // auto t2 = func->return_type;
         if (t1 != t2) {
             throw TypeCheckError("Return type " + t2.to_string() + " does not match function return type " + t1.to_string(), rtn);
         }
         type_stack.push(t2);
-        std::cout << "post return2" << std::endl;
     }
 
     void pre_visit(grammar::ast::FuncDecl &func_decl) override {
         auto type = func_decl.sym->type.return_type.get();
-        std::cout << "PREVISIT FUNCDECL -------------" << std::endl;
-        if (type == nullptr) {
-            std::cout << "Type is null" << std::endl;
-        } else {
-            std::cout << "Type is not null" << std::endl;
-            if (auto t = boost::get<ClassSymbolType>(type)) {
-                std::cout << "Type is class" << std::endl;
-                if (t->symbol == nullptr) {
-                    std::cout << "Symbol is null" << std::endl;
-                } else {
-                    std::cout << "Symbol is not null" << std::endl;
-                }
-            } else {
-                std::cout << "Type is not class" << std::endl;
-            }
-        }
         type_stack.push(*type); 
     }
 

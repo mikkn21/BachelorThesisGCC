@@ -15,22 +15,6 @@ struct PrintVisitor {
 };
 
 struct SymbolTypeEqualityVisitor : boost::static_visitor<bool> {
-    // bool operator()(const SymbolType &t, const SymbolType &e) const {
-    //     std::cout << "beta3" << std::endl;
-    //     std::cout << t.to_string() << std::endl;
-    //     std::cout << e.to_string() << std::endl;
-    //
-    //     if (auto *beta = boost::get<BetaType>(&t)) {
-    //         return *beta == e;
-    //     }
-    //
-    //     if (auto *beta = boost::get<BetaType>(&e)) {
-    //         std::cout << "beta5" << std::endl;
-    //     }
-    //
-    //     return false;
-    // }
-
     template <typename T>
     bool operator()(const T &t1, const T &t2) const {
         return t1 == t2;
@@ -114,11 +98,6 @@ bool IntType::operator==(const IntType &other) const {
 }
 
 bool ClassSymbolType::operator==(const ClassSymbolType &other) const {
-    if (other.symbol == nullptr) {
-        std::cout << "other null" << std::endl;
-    } else if (symbol == nullptr) {
-        std::cout << "symbol null" << std::endl;
-    }
     return symbol->decl->id.id == other.symbol->decl->id.id;
 }
 

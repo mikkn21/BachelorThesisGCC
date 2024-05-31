@@ -52,7 +52,6 @@ public:
     }
 
     void post_visit(grammar::ast::ClassType &class_type) override {
-        std::cout << "ClassType: " << class_type.id.id << std::endl;
         Symbol *sym = current_symbol_table->find(class_type.id.id);
         if (sym == nullptr) {
             throw SemanticsError(class_type.id.id + " not declared in scope6", class_type);

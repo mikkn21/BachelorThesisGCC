@@ -76,6 +76,15 @@ std::list<Pattern> patterns = {
             }  
             Block b1 = *blocks.front();
             Block b2 = *blocks.back();
+            // if (holds_any_of<GenericRegister, Register>(*b1.def.begin())) {
+            //     if (std::holds_alternative<GenericRegister>(*b1.def.begin())) {
+            //         GenericRegister target = std::get<GenericRegister>(*b1.def.begin());
+            //         pattern.replacement.push_back(Instruction(Op::MOVQ, Arg(Register::RSP, IND()), Arg(target, DIR())));
+            //     } else {
+            //         Register target = std::get<Register>(*b1.def.begin());
+            //         pattern.replacement.push_back(Instruction(Op::MOVQ, Arg(Register::RSP, IND()), Arg(target, DIR())));
+            //     }
+            // }
             return b1.def == b2.use;
         }
     }, {/* replacement */}),
@@ -90,30 +99,51 @@ std::list<Pattern> patterns = {
             }  
             Block b1 = *blocks.front();
 
-            if(b1.instructions.front().args.size() == 2) {
-                if (std::holds_alternative<Register>(b1.instructions.front().args[0].target)) {
-                    if (std::get<Register>(b1.instructions.front().args[0].target) == Register::RSP) {
-                        return false;
-                    }
-                    if (std::get<Register>(b1.instructions.front().args[0].target) == Register::RBP) {
-                        return false;
-                    }
-                }
+            // if(b1.instructions.front().args.size() == 2) {
+            //     if (std::holds_alternative<Register>(b1.instructions.front().args[0].target)) {
+            //         if (std::get<Register>(b1.instructions.front().args[0].target) == Register::RSP) {
+            //             return false;
+            //         }
+            //         if (std::get<Register>(b1.instructions.front().args[0].target) == Register::RBP) {
+            //             return false;
+            //         }
+            //     }
 
-                if (std::holds_alternative<Register>(b1.instructions.front().args[1].target)) {
-                    if (std::get<Register>(b1.instructions.front().args[1].target) == Register::RSP) {
-                        return false;
+            //     if (std::holds_alternative<Register>(b1.instructions.front().args[1].target)) {
+            //         if (std::get<Register>(b1.instructions.front().args[1].target) == Register::RSP) {
+            //             return false;
+            //         }
+            //         if (std::get<Register>(b1.instructions.front().args[1].target) == Register::RBP) {
+            //             return false;
+            //         }
+            //     }
+            // }
+
+                        // if is defining operation and is not direct, then it is not dead code
+            for (size_t i = 0; i < b1.instructions.front().args.size(); i++) {
+                if (holds_any_of<GenericRegister, Register>(b1.instructions.front().args[i].target)) {
+                    RegisterType target;
+                    if (std::holds_alternative<GenericRegister>(b1.instructions.front().args[i].target)) {
+                        target = std::get<GenericRegister>(b1.instructions.front().args[i].target);
+                    } else {
+                        target = std::get<Register>(b1.instructions.front().args[i].target);
                     }
-                    if (std::get<Register>(b1.instructions.front().args[1].target) == Register::RBP) {
+                    if (b1.def.find(target) != b1.def.end() && holds_any_of<IRL, IND>(b1.instructions.front().args[i].access_type)) {
                         return false;
                     }
                 }
             }
 
+            if (b1.def.find(Register::RSP) != b1.def.end()) {
+                return false;
+            }
+
+
+
 
             // Push and Pop might be important for stack management so don't remove them
             if(b1.instructions.front().operation == Op::PUSHQ || b1.instructions.front().operation == Op::POPQ  ) {
-                return false;;
+                return false;
             }       
 
             if(b1.instructions.front().operation == Op::SYSCALL || b1.instructions.front().operation == Op::CALL) return false;
@@ -312,8 +342,17 @@ void peephole_optimization(IR &ir) {
         bool cringe_bool = false; // indicates whether IR is stable
         while(!cringe_bool) {        
             cringe_bool = true;
+            LivenessAnalysis blocks = liveness_analysis(function->code);
+            bool changed = false;
+
             for (auto &pattern: patterns) {
-                LivenessAnalysis blocks = liveness_analysis(function->code);
+                if (changed) {
+                    for(auto block : blocks) delete block;
+                    blocks = liveness_analysis(function->code);
+                    changed = false;
+                }
+
+
                 size_t match_start = 0;
                 auto pattern_op = pattern.components.begin();
                 for (size_t i = 0; i < blocks.size(); i++) {
@@ -338,6 +377,7 @@ void peephole_optimization(IR &ir) {
                         if(check_lambda(std::vector<Block*>(blocks.begin() + match_start, blocks.begin() + i + 1), pattern)){
                             // std::cout << "test " << std::endl;
                             cringe_bool = false;
+                            changed = true;
                             apply_replacement(function->code, pattern, match_start, i);
                             // std::cout << "-----------------------------------------" << std::endl;
                             // std::cout << "applying replacement" << std::endl;
@@ -352,9 +392,60 @@ void peephole_optimization(IR &ir) {
                     pattern_op++;
                 } 
                 prune_dummy(function->code); 
-                for(auto block : blocks) delete block;
             }
+            for(auto block : blocks) delete block;
         }
     }
 }
+
+
+
+
+// void peephole_optimization(IR &ir) {
+//     for(auto function : ir.functions) {
+//         bool cringe_bool = false; // indicates whether IR is stable
+//         while(!cringe_bool) {        
+//             cringe_bool = true;
+
+//             LivenessAnalysis blocks = liveness_analysis(function->code);
+
+
+//             size_t match_start = 0;
+//             for (size_t i = 0; i < blocks.size(); i++) {
+//                 for (auto &pattern: patterns) {
+//                     auto j = i;
+//                     int pattern_counter = 0;
+//                     for (auto &pattern_op : pattern.components) {
+//                         ++pattern_counter;
+
+//                         if (j >= blocks.size()) {
+//                             break;
+//                         }
+//                         if (std::holds_alternative<Op>(pattern_op)) {
+//                             if (std::get<Op>(pattern_op) != blocks[j]->instructions.front().operation) {
+//                                 continue;
+//                             }
+//                         }
+                        
+//                         if (pattern_counter == pattern.components.size()) {
+//                             if(check_lambda(std::vector<Block*>(blocks.begin() + i, blocks.begin() + j+1), pattern)){
+//                                 cringe_bool = false;
+//                                 apply_replacement(function->code, pattern, i, j);
+//                                 pattern.replacement.clear(); // clear replacements to avoid adding duplicate code
+//                                 // i = j+1;
+//                                 // break;
+//                             }
+//                         }
+
+//                         ++j;
+//                     }
+//                 }
+                  
+//             } 
+//             prune_dummy(function->code); 
+//             for(auto block : blocks) delete block;
+
+//         }
+//     }
+// }
 
