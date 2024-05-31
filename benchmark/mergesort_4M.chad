@@ -67,25 +67,14 @@ int mergeSort(int[1] arr, int n) {
 }
 
 int main() {
-    int[1] arr = new int[8];
-    arr[0] = 12;
-    arr[1] = 11;
-    arr[2] = 13;
-    arr[3] = 5;
-    arr[4] = 6;
-    arr[5] = 7;
-    arr[6] = 18;
-    arr[7] = 2;
+    int arr_size = 4000000;
+    int[1] arr = new int[arr_size];
 
-
-
-    mergeSort(arr, 8);
-
-    int i = 0;
-    while (i < 8) {
-        print(arr[i]);
-        i = i + 1;
+	int j = 0;
+    while (j < arr_size) {
+		arr[j] = arr_size - j;
+        j = j + 1;
     }
-
+    mergeSort(arr, arr_size);
     return 0;
 }

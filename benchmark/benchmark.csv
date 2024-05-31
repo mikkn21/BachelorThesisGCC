@@ -1,0 +1,49 @@
+size,name,time
+41,fibonacci ,4.669315417607625
+41,fibonacci Naive,10.871344566345215
+41,fibonacci no Peephole,4.338079611460368
+41,fibonacci Naive + no Peephole,11.090648253758749
+42,fibonacci ,6.910056749979655
+42,fibonacci Naive,16.24707229932149
+42,fibonacci no Peephole,6.8030242919921875
+42,fibonacci Naive + no Peephole,18.81650145848592
+43,fibonacci ,13.804839769999186
+43,fibonacci Naive,30.142213424046833
+43,fibonacci no Peephole,13.474353233973185
+43,fibonacci Naive + no Peephole,42.18609388669332
+44,fibonacci ,25.581652959187824
+44,fibonacci Naive,61.45071562131246
+44,fibonacci no Peephole,27.49223057428996
+44,fibonacci Naive + no Peephole,69.77483677864075
+400,matrix ,0.6135710080464681
+400,matrix Naive,4.082605918248494
+400,matrix no Peephole,1.2788992722829182
+400,matrix Naive + no Peephole,5.782115618387858
+600,matrix ,2.066180864969889
+600,matrix Naive,14.029557943344116
+600,matrix no Peephole,2.204393148422241
+600,matrix Naive + no Peephole,15.076155503590902
+800,matrix ,5.910317500432332
+800,matrix Naive,35.193553845087685
+800,matrix no Peephole,6.358802318572998
+800,matrix Naive + no Peephole,37.31868728001913
+1000,matrix ,12.502810080846151
+1000,matrix Naive,74.30220834414165
+1000,matrix no Peephole,12.555169661839804
+1000,matrix Naive + no Peephole,75.14005287488301
+10M,mergesort ,37.45292409261068
+10M,mergesort Naive,50.695194482803345
+10M,mergesort no Peephole,39.060948292414345
+10M,mergesort Naive + no Peephole,55.06851704915365
+8M,mergesort ,30.57425332069397
+8M,mergesort Naive,40.12025674184164
+8M,mergesort no Peephole,33.59820532798767
+8M,mergesort Naive + no Peephole,43.380610386530556
+6M,mergesort ,23.299216747283936
+6M,mergesort Naive,30.90234311421712
+6M,mergesort no Peephole,23.19563603401184
+6M,mergesort Naive + no Peephole,31.95289357503255
+4M,mergesort ,15.100601116816202
+4M,mergesort Naive,19.773450930913288
+4M,mergesort no Peephole,15.037097692489624
+4M,mergesort Naive + no Peephole,20.3541735013326

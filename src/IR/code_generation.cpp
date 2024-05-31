@@ -795,11 +795,11 @@ public:
         code.push(Instruction(Op::ADDQ, Arg(Register::RAX, DIR()), Arg(Register::RDI, DIR()), "compute the new end"));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(12), DIR()), Arg(Register::RAX, DIR()), "brk"));
         code.push(Instruction(Op::SYSCALL));
-        GenericRegister result = code.new_register();
-        code.push(Instruction(Op::POPQ, Arg(result, DIR()), "the old end, which is the address of our allocated memory"));
+        // GenericRegister result = code.new_register();
+        code.push(Instruction(Op::POPQ, Arg(Register::R12, DIR()), "the old end, which is the address of our allocated memory"));
 
         push_caller_restore();
-        code.push(Instruction(Op::MOVQ, Arg(result, DIR()), Arg(Register::RAX, DIR())));
+        code.push(Instruction(Op::MOVQ, Arg(Register::R12, DIR()), Arg(Register::RAX, DIR())));
         push_callee_restore();
 
         code.push(Instruction(Op::POPQ, Arg(Register::RBP, DIR())));

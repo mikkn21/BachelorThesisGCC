@@ -209,6 +209,34 @@ void add_def_use_to_block(Block* current_block, Instruction &instruction) {
         case Op::RET:
             current_block->use.insert(Register::RAX);
             break;
+        case Op::XORQ:
+            if (holds_any_of<GenericRegister, Register>(instruction.args[0].target) && holds_any_of<GenericRegister, Register>(instruction.args[1].target)) {
+                if (std::holds_alternative<GenericRegister>(instruction.args[0].target) && std::holds_alternative<GenericRegister>(instruction.args[1].target))  {
+                    GenericRegister target0 = std::get<GenericRegister>(instruction.args[0].target);
+                    GenericRegister target1 = std::get<GenericRegister>(instruction.args[1].target);
+                    if (target0.local_id != target1.local_id)  {
+                        current_block->use.insert(get_register_type(instruction.args[0].target));
+                        current_block->use.insert(get_register_type(instruction.args[1].target));
+                    }
+                } else {
+                    Register target0 = std::get<Register>(instruction.args[0].target);
+                    Register target1 = std::get<Register>(instruction.args[1].target);
+                    if (target0 != target1) {
+                        current_block->use.insert(get_register_type(instruction.args[0].target));
+                        current_block->use.insert(get_register_type(instruction.args[1].target));
+                    }
+                }
+                current_block->def.insert(get_register_type(instruction.args[1].target));
+            } else if (holds_any_of<GenericRegister, Register>(instruction.args[0].target)) {
+                current_block->use.insert(get_register_type(instruction.args[0].target));
+                current_block->def.insert(get_register_type(instruction.args[0].target));
+            } else if (holds_any_of<GenericRegister, Register>(instruction.args[1].target)) {
+                current_block->use.insert(get_register_type(instruction.args[1].target));
+                current_block->def.insert(get_register_type(instruction.args[1].target));
+            } else {
+                throw IRError("Invalid xorq instruction arguments");
+            }
+            break;
         default:
             if (!instruction.args.empty() && holds_any_of<GenericRegister, Register>(instruction.args[0].target)) {
                 current_block->use.insert(get_register_type(instruction.args[0].target));

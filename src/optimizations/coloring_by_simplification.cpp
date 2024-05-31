@@ -322,24 +322,3 @@ void register_allocation(IR &ir) {
 }
 
 
-
-
-
-
-/* 
-procedure Main()
-    LivenessAnalysis()
-    Build()
-    MakeWorklist()
-    repeat
-        if simplifyWorklist != {} then Simplify()
-        else if worklistMoves != {} then Coalesce()
-        else if freezeWorklist != {} then Freeze()
-        else if spillWorklist != {} then SelectSpill()
-    until simplifyWorklist = {} ∧ worklistMoves = {} ∧ freezeWorklist = {} ∧ spillWorklist = {}
-    AssignColors()
-    if spilledNodes != {} then
-        RewriteProgram(spilledNodes)
-        Main() 
-        
-*/
