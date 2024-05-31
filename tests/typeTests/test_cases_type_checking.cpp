@@ -182,6 +182,9 @@ BOOST_AUTO_TEST_CASE(ClassNotExist) {testTypeCheckString("int main() { T a; retu
 BOOST_AUTO_TEST_CASE(ClassNotExist2) {testTypeCheckString("int main() { T a = new T(); return 0;}", TestingOutcome::FAILED);}
 BOOST_AUTO_TEST_CASE(ClassesEqual) {testTypeCheckString("class T{} int main() { T a = new T(); T b = new T(); a == b; return 0;}", TestingOutcome::SUCCESS);}
 BOOST_AUTO_TEST_CASE(ClassesNotEqual) {testTypeCheckString("class T{} class E{} int main() { T a = new T(); E b = new E(); a == b; return 0;}", TestingOutcome::FAILED);}
+BOOST_AUTO_TEST_CASE(ClassesReturn) {testTypeCheckString("class T{} T f() {T t = new T(); return t;} int main() { T e = f(); return 0; }", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(ClassesReturn2) {testTypeCheckString("T f() {T t = new T(); return t;} int main() { T e = f(); return 0; } class T{}", TestingOutcome::SUCCESS);}
+BOOST_AUTO_TEST_CASE(ClassesParameter) {testTypeCheckString("class T{} T f(T t) {return t;} int main() {T t = new T(); T e = f(t); return 0; }", TestingOutcome::SUCCESS);}
 
 // Dot operator 
 BOOST_AUTO_TEST_CASE(SimpleDot) {testTypeCheckString("int main() { class T { int x; } T a = new T(); return a.x;}", TestingOutcome::SUCCESS);}

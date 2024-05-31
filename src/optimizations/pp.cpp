@@ -4,6 +4,11 @@
 #include <variant>
 
 
+template<typename... Ts, typename Variant>
+bool holds_any_of(const Variant& v) {
+    return (std::holds_alternative<Ts>(v) || ...);
+}
+
 // helper function to check if a target is an immediate value and has a specific value
 bool has_immediate_value(TargetType target, int value) {
     return std::holds_alternative<ImmediateValue>(target) && std::get<ImmediateValue>(target).value == value;
@@ -144,25 +149,56 @@ std::list<Pattern> patterns = {
             return false;
         }
     }, {/* replacement */}), 
-    // pattern jump to label under label optimization
+    // // pattern jump to label under label optimization
+    // Pattern ({
+    //     Op::JMP,
+    //     Op::LABEL
+    // }, {
+    //     [](std::vector<Block*> blocks, Pattern& pattern) {
+    //         if (blocks.size() != 2) {
+    //             throw std::invalid_argument("Invalid block size");
+    //         }  
+    //         Block b1 = *blocks.front();
+    //         Block b2 = *blocks.back(); 
+
+    //         if (std::get<Label>(b1.instructions.front().args[0].target).label == std::get<Label>(b2.instructions.front().args[0].target).label){
+    //             pattern.replacement.push_back(b2.instructions.front());
+    //             return true;
+    //         }
+    //         return false;
+    //     }
+    // }, {/* replacement */}),
+    // pattern for moving from a register to itself
     Pattern ({
-        Op::JMP,
-        Op::LABEL
+        Op::MOVQ,
     }, {
         [](std::vector<Block*> blocks, Pattern& pattern) {
-            if (blocks.size() != 2) {
+            if (blocks.size() != 1) {
                 throw std::invalid_argument("Invalid block size");
             }  
             Block b1 = *blocks.front();
-            Block b2 = *blocks.back(); 
-
-            if (std::get<Label>(b1.instructions.front().args[0].target).label == std::get<Label>(b2.instructions.front().args[0].target).label){
-                pattern.replacement.push_back(b2.instructions.front());
-                return true;
-            }
+            auto &b1_args = b1.instructions.front().args;
+            //only if they both are DIR
+            if (std::holds_alternative<DIR>(b1_args[0].access_type) && std::holds_alternative<DIR>(b1_args[1].access_type)) {
+                //only if they are the same register
+                if (std::holds_alternative<Register>(b1_args[0].target) && std::holds_alternative<Register>(b1_args[1].target)){
+                    Register arg1 = std::get<Register>(b1_args[0].target);
+                    Register arg2 = std::get<Register>(b1_args[1].target);
+                    if (arg1 == arg2) {
+                        return true;
+                    }
+                } else if (std::holds_alternative<GenericRegister>(b1_args[0].target) && std::holds_alternative<GenericRegister>(b1_args[1].target)){
+                    GenericRegister arg1 = std::get<GenericRegister>(b1_args[0].target);
+                    GenericRegister arg2 = std::get<GenericRegister>(b1_args[1].target);
+                    if (arg1 == arg2) {
+                        return true;
+                    }
+                }
+            }   
             return false;
         }
     }, {/* replacement */}),
+
 };
 
 /**
@@ -239,7 +275,7 @@ void print_block(Block block) {
  * @param match_start The starting index of the match in the intermediate representation
  * @param i The ending index of the match in the intermediate representation
  */
-void apply_replacement(std::list<Instruction> &func, Pattern& pattern, int match_start, int i) {
+void apply_replacement(std::list<Instruction> &func, Pattern& pattern, size_t match_start, size_t i) {
     auto startIter = std::next(func.begin(), match_start);
     auto endIter = std::next(func.begin(), i + 1);
 
@@ -276,9 +312,9 @@ void peephole_optimization(IR &ir) {
         bool cringe_bool = false; // indicates whether IR is stable
         while(!cringe_bool) {        
             cringe_bool = true;
-            for (auto pattern: patterns) {
+            for (auto &pattern: patterns) {
                 LivenessAnalysis blocks = liveness_analysis(function->code);
-                int match_start = 0;
+                size_t match_start = 0;
                 auto pattern_op = pattern.components.begin();
                 for (size_t i = 0; i < blocks.size(); i++) {
                     // std::cout << "-----------------------------------------" << std::endl;

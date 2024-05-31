@@ -467,10 +467,10 @@ public:
         code.push(Instruction(Op::JNE, Arg(Label(index.beta_check_label), DIR())));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(index.line), DIR()), Arg(Register::RDI, DIR()), "Line number"));
         //code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLER_SAVE, DIR())));
-        push_caller_save();
+        // push_caller_save();
         code.push(Instruction(Op::CALL, Arg(Label("print_is_beta"), DIR())));
         //code.push(Instruction(Op::PROCEDURE, Arg(Procedure::CALLER_RESTORE, DIR())));
-        push_caller_restore();
+        // push_caller_restore();
         code.push(Instruction(Op::LABEL, Arg(Label(index.beta_check_label), DIR())));
 
         // TODO: Check valid index
@@ -809,7 +809,7 @@ public:
     void push_print_is_beta_function() {
         code.new_empty_scope();
         code.push(Instruction(Op::LABEL, Arg(Label("print_is_beta"), DIR())));
-        push_callee_save();
+        // push_callee_save();
 
         code.push(Instruction(Op::PUSHQ, Arg(Register::RDI, DIR()), "Push line number"));
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(1), DIR()), Arg(Register::RAX, DIR()), "System call number for write"));
@@ -819,9 +819,9 @@ public:
         code.push(Instruction(Op::SYSCALL));
         // Print line number
         code.push(Instruction(Op::POPQ, Arg(Register::RDI, DIR()), "Pop line number"));
-        push_caller_save();
+        // push_caller_save();
         code.push(Instruction(Op::CALL, Arg(Label("printNum"), DIR())));
-        push_caller_restore();
+        // push_caller_restore();
 
         // Close with error code 1
         code.push(Instruction(Op::MOVQ, Arg(ImmediateValue(60), DIR()), Arg(Register::RAX, DIR())));
@@ -878,5 +878,4 @@ IR *intermediate_code_generation(grammar::ast::Prog &prog) {
     link_instructions(*funcs);
     return funcs;
 }
-
 

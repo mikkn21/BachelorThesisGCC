@@ -17,8 +17,8 @@ template<typename Compiler>
 void test_assembly(std::string output_file_name, std::string input, std::string expected_output, Compiler compiler) {
     cout << "\n----------------------" << endl;
     grammar::compiler::CompilerOptions options = grammar::compiler::CompilerOptions();
-    // options.naive_register_allocation = false;
-    options.use_peephole = false;
+    options.naive_register_allocation = false;
+    options.use_peephole = true;
 
     std::string assembly_file = output_file_name + ".s";
 

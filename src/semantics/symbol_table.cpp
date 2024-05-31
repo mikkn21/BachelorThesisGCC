@@ -114,6 +114,11 @@ bool IntType::operator==(const IntType &other) const {
 }
 
 bool ClassSymbolType::operator==(const ClassSymbolType &other) const {
+    if (other.symbol == nullptr) {
+        std::cout << "other null" << std::endl;
+    } else if (symbol == nullptr) {
+        std::cout << "symbol null" << std::endl;
+    }
     return symbol->decl->id.id == other.symbol->decl->id.id;
 }
 

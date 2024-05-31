@@ -3,6 +3,7 @@
 #include "symbol_table.hpp"
 #include <iostream>
 #include "symbol_collection_phase2.hpp"
+#include <memory>
 
 
 class SymbolCollectionVisitorPhase2 : public Visitor {
@@ -19,6 +20,12 @@ public:
 
     void post_visit(grammar::ast::FuncDecl &func_decl) override {
         current_symbol_table = current_symbol_table->parent_scope;
+        func_decl.sym->type.return_type = std::make_shared<SymbolType>(convert_type(func_decl.type));
+        std::vector<SymbolType> parameters = std::vector<SymbolType>();
+        for (auto &parameter : func_decl.parameter_list.parameters) {
+            parameters.push_back(convert_type(boost::get<grammar::ast::VarDecl>(parameter.var).type));
+        }
+        func_decl.sym->type.parameters = parameters;
     }
 
     void pre_visit(grammar::ast::ClassDecl &class_decl) override {
@@ -45,6 +52,7 @@ public:
     }
 
     void post_visit(grammar::ast::ClassType &class_type) override {
+        std::cout << "ClassType: " << class_type.id.id << std::endl;
         Symbol *sym = current_symbol_table->find(class_type.id.id);
         if (sym == nullptr) {
             throw SemanticsError(class_type.id.id + " not declared in scope6", class_type);
@@ -78,7 +86,7 @@ public:
             if (auto *class_symbol_type = boost::get<ClassSymbolType>(&var_symbol->type)) {
                 current_scope = class_symbol_type->symbol->symbol_table;
             } else if (id_access.ids.size() > 1) {
-                    throw SemanticsError("Attempted to access a non-class", id_access.ids[0]);
+                throw SemanticsError("Attempted to access a non-class", id_access.ids[0]);
             }
         }
 

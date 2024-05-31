@@ -58,14 +58,18 @@ namespace grammar::compiler {
         obj->global_scope = std::make_unique<SymbolTable>();
         obj->ast.global_scope = obj->global_scope.get();
 
+        std::cout << "Before symbol collection 1" << std::endl;
         symbol_collection(obj->ast);
+        std::cout << "Before symbol collection 2" << std::endl;
         symbol_collection_phase2(obj->ast);
 
         if (options.stop_after == StopAfterSymbolCollection ) {
             return obj;
         }
 
+        std::cout << "Before type checking" << std::endl;
         type_checker(obj->ast);
+        std::cout << "After type checking" << std::endl;
 
         if (options.stop_after == StopAfterTypeCheck ) {
             return obj;
@@ -86,9 +90,6 @@ namespace grammar::compiler {
             peephole_optimization(*obj->ir);
         } 
 
-        //std::cout << "CodeGen:\n" << *obj->ir << std::endl;
-
-      
 
         if (options.stop_after == stopAfterPeepHole){
             return obj;

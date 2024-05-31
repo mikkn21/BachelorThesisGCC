@@ -37,6 +37,7 @@ struct ArraySymbolType {
 
 struct ClassSymbolType {
     ClassSymbol *symbol;
+    ClassSymbolType(ClassSymbol *symbol) : symbol(symbol) { }
     bool operator==(const ClassSymbolType &other) const;
     std::string to_string() const;
 };
