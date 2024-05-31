@@ -329,6 +329,68 @@ void prune_dummy(std::list<Instruction> &func) {
 }
 
 
+void peephole_optimization2(IR &ir) {
+    for(auto function : ir.functions) {
+        bool cringe_bool = false; // indicates whether IR is stable
+        while(!cringe_bool) {        
+            cringe_bool = true;
+            LivenessAnalysis blocks = liveness_analysis(function->code);
+            bool changed = false;
+
+            for (auto &pattern: patterns) {
+                if (changed) {
+                    for(auto block : blocks) delete block;
+                    blocks = liveness_analysis(function->code);
+                    changed = false;
+                }
+
+
+                size_t match_start = 0;
+                auto pattern_op = pattern.components.begin();
+                for (size_t i = 0; i < blocks.size(); i++) {
+                    // std::cout << "-----------------------------------------" << std::endl;
+                    // std::cout << blocks[i]->instructions.front() << std::endl;
+                    // print_block(*blocks[i]);
+                    if (std::holds_alternative<Op>(*pattern_op)) {
+                        // std::cout << "in first if" << std::endl;
+                        if (std::get<Op>(*pattern_op) != blocks[i]->instructions.front().operation) {
+                            // std::cout << "in second if" << std::endl;
+                            if (pattern_op != pattern.components.begin()) {
+                                // std::cout << "in third if" << std::endl;
+                                i--; // look at current block again with start of pattern
+                            }
+                            pattern_op = pattern.components.begin();
+                            match_start = i+1;
+                            continue; // pattern and block did not match look at next pattern
+                        }
+                    }
+                    if (pattern_op == std::prev(pattern.components.end())) {
+                        // std::cout << "Making subset replacement: " << match_start << " - " << i << std::endl;
+                        if(check_lambda(std::vector<Block*>(blocks.begin() + match_start, blocks.begin() + i + 1), pattern)){
+                            // std::cout << "test " << std::endl;
+                            cringe_bool = false;
+                            changed = true;
+                            apply_replacement(function->code, pattern, match_start, i);
+                            // std::cout << "-----------------------------------------" << std::endl;
+                            // std::cout << "applying replacement" << std::endl;
+                            // std:: cout << "replace: " << blocks[i]->instructions.front() << std::endl;
+                            // if(!pattern.replacement.empty()) std::cout << "with: " << pattern.replacement.front() << std::endl;
+                            pattern.replacement.clear(); // clear replacements to avoid adding duplicate code
+                        }
+                        pattern_op = pattern.components.begin();
+                        match_start = i+1;
+                        continue;
+                    }
+                    pattern_op++;
+                } 
+                prune_dummy(function->code); 
+            }
+            for(auto block : blocks) delete block;
+        }
+    }
+}
+
+
 
 
 void peephole_optimization(IR &ir) {
@@ -341,30 +403,28 @@ void peephole_optimization(IR &ir) {
 
             for (size_t i = 0; i < blocks.size(); ++i) {
                 for (auto &pattern: patterns) {
-                    auto j = i;
                     size_t pattern_counter = 0;
                     bool changed = false;
                     for (auto &pattern_op : pattern.components) {
-                        if (j >= blocks.size()) {
+                        if (i+pattern_counter >= blocks.size()) {
                             break;
                         }
                         if (std::holds_alternative<Op>(pattern_op)) {
-                            if (std::get<Op>(pattern_op) != blocks[j]->instructions.front().operation) {
+                            if (std::get<Op>(pattern_op) != blocks[i+pattern_counter]->instructions.front().operation) {
                                 continue;
                             }
                         }
                         
-                        if (pattern_counter == pattern.components.size()+1) {
-                            if (check_lambda(std::vector<Block*>(blocks.begin() + i, blocks.begin() + j+1), pattern)) {
+                        if (pattern_counter+1 == pattern.components.size()) {
+                            if (check_lambda(std::vector<Block*>(blocks.begin() + i, blocks.begin() + i + pattern_counter + 1), pattern)) {
                                 cringe_bool = false;
-                                apply_replacement(function->code, pattern, i, j);
+                                apply_replacement(function->code, pattern, i, i+pattern_counter);
                                 pattern.replacement.clear(); // clear replacements to avoid adding duplicate code
-                                i = j;
+                                i = i + pattern_counter;
                                 changed = true;
                             }
                         }
                         ++pattern_counter;
-                        ++j;
                     }
                     if (changed) {
                         break;

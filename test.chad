@@ -1,13 +1,50 @@
-
-int fibonacci(int n) {
-    if n <= 1 {
-        return n;
-    } else {
-        return fibonacci(n-1)+fibonacci(n-2);
+int partition(int[1] arr, int low, int high) {
+    int pivot = arr[high];
+    int i = (low - 1); 
+    int j = low;
+    while (j <= high-1) {
+        if (arr[j] <= pivot) {
+            i = i+1; 
+            int temp1 = arr[i];
+            arr[i] = arr[j];
+            arr[j] = temp1;
+        }
+        j = j+1;
     }
+    int temp2 = arr[i + 1];
+    arr[i + 1] = arr[high];
+    arr[high] = temp2;
+    return (i + 1);
+}
+
+int quicksort(int[1] arr, int low, int high) {
+    if (low < high) {
+        int pi = partition(arr, low, high);
+
+        quicksort(arr, low, pi - 1);
+        quicksort(arr, pi + 1, high);
+    }
+    return 0;
 }
 
 int main() {
-    fibonacci(41);
+    int[1] arr = new int[8];
+    arr[0] = 10;
+    arr[1] = 80;
+    arr[2] = 30;
+    arr[3] = 90;
+    arr[4] = 40;
+    arr[5] = 50;
+    arr[6] = 20;
+    arr[7] = 60;
+
+    quicksort(arr, 0, 7);
+    
+    int i = 0;
+    while i < 8 {
+        print(arr[i]);
+        i = i + 1;
+    }
+
     return 0;
 }
