@@ -65,6 +65,9 @@ enum class Procedure {
 //TODO: why is it called ImmediateData?
 using TargetType = std::variant<ImmediateValue, ImmediateData, Register, GenericRegister, Label, Procedure>;
 
+//implement equals for target type
+bool operator==(const TargetType& lhs, const TargetType& rhs);
+
 struct Arg {
     TargetType target;
     MemAccessType access_type;

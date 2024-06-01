@@ -9,6 +9,15 @@ bool holds_any_of(const Variant& v) {
     return (std::holds_alternative<Ts>(v) || ...);
 }
 
+TargetType convert_register_type_to_target_type(RegisterType register_type) {
+    if (std::holds_alternative<Register>(register_type)) {
+        return std::get<Register>(register_type);
+    } else if (std::holds_alternative<GenericRegister>(register_type)) {
+        return std::get<GenericRegister>(register_type);
+    }
+    throw std::invalid_argument("Invalid register type");
+}
+
 // helper function to check if a target is an immediate value and has a specific value
 bool has_immediate_value(TargetType target, int value) {
     return std::holds_alternative<ImmediateValue>(target) && std::get<ImmediateValue>(target).value == value;
@@ -28,26 +37,52 @@ std::list<Pattern> patterns = {
     // Pattern for A->B, B->C => A->C(transitive move) optimization
     Pattern({
         Op::MOVQ,
-        Op::MOVQ
+        WildCard()
     }, {
         [](std::vector<Block*> blocks, Pattern& pattern) {
             if (blocks.size() != 2) {
                 throw std::invalid_argument("Invalid block size 2");
             }  
+
+
             Block b1 = *blocks.front();
             Block b2 = *blocks.back();
-            if (b1.def == b2.use) {
-                auto &b1_args = b1.instructions.front().args;
-                auto &b2_args = b2.instructions.front().args;
-                
-                if (std::holds_alternative<DIR>(b2_args[0].access_type) 
-                    && std::holds_alternative<DIR>(b1_args[1].access_type) && std::holds_alternative<DIR>(b2_args[1].access_type) 
-                    && b2.out.find(*b1.def.begin()) == b2.out.end()){ 
-                    pattern.replacement.push_back(Instruction(Op::MOVQ, b1.instructions.front().args[0], b2.instructions.front().args[1]));
+
+            auto &b1_args = b1.instructions.front().args;
+            auto &b2_args = b2.instructions.front().args;
+            if (b2_args.size() == 2) {
+                if (((std::holds_alternative<DIR>(b1_args[0].access_type) || std::holds_alternative<DIR>(b2_args[1].access_type))
+                    && std::holds_alternative<DIR>(b1_args[1].access_type))
+                    && std::holds_alternative<DIR>(b2_args[0].access_type)
+                    && std::holds_alternative<DIR>(b2_args[1].access_type)
+
+                    && b2.use.find(*b1.def.begin()) != b2.use.end() 
+                    && b2.def.find(*b1.def.begin()) == b2.def.end()
+                    && b1.use.find(*b2.use.begin()) == b1.use.end() 
+                    && !(std::holds_alternative<ImmediateValue>(b2_args[0].target) && std::holds_alternative<ImmediateValue>(b1_args[0].target))
+                ) {
+                    pattern.replacement.push_back(b1.instructions.front());
+                    Instruction new_instruction = Instruction(b2.instructions.begin()->operation);
+
+                    for (auto arg : b2_args) {
+                        if (arg.target == b1_args[1].target) {
+                            arg = b1_args[0];
+                        }
+                        new_instruction.args.push_back(arg);
+                    }
+                    pattern.replacement.push_back(new_instruction);
+
+
+                    // std::cout << "\npattern:" << std::endl;
+                    // std::cout << blocks[0]->instructions.front() << std::endl;
+                    // std::cout << blocks[1]->instructions.front() << std::endl;
+                    // std::cout << "replacement:" << std::endl;
+                    // std::cout << *pattern.replacement.begin() << std::endl;
+                    // std::cout << pattern.replacement.back() << std::endl;
+
                     return true;
                 }
-                // }   
-            }
+            } 
             return false;
         }
     }, {/* replacement */}),
