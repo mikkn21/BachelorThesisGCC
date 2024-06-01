@@ -40,7 +40,7 @@ std::list<Pattern> patterns = {
                 auto &b1_args = b1.instructions.front().args;
                 auto &b2_args = b2.instructions.front().args;
                 
-                if (std::holds_alternative<DIR>(b1_args[0].access_type) && std::holds_alternative<DIR>(b2_args[0].access_type) 
+                if (std::holds_alternative<DIR>(b2_args[0].access_type) 
                     && std::holds_alternative<DIR>(b1_args[1].access_type) && std::holds_alternative<DIR>(b2_args[1].access_type) 
                     && b2.out.find(*b1.def.begin()) == b2.out.end()){ 
                     pattern.replacement.push_back(Instruction(Op::MOVQ, b1.instructions.front().args[0], b2.instructions.front().args[1]));
