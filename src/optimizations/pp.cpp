@@ -17,7 +17,7 @@ bool has_immediate_value(TargetType target, int value) {
 /**
  * @brief List of patterns to be checked for peephole optimization.
  * 
- * @de½ails Each lambda has to return a bool.
+ * @details Each lambda has to return a bool.
  * The `replacement` is empty until a lambda function inserts a replacement instruction.
  * 
  * @warning The order of the patterns is important, as the first pattern that matches will be applied.
