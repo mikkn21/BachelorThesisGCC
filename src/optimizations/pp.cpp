@@ -37,7 +37,7 @@ std::list<Pattern> patterns = {
     // Pattern for A->B, B->C => A->C(transitive move) optimization
     Pattern({
         Op::MOVQ,
-        Op::MOVQ
+        WildCard()
     }, {
         [](std::vector<Block*> blocks, Pattern& pattern) {
             if (blocks.size() != 2) {
@@ -49,11 +49,12 @@ std::list<Pattern> patterns = {
                 auto &b1_args = b1.instructions.front().args;
                 auto &b2_args = b2.instructions.front().args;
                 
-                if (std::holds_alternative<DIR>(b1_args[0].access_type) && std::holds_alternative<DIR>(b2_args[0].access_type) 
+                if (std::holds_alternative<DIR>(b2_args[0].access_type) 
                     && std::holds_alternative<DIR>(b1_args[1].access_type) && std::holds_alternative<DIR>(b2_args[1].access_type) 
                     && b2.out.find(*b1.def.begin()) == b2.out.end()){ 
                     pattern.replacement.push_back(b1.instructions.front());
-                    for (auto &arg : b2_args) {
+                    auto new_instruction = Instruction(b2.instructions.front().operation);
+                    for (auto arg : b2_args) {
                         // convert the target into RegisterType if they are one
                         if (std::holds_alternative<Register>(arg.target)) {
                             auto target = std::get<Register>(arg.target);
@@ -66,9 +67,9 @@ std::list<Pattern> patterns = {
                                 arg.target = convert_register_type_to_target_type(*b1.use.begin());
                             }
                         }
-
+                        new_instruction.args.push_back(arg);
                     }
-                    pattern.replacement.push_back(b2.instructions.front());
+                    pattern.replacement.push_back(new_instruction);
 
                     return true;
                 }
