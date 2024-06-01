@@ -9,6 +9,15 @@ bool holds_any_of(const Variant& v) {
     return (std::holds_alternative<Ts>(v) || ...);
 }
 
+TargetType convert_register_type_to_target_type(RegisterType register_type) {
+    if (std::holds_alternative<Register>(register_type)) {
+        return std::get<Register>(register_type);
+    } else if (std::holds_alternative<GenericRegister>(register_type)) {
+        return std::get<GenericRegister>(register_type);
+    }
+    throw std::invalid_argument("Invalid register type");
+}
+
 // helper function to check if a target is an immediate value and has a specific value
 bool has_immediate_value(TargetType target, int value) {
     return std::holds_alternative<ImmediateValue>(target) && std::get<ImmediateValue>(target).value == value;
@@ -43,7 +52,24 @@ std::list<Pattern> patterns = {
                 if (std::holds_alternative<DIR>(b1_args[0].access_type) && std::holds_alternative<DIR>(b2_args[0].access_type) 
                     && std::holds_alternative<DIR>(b1_args[1].access_type) && std::holds_alternative<DIR>(b2_args[1].access_type) 
                     && b2.out.find(*b1.def.begin()) == b2.out.end()){ 
-                    pattern.replacement.push_back(Instruction(Op::MOVQ, b1.instructions.front().args[0], b2.instructions.front().args[1]));
+                    pattern.replacement.push_back(b1.instructions.front());
+                    for (auto &arg : b2_args) {
+                        // convert the target into RegisterType if they are one
+                        if (std::holds_alternative<Register>(arg.target)) {
+                            auto target = std::get<Register>(arg.target);
+                            if (b1.def.find(target) != b1.def.end()) {
+                                arg.target = convert_register_type_to_target_type(*b1.use.begin());
+                            }
+                        } else if (std::holds_alternative<GenericRegister>(arg.target)) {
+                            auto target = std::get<GenericRegister>(arg.target);
+                            if (b1.def.find(target) != b1.def.end()) {
+                                arg.target = convert_register_type_to_target_type(*b1.use.begin());
+                            }
+                        }
+
+                    }
+                    pattern.replacement.push_back(b2.instructions.front());
+
                     return true;
                 }
                 // }   
