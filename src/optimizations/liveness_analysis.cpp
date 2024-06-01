@@ -237,6 +237,21 @@ void add_def_use_to_block(Block* current_block, Instruction &instruction) {
                 throw IRError("Invalid xorq instruction arguments");
             }
             break;
+        case Op::ANDQ:
+            if (holds_any_of<GenericRegister, Register>(instruction.args[0].target) && holds_any_of<GenericRegister, Register>(instruction.args[1].target)) {
+                current_block->use.insert(get_register_type(instruction.args[0].target));
+                current_block->use.insert(get_register_type(instruction.args[1].target));
+                current_block->def.insert(get_register_type(instruction.args[1].target));
+            } else if (holds_any_of<GenericRegister, Register>(instruction.args[0].target)) {
+                current_block->use.insert(get_register_type(instruction.args[0].target));
+                current_block->def.insert(get_register_type(instruction.args[0].target));
+            } else if (holds_any_of<GenericRegister, Register>(instruction.args[1].target)) {
+                current_block->use.insert(get_register_type(instruction.args[1].target));
+                current_block->def.insert(get_register_type(instruction.args[1].target));
+            } else {
+                throw IRError("Invalid andq instruction arguments");
+            }
+            break;
         default:
             if (!instruction.args.empty() && holds_any_of<GenericRegister, Register>(instruction.args[0].target)) {
                 current_block->use.insert(get_register_type(instruction.args[0].target));

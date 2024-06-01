@@ -187,3 +187,24 @@ std::ostream& operator<<(std::ostream& os, const std::list<Instruction> &code) {
     return os;
 }
 
+bool operator==(const TargetType& lhs, const TargetType& rhs) {
+    if (lhs.index() != rhs.index()) {
+        return false;
+    }
+    if (lhs.index() == 0) {
+        return std::get<0>(lhs).value == std::get<0>(rhs).value;
+    } else if (lhs.index() == 1) {
+        return std::get<1>(lhs).value == std::get<1>(rhs).value;
+    } else if (lhs.index() == 2) {
+        return std::get<2>(lhs) == std::get<2>(rhs);
+    } else if (lhs.index() == 3) {
+        return std::get<3>(lhs).local_id == std::get<3>(rhs).local_id;
+    } else if (lhs.index() == 4) {
+        return std::get<4>(lhs).label == std::get<4>(rhs).label;
+    } else if (lhs.index() == 5) {
+        return std::get<5>(lhs) == std::get<5>(rhs);
+    }
+    return false;
+
+}
+

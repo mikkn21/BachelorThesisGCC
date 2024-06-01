@@ -43,39 +43,96 @@ std::list<Pattern> patterns = {
             if (blocks.size() != 2) {
                 throw std::invalid_argument("Invalid block size 2");
             }  
+
+
             Block b1 = *blocks.front();
             Block b2 = *blocks.back();
-            if (b1.def == b2.use) {
-                auto &b1_args = b1.instructions.front().args;
-                auto &b2_args = b2.instructions.front().args;
-                
-                if (std::holds_alternative<DIR>(b2_args[0].access_type) 
-                    && std::holds_alternative<DIR>(b1_args[1].access_type) && std::holds_alternative<DIR>(b2_args[1].access_type) 
-                    && b2.out.find(*b1.def.begin()) == b2.out.end()){ 
+
+
+
+            auto &b1_args = b1.instructions.front().args;
+            auto &b2_args = b2.instructions.front().args;
+            if (b2_args.size() == 2) {
+                if (((std::holds_alternative<DIR>(b1_args[0].access_type) || std::holds_alternative<DIR>(b2_args[1].access_type))
+                    && std::holds_alternative<DIR>(b1_args[1].access_type))
+                    && std::holds_alternative<DIR>(b2_args[0].access_type)
+                    && std::holds_alternative<DIR>(b2_args[1].access_type)
+
+                    && b2.use.find(*b1.def.begin()) != b2.use.end() 
+                    && b2.def.find(*b1.def.begin()) == b2.def.end()
+                    && b1.use.find(*b2.use.begin()) == b1.use.end() 
+                    && !(std::holds_alternative<ImmediateValue>(b2_args[0].target) && std::holds_alternative<ImmediateValue>(b1_args[0].target))
+                ) {
                     pattern.replacement.push_back(b1.instructions.front());
-                    auto new_instruction = Instruction(b2.instructions.front().operation);
+                    Instruction new_instruction = Instruction(b2.instructions.begin()->operation);
+
                     for (auto arg : b2_args) {
-                        // convert the target into RegisterType if they are one
-                        if (std::holds_alternative<Register>(arg.target)) {
-                            auto target = std::get<Register>(arg.target);
-                            if (b1.def.find(target) != b1.def.end()) {
-                                arg.target = convert_register_type_to_target_type(*b1.use.begin());
-                            }
-                        } else if (std::holds_alternative<GenericRegister>(arg.target)) {
-                            auto target = std::get<GenericRegister>(arg.target);
-                            if (b1.def.find(target) != b1.def.end()) {
-                                arg.target = convert_register_type_to_target_type(*b1.use.begin());
-                            }
+                        if (arg.target == b1_args[1].target) {
+                            arg = b1_args[0];
                         }
                         new_instruction.args.push_back(arg);
                     }
                     pattern.replacement.push_back(new_instruction);
 
+
+                    // std::cout << "\npattern:" << std::endl;
+                    // std::cout << blocks[0]->instructions.front() << std::endl;
+                    // std::cout << blocks[1]->instructions.front() << std::endl;
+                    // std::cout << "replacement:" << std::endl;
+                    // std::cout << *pattern.replacement.begin() << std::endl;
+                    // std::cout << pattern.replacement.back() << std::endl;
                     return true;
                 }
-                // }   
-            }
+            } 
             return false;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            // Block b1 = *blocks.front();
+            // Block b2 = *blocks.back();
+            // if (b1.def == b2.use && b2.use.find(*b2.def.begin()) == b2.use.end()) {
+            //     auto &b1_args = b1.instructions.front().args;
+            //     auto &b2_args = b2.instructions.front().args;
+                
+            //     if ((std::holds_alternative<DIR>(b1_args[0].access_type) || std::holds_alternative<DIR>(b2_args[1].access_type) 
+            //         && std::holds_alternative<DIR>(b2_args[0].access_type) 
+            //         && std::holds_alternative<DIR>(b1_args[1].access_type))) { 
+            //         pattern.replacement.push_back(b1.instructions.front());
+            //         auto new_instruction = Instruction(b2.instructions.front().operation);
+            //         for (auto arg : b2_args) {
+            //             // convert the target into RegisterType if they are one
+            //             if (std::holds_alternative<Register>(arg.target)) {
+            //                 auto target = std::get<Register>(arg.target);
+            //                 if (b1.def.find(target) != b1.def.end()) {
+            //                     arg.target = convert_register_type_to_target_type(*b1.use.begin());
+            //                 }
+            //             } else if (std::holds_alternative<GenericRegister>(arg.target)) {
+            //                 auto target = std::get<GenericRegister>(arg.target);
+            //                 if (b1.def.find(target) != b1.def.end()) {
+            //                     arg.target = convert_register_type_to_target_type(*b1.use.begin());
+            //                 } 
+            //             }
+            //             new_instruction.args.push_back(arg);
+            //         }
+            //         pattern.replacement.push_back(new_instruction);
+
+            //         return true;
+            //     }
+            //     // }   
+            // }
+            // return false;
         }
     }, {/* replacement */}),
     // Pattern for redundant push and pop optimization
