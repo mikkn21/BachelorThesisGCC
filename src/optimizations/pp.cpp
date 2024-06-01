@@ -26,7 +26,7 @@ bool has_immediate_value(TargetType target, int value) {
 /**
  * @brief List of patterns to be checked for peephole optimization.
  * 
- * @de½ails Each lambda has to return a bool.
+ * @details Each lambda has to return a bool.
  * The `replacement` is empty until a lambda function inserts a replacement instruction.
  * 
  * @warning The order of the patterns is important, as the first pattern that matches will be applied.
@@ -47,8 +47,6 @@ std::list<Pattern> patterns = {
 
             Block b1 = *blocks.front();
             Block b2 = *blocks.back();
-
-
 
             auto &b1_args = b1.instructions.front().args;
             auto &b2_args = b2.instructions.front().args;
@@ -81,58 +79,11 @@ std::list<Pattern> patterns = {
                     // std::cout << "replacement:" << std::endl;
                     // std::cout << *pattern.replacement.begin() << std::endl;
                     // std::cout << pattern.replacement.back() << std::endl;
+
                     return true;
                 }
             } 
             return false;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-            // Block b1 = *blocks.front();
-            // Block b2 = *blocks.back();
-            // if (b1.def == b2.use && b2.use.find(*b2.def.begin()) == b2.use.end()) {
-            //     auto &b1_args = b1.instructions.front().args;
-            //     auto &b2_args = b2.instructions.front().args;
-                
-            //     if ((std::holds_alternative<DIR>(b1_args[0].access_type) || std::holds_alternative<DIR>(b2_args[1].access_type) 
-            //         && std::holds_alternative<DIR>(b2_args[0].access_type) 
-            //         && std::holds_alternative<DIR>(b1_args[1].access_type))) { 
-            //         pattern.replacement.push_back(b1.instructions.front());
-            //         auto new_instruction = Instruction(b2.instructions.front().operation);
-            //         for (auto arg : b2_args) {
-            //             // convert the target into RegisterType if they are one
-            //             if (std::holds_alternative<Register>(arg.target)) {
-            //                 auto target = std::get<Register>(arg.target);
-            //                 if (b1.def.find(target) != b1.def.end()) {
-            //                     arg.target = convert_register_type_to_target_type(*b1.use.begin());
-            //                 }
-            //             } else if (std::holds_alternative<GenericRegister>(arg.target)) {
-            //                 auto target = std::get<GenericRegister>(arg.target);
-            //                 if (b1.def.find(target) != b1.def.end()) {
-            //                     arg.target = convert_register_type_to_target_type(*b1.use.begin());
-            //                 } 
-            //             }
-            //             new_instruction.args.push_back(arg);
-            //         }
-            //         pattern.replacement.push_back(new_instruction);
-
-            //         return true;
-            //     }
-            //     // }   
-            // }
-            // return false;
         }
     }, {/* replacement */}),
     // Pattern for redundant push and pop optimization

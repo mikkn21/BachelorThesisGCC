@@ -193,7 +193,7 @@ namespace grammar {
         const auto var_decl_statement_def = var_decl >> ';';
 
         const auto statement_expression_def = expression >> ';';
-        const auto statement_def = conditional_statement | while_statement | print_statement | return_statement | break_statement | continue_statement | var_assign | var_decl_statement | var_decl_assign | array_index_assign | statement_expression;
+        const auto statement_def = conditional_statement | while_statement | print_statement | return_statement | break_statement | continue_statement | var_assign | array_index_assign | statement_expression;
 
         const auto break_statement_def = x3::lit("break") > ';';
         const auto continue_statement_def = x3::lit("continue") > ';';
