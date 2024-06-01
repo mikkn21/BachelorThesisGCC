@@ -278,7 +278,11 @@ main:
 	pushq %r10	# save r10
 	pushq %r11	# save r11
 	pushq %rsp	# save rsp
+<<<<<<< HEAD
 	pushq $44	# pushing register argument
+=======
+	pushq $46	# pushing register argument
+>>>>>>> db0a3f7db7f05719a99d93f2e11d29cb19fce1b1
 	movq -48(%rbp), %r12	# Generic Register Translation
 	movq %rbp, %r12	# calculating static link for function call
 	movq %r12, -48(%rbp)	# move result back to Generic Register
