@@ -192,7 +192,7 @@ void rewrite_program(Function &func, LivenessAnalysis &blocks, std::set<GenericR
             }
         }
 
-        for (Instruction &inst : (*blocks_iter)->instructions) {
+        for (size_t i = 0; i < (*blocks_iter)->instructions.size(); ++i) {
             Instruction &instruction = *code_iter;
             for (auto &arg : instruction.args) {
                 if (std::holds_alternative<GenericRegister>(arg.target)) {

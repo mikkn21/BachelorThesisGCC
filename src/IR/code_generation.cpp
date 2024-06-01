@@ -100,7 +100,7 @@ private:
             size_t depth = current_scope.depth - target_var_symbol.var_decl->id.scope->depth;
             GenericRegister static_link_reg = code.new_register();
             code.push(Instruction(Op::MOVQ, Arg(Register::RBP, DIR()), Arg(static_link_reg, DIR()), "starting static linking read"));
-            for (auto i = 0; i < depth; i++) {
+            for (size_t i = 0; i < depth; i++) {
                 code.push(Instruction(Op::MOVQ, Arg(static_link_reg, IRL(16)), Arg(static_link_reg, DIR())));
             }
             long target_stack_offset = callee_offset + (target_var_symbol.ir_data.stack_offset + 1) * -8;
@@ -116,7 +116,7 @@ private:
             GenericRegister static_link_reg = code.new_register();
             size_t depth = current_scope.depth - target_var_symbol.var_decl->id.scope->depth;
             code.push(Instruction(Op::MOVQ, Arg(Register::RBP, DIR()), Arg(static_link_reg, DIR()), "starting static linking write"));
-            for (auto i = 0; i < depth; i++) {
+            for (size_t i = 0; i < depth; i++) {
                 code.push(Instruction(Op::MOVQ, Arg(static_link_reg, IRL(16)), Arg(static_link_reg, DIR())));
             }
             long target_stack_offset = callee_offset + (target_var_symbol.ir_data.stack_offset + 1) * -8;
