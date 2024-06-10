@@ -315,14 +315,15 @@ LivenessAnalysis liveness_analysis(const std::list<Instruction> &code) {
             Live in_copy = blocks[i]->in;
             Live out_copy = blocks[i]->out;
             // blocks[i]->in.clear();
+            for (auto *succ_block : blocks[i]->successors) {
+                blocks[i]->out.insert(succ_block->in.begin(), succ_block->in.end());
+            }
             std::set_difference(blocks[i]->out.begin(), blocks[i]->out.end(),
                         blocks[i]->def.begin(), blocks[i]->def.end(),
                         std::inserter(blocks[i]->in, blocks[i]->in.begin()));
             blocks[i]->in.insert(blocks[i]->use.begin(), blocks[i]->use.end());
             // blocks[i]->out.clear();
-            for (auto *succ_block : blocks[i]->successors) {
-                blocks[i]->out.insert(succ_block->in.begin(), succ_block->in.end());
-            }
+
             is_consistent = (is_consistent && blocks[i]->in == in_copy && blocks[i]->out == out_copy);
         }
     } while (!is_consistent);
