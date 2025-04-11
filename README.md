@@ -14,7 +14,7 @@ The core aim was to gain practical experience with compiler phases, from scannin
 
 **For a  more comprehensive overview of the project scope, please refer to the detailed project statement document:**
 
-➡️ **[View the complete Project Statement](./assets/Bachelor__Project__Statement.pdf)** ⬅️
+➡️ **[View the complete Project Statement](./assets/Bachelor___Project_Statement.pdf)** ⬅️
 
 ## Key Implemented Features:
 
