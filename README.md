@@ -34,6 +34,7 @@ The core aim was to gain practical experience with compiler phases, from scannin
 *   **Cross-Platform Build System (CMake):** Utilized **CMake** to create a robust build system, automating compilation and linking dependencies (like Boost) across both **Linux** and **macOS**.
 *   **Runtime Checks:** Includes checks for accessing `beta` (null-equivalent) values for arrays.
 *   **Testing:** Developed with a comprehensive test suite using [Boost.Test](https://www.boost.org/doc/libs/1_88_0/libs/test/doc/html/index.html) and automated testing via GitHub Actions within a Docker environment.
+*   **Benchmarking:** Evaluated the performance impact of different optimization and register allocation strategies using **Fibonacci**, **Merge Sort**, and **Matrix-Matrix Multiplication** programs implemented in the Giga Chad Language (GCL). The GCL source code for these benchmarks can be found in the [`benchmark`](./benchmark) folder (See thesis for results).
 
 ## Full Thesis Document
 
