@@ -31,6 +31,7 @@ The core aim was to gain practical experience with compiler phases, from scannin
     *   **Register Allocation:** Implements both a naive stack-based approach and a "smart" method using **Graph Colouring by Simplification** based on liveness information.
 *   **Emit Phase:** Converts the optimized IR into final x86-64 assembly code.
 *   **Command-Line Interface (CLI):** Built using [**Boost.Program_options**](https://www.boost.org/doc/libs/1_88_0/doc/html/program_options.html) to provide flags for controlling compiler behaviour (e.g., stopping after specific phases, disabling peephole optimization, selecting register allocation strategy), facilitating easy testing and benchmarking.
+*   **Cross-Platform Build System (CMake):** Utilized **CMake** to create a robust build system, automating compilation and linking dependencies (like Boost) across both **Linux** and **macOS**.
 *   **Runtime Checks:** Includes checks for accessing `beta` (null-equivalent) values for arrays.
 *   **Testing:** Developed with a comprehensive test suite using [Boost.Test](https://www.boost.org/doc/libs/1_88_0/libs/test/doc/html/index.html) and automated testing via GitHub Actions within a Docker environment.
 
