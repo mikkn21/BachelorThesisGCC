@@ -14,7 +14,7 @@ The core aim was to gain practical experience with compiler phases, from scannin
 
 **For a  more comprehensive overview of the project scope, please refer to the detailed project statement document:**
 
-➡️ **[View the complete Project Statement](./path/to/your/Project_Statement.pdf)** ⬅️
+➡️ **[View the complete Project Statement](./assets/Bachelor__Project__Statement.pdf)** ⬅️
 
 ## Key Implemented Features:
 
@@ -38,7 +38,7 @@ The core aim was to gain practical experience with compiler phases, from scannin
 
 For a complete understanding of the language design, compiler architecture, implementation details, optimizations, and benchmarks, please refer to the full Bachelor thesis document:
 
-➡️ **[Read the full Bachelor Thesis](./path/to/your/Thesis_Giga_Chad_Compiler.pdf)** ⬅️
+➡️ **[Read the full Bachelor Thesis](./assets/Thesis_Giga_Chad_Compiler.pdf)** ⬅️
 
 > [!IMPORTANT]
 > Please note that the git commit history might not fully reflect the individual contributions, as we pair programmed using the [VS Code Live Share extension](https://marketplace.visualstudio.com/items/?itemName=MS-vsliveshare.vsliveshare).
