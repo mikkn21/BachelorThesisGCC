@@ -1,3 +1,50 @@
+## About This Project
+This repository houses the source code for a compiler, the result of a Bachelor's thesis project focused on understanding compiler construction and programming language design.
+This was a group project along with [@jonas-bork](https://github.com/jonas-bork), [@sofusl90](https://github.com/sofusl90) and [@Caerullean ](https://github.com/Caerullean). 
+
+The project involved:
+1.  Designing a small, custom high-level language.
+2.  Implementing a compiler in **C++** that translates this language into **x86-64 Linux assembly**.
+
+The compiler's architecture follows the layered approach (adapted from Appel's "Modern Compiler Implementation"), utilizing the **Boost.Spirit** library for efficient parsing based on Parsing Expression Grammars (PEG).
+
+## Project Goals & Scope
+
+The core aim was to gain practical experience with compiler phases, from scanning and parsing to semantic analysis and code generation, including low-level optimizations like peephole optimization.
+
+**For a  more comprehensive overview of the project scope, please refer to the detailed project statement document:**
+
+➡️ **[View the complete Project Statement](./path/to/your/Project_Statement.pdf)** ⬅️
+
+## Key Implemented Features:
+
+*   **Parsing:** Combines lexical and syntax analysis using [**Boost.Spirit X3**](https://www.boost.org/doc/libs/develop/libs/spirit/doc/x3/html/index.html) and [Parsing Expression Grammars (PEG)](https://en.wikipedia.org/wiki/Parsing_expression_grammar) to generate an Abstract Syntax Tree (AST).
+*   **Semantic Analysis:**
+    *   Symbol Collection: Manages scopes, variables, functions, and classes.
+    *   Type Checking: Verifies type correctness using a producer-consumer scheme on the AST.
+*   **Code Generation:**
+    *   Translates the AST to a custom Intermediate Representation (IR).
+    *   Utilizes **Activation Records** and **Static Linking** to support nested structures and scopes.
+*   **Optimizations:**
+    *   **Liveness Analysis:** Determines variable lifetimes.
+    *   **Peephole Optimization:** Eliminates redundant instructions in the IR.
+    *   **Register Allocation:** Implements both a naive stack-based approach and a "smart" method using **Graph Colouring by Simplification** based on liveness information.
+*   **Emit Phase:** Converts the optimized IR into final x86-64 assembly code.
+*   **Command-Line Interface (CLI):** Built using [**Boost.Program_options**](https://www.boost.org/doc/libs/1_88_0/doc/html/program_options.html) to provide flags for controlling compiler behaviour (e.g., stopping after specific phases, disabling peephole optimization, selecting register allocation strategy), facilitating easy testing and benchmarking.
+*   **Runtime Checks:** Includes checks for accessing `beta` (null-equivalent) values for arrays.
+*   **Testing:** Developed with a comprehensive test suite using [Boost.Test](https://www.boost.org/doc/libs/1_88_0/libs/test/doc/html/index.html) and automated testing via GitHub Actions within a Docker environment.
+
+## Full Thesis Document
+
+For a complete understanding of the language design, compiler architecture, implementation details, optimizations, and benchmarks, please refer to the full Bachelor thesis document:
+
+➡️ **[Read the full Bachelor Thesis](./path/to/your/Thesis_Giga_Chad_Compiler.pdf)** ⬅️
+
+> [!IMPORTANT]
+> Please note that the git commit history might not fully reflect the individual contributions, as we pair programmed using the [VS Code Live Share extension](https://marketplace.visualstudio.com/items/?itemName=MS-vsliveshare.vsliveshare).
+
+---
+
 # Bachelor - Giga Chad Compiler
 
 <p align="center">
